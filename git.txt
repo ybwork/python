@@ -1,0 +1,141 @@
+Оглавление
+
+	Git flow
+
+	SSH
+
+	Merge request
+
+	Rebase
+
+	Commit
+
+	Команды
+
+	Gitignore
+
+Git flow
+
+	Это модель управления ветками.
+
+	Есть 2 основные ветки master и develop.
+
+	В мастер содержиться тот же код, что и в рабочей версии продукта.
+
+	Вся работа делается в ветке develop.
+
+	Во время работы на основе develop создаются так называемые feature-ветки. Их может быть неограниченное количество.
+
+	Закончив работу на feature-ветке, вы сливаете ее с develop.
+
+	Если вы довольны текущей версией, но хотите продолжить работу, создается ветка release, куда перемещается текущая версия develop с новыми фичами. Правка багов будет происходить на этой же ветке.
+
+	Когда с веткой release покончено, время слить ее в master и продолжить работу с develop.
+
+SSH
+
+	cd ~/.ssh
+
+	ls
+
+	Если есть, то увижу файлы id_dsa и id_dsa.pub
+
+	ssh-keygen - создаём ssh
+
+	cat ~/.ssh/id_rsa.pub - проверяем ssh на наличие
+
+	Переходим в github -> Settings -> SSH Keys -> Add SSH key и добавляем ключ
+
+	ssh-agent - переходим в ssh-agent
+
+	Если видим вывод после команды, то всё ок. Если нет, то запускаем ssh-agent в фоне eval "$(ssh-agent -s)"
+
+	Добавляем ключ ssh-add ~/.ssh/id_rsa
+
+	git remote add ror-events git@github.com:ybwork/ror-events.git
+
+	git push ror-events master
+
+Merge request
+
+	создаём ветку
+
+	делаем коммит
+
+	пушим ветку
+
+	в gitlab или github делаем merge/pull request
+
+	называем ветку и делаем коммиты на английском
+
+	при создании merge/pull request заголовок называем в формате "Исправляет что/Добавляет новый функционал"
+
+Rebase
+
+	Когда создал merge request и продолжил делать коммиты на ветке events, git не видит коммиты после merge request. Чтобы исправить это нужно:
+
+	Сделать коммит на ветке events
+
+	Переключиться на ветку master
+
+	Сделать pull - git pull origin master
+
+	Переключиться на ветку events
+
+	Сделать rebase - git rebase master - добавляет коммиты, которые делались после merge request в ветку master
+
+	Остаться на ветке events
+
+	Сделать push force - git push --force
+
+	Если после review есть ошибки, продолжить исправлять их на ветке events
+
+Commit
+
+	Точка в конце не нужна.
+
+	Должен называться по форме refactor subsystem X for readability.
+
+Команды
+
+	git branch - показывает все ветки
+
+	git checkout -b name_branch - создаёт ветку и переключает на неё	
+
+	git branch name_branch - создаёт ветку
+
+	git checkout - переключает на ветку
+
+	git branch -v - показывает последний коммит на ветке
+
+	git branch --merged - посмотреть те ветки, которые слил с текущей
+
+	git branch --no-merged - посмотреть те ветки, которые пока ещё не слили в текущую ветку
+
+	git branch -d - удалить ветку если слил всё в мастер
+
+	git branch -D - удалить ветку если не слил всё в мастер, но нужно удалить
+
+	git merge name_branch - делаем с той ветки на которую хотим залить, а имя должно быть той ветки, которую сливаем
+
+	git push name_repo name_branch - заливает данные в репозиторий, имя ветки может быть любое, в том числе и то на которой я сейчас нахожусь
+
+	git log - просмотр коммитов
+
+	git clone name_repo - клонирует уже существующий репозиторий
+
+	git remote add short_name_repo link_on_repo - привязывает ссылку репозитория к короткому названию, через которое потом можно обращаться
+
+	git remote -v - показывает привязанные репозитории
+
+	git rebase master - добавляет коммиты, которые делались после merge request в ветку master
+
+	git push --force
+
+Gitignore
+
+    type nul > .gitignore (создали файл .gitignore в windows)
+
+    git rm -r --cached .idea (исключаем папку/файл из репозитория, если она там есть)
+
+    добавили в файл .gitignore, то что нужно игнорировать (.idea)

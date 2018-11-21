@@ -1,0 +1,53 @@
+Оглавление
+
+	sudo cd /etc/init.d
+
+	sudo nano script_name.sh
+
+	внутри скрипта:
+		#!/bin/bash
+		код скрипта
+
+sh script_name.sh - проверили скрипта на работоспособность
+
+sudo chmod +x /etc/init.d/script_name.sh - делает файл исполняемым
+
+sudo update-rc.d script defaults 90 - добавляет файл к автозагрузке
+
+reboot - перезапуск системы
+
+sudo apt-get update - получить обновлённые списки пакетов
+
+sudo apt-get install package_name - установка нового пакета
+
+sudo apt-get remove package_name - удаление пакета
+
+touch file.txt
+
+ls - смотреть, что в директории
+
+ls -a - смотреть, что в директории (в том числе и скрытое)
+
+sudo nano file_name - открытие файла для редактирования в терминале
+
+cat file_name.txt - показывает содержимое файла
+
+./file.txt - выполняет файл
+
+zip -r folder.zip ./ - запаковать текущую папку с подпапками в zip-архив folder.zip
+
+unzip ./folder.zip -d ./folder - распаковать архив в папку folder
+
+rm -rf folder_name - удалить директорию
+
+ls -a ~/ - просмотр скрытых файлов
+
+pwd - показывает имя текущей директории
+
+mkdir name_dir - создаёт директорию
+
+
+
+
+
+
