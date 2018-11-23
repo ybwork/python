@@ -1,5 +1,11 @@
 Оглавление
 
+	Команды
+
+	Исполняемый файл
+
+Исполняемый файл
+
 	sudo cd /etc/init.d
 
 	sudo nano script_name.sh
@@ -8,43 +14,45 @@
 		#!/bin/bash
 		код скрипта
 
-sh script_name.sh - проверили скрипта на работоспособность
+	sh script_name.sh - проверили скрипта на работоспособность
 
-sudo chmod +x /etc/init.d/script_name.sh - делает файл исполняемым
+	sudo chmod +x /etc/init.d/script_name.sh - делает файл исполняемым
 
-sudo update-rc.d script defaults 90 - добавляет файл к автозагрузке
+	sudo update-rc.d script defaults 90 - добавляет файл к автозагрузке
 
-reboot - перезапуск системы
+	reboot - перезапуск системы
 
-sudo apt-get update - получить обновлённые списки пакетов
+Команды
 
-sudo apt-get install package_name - установка нового пакета
+	sudo apt-get update - получить обновлённые списки пакетов
 
-sudo apt-get remove package_name - удаление пакета
+	sudo apt-get install package_name - установка нового пакета
 
-touch file.txt
+	sudo apt-get remove package_name - удаление пакета
 
-ls - смотреть, что в директории
+	touch file.txt
 
-ls -a - смотреть, что в директории (в том числе и скрытое)
+	ls - смотреть, что в директории
 
-sudo nano file_name - открытие файла для редактирования в терминале
+	ls -a - смотреть, что в директории (в том числе и скрытое)
 
-cat file_name.txt - показывает содержимое файла
+	sudo nano file_name - открытие файла для редактирования в терминале
 
-./file.txt - выполняет файл
+	cat file_name.txt - показывает содержимое файла
 
-zip -r folder.zip ./ - запаковать текущую папку с подпапками в zip-архив folder.zip
+	./file.txt - выполняет файл
 
-unzip ./folder.zip -d ./folder - распаковать архив в папку folder
+	zip -r folder.zip ./ - запаковать текущую папку с подпапками в zip-архив folder.zip
 
-rm -rf folder_name - удалить директорию
+	unzip ./folder.zip -d ./folder - распаковать архив в папку folder
 
-ls -a ~/ - просмотр скрытых файлов
+	rm -rf folder_name - удалить директорию
 
-pwd - показывает имя текущей директории
+	ls -a ~/ - просмотр скрытых файлов
 
-mkdir name_dir - создаёт директорию
+	pwd - показывает имя текущей директории
+
+	mkdir name_dir - создаёт директорию
 
 
 
