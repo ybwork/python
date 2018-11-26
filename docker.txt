@@ -50,6 +50,8 @@
 
 	Docker даёт возможность запускать несколько контейнеров на одном хосте
 
+	Плюсы докера в его слоистости. Мы можем создать образ с системой и на его основе контейнер, а сверху наслаивать другие сервисы (например postgres и nginx). В итоге мы получаем не три контейнера, где каждый имеет свою ос, а три контейнера на основе одной ос. Тем самым экономится место.
+
 Установка
 
 	sudo apt-get update
@@ -148,7 +150,13 @@
 
 	docker run -d --network=my-bridge-network --name db training/postgres - добавление в сеть нового контейнера, это делает часть --network=my-bridge-network
 
-	docker run -d -P --name web -v /webapp training/webapp python app.py - запускает контейнер и создаёт том данных для него, это делает часть -v /webapp
+	docker run -d -P --name web -v /webapp training/webapp python app.py - запускает контейнер и создаёт том данных для него, это делает часть -v /webapp	
+
+	docker stop $(docker ps -a -q) - останавливает все контейнеры
+
+	docker rm $(docker ps -a -q) - удаляет все остановленные контейнеры
+
+	docker rmi $(docker images -q)- удаляет все образы
 
 Docker Engine
 
@@ -396,7 +404,6 @@ Docker Engine
 
 		python app.py - команда для запуска контейнера
 
-
 Docker Hub
 
 	Docker Hub - это публичный реестр образов
@@ -411,7 +418,7 @@ Docker Hub
 
 		nginx
 
-		php
+		php-fpm
 
 	Связать контейнеры между собой
 
