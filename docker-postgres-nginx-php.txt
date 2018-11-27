@@ -1,27 +1,28 @@
 Иструкция.
-	
-	docker run --name db -p 5462:5432 -e POSTGRES_PASSWORD=asdf1234 -d postgres
 
-	docker run -it --rm --link db:postgres postgres psql -h postgres -U postgres - позволяет зайти в psql
+	Postgres
 
-	CREATE DATABASE docker OWNER postgres;
+		docker run --name db -v postgres-vol:/main -p 5462:5432 -e POSTGRES_PASSWORD=asdf1234 -d postgres
 
-	\c db_name
+		docker run --name db -p 5462:5432 -e POSTGRES_PASSWORD=asdf1234 -d postgres
 
-	CREATE TABLE users (id integer, name varchar(255), PRIMARY KEY(id));
+		docker run -it --rm --link db:postgres postgres psql -h postgres -U postgres - позволяет зайти в psql
 
-	\dt
+		docker run --name db -v postgres-vol:/main -it --rm --link db:postgres -d postgres psql -h postgres -U postgres - позволяет зайти в psql
 
-	INSERT INTO users VALUES (1, 'Ilya');
+		CREATE DATABASE docker OWNER postgres;
 
-	создаём Dockerfile для nginx, где внутри 
+		\c db_name
 
-		FROM nginx
-		COPY index.html ./usr/share/nginx/html - копирует index.html в директорию ./usr/share/nginx/html (index.html должен быть в директории с Dockerfile)
+		CREATE TABLE users (id integer, name varchar(255), PRIMARY KEY(id));
 
-	docker build -t image_name .
+		\dt
 
-	docker run -p 8080:80 -d image_name
+		INSERT INTO users VALUES (1, 'Ilya');
+
+	Nginx
+
+		docker run --name server -v nginx:/nginx -p 8080:80 -d nginx
 
 
 

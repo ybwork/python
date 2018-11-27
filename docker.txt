@@ -158,6 +158,16 @@
 
 	docker rmi $(docker images -q)- удаляет все образы
 
+	docker volume create my-vol
+
+	docker volume ls
+
+	docker volume inspect my-vol
+
+	docker volume rm my-vol
+
+	docker container run -it -p 5000:5000 -v /home/user/folder-i-want-to-read/:/path_in_container bjoffe/openface_flask_v2 /bin/bash
+
 Docker Engine
 
 	Это клиент серверное приложение

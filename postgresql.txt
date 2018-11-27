@@ -50,11 +50,15 @@
 
 	Реляционная система управления базами данных - это система, которая позволяет хранить данные в структурированном и целостном виде.
 
-Установка
+Установка и настройка
 
 	sudo apt-get update
 
 	sudo apt-get install postgresql postgresql-contrib
+
+	sudo -u postgres psql
+
+	\password
 
 Команды
 
