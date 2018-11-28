@@ -58,6 +58,8 @@
 		Агрегация (min/max, count, avg)
 
 		Транзакции
+
+		Книги
 '''
 
 # Модели
@@ -772,6 +774,7 @@ with transaction.atomic():
     transaction.on_commit(foo)
 
     try:
+
         with transaction.atomic():
             transaction.on_commit(bar)
             raise SomeError()
@@ -790,3 +793,10 @@ try:
 except Vote.DoesNotExist:
 	vote = Vote(voting=voting, person=person, number_of_votes=1)
 	vote.save()
+
+# Книги
+'''
+	Django design patterns
+
+	Two scoope...
+'''
