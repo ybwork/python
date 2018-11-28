@@ -432,4 +432,28 @@ Docker Hub
 
 	Связать контейнеры между собой
 
+	Postgres
+
+		docker run --name db -v postgres-vol:/main -p 5462:5432 -e POSTGRES_PASSWORD=asdf1234 -d postgres
+
+		docker run --name db -p 5462:5432 -e POSTGRES_PASSWORD=asdf1234 -d postgres
+
+		docker run -it --rm --link db:postgres postgres psql -h postgres -U postgres - позволяет зайти в psql
+
+		docker run --name db -v postgres-vol:/main -it --rm --link db:postgres -d postgres psql -h postgres -U postgres - позволяет зайти в psql
+
+		CREATE DATABASE docker OWNER postgres;
+
+		\c db_name
+
+		CREATE TABLE users (id integer, name varchar(255), PRIMARY KEY(id));
+
+		\dt
+
+		INSERT INTO users VALUES (1, 'Ilya');
+
+	Nginx
+
+		docker run --name server -v nginx:/nginx -p 8080:80 -d nginx
+
 
