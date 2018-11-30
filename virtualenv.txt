@@ -16,6 +16,12 @@ Virtualenvwrapper
 
 	pip install virtualenvwrapper
 
+	Для установки в docker container (нужно писать в каждую новую консоль):
+
+		export WORKON_HOME=~/.virtualenvs
+		VIRTUALENVWRAPPER_PYTHON='/usr/bin/python3'
+		source /usr/local/bin/virtualenvwrapper.sh
+
 	workon - показывает все виртуальные окружения
 
 	workon venv_name - выбирает и запускает виртуальное окружение (для того чтобы выбранное окружение привязалось к конкретному проекту, нужно перейти в директорию с проектом и выполнить эту команду)

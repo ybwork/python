@@ -4,6 +4,8 @@
 	История
 	
 	О языке
+
+	Установка
 	
 	Среда разработки IDLE
 
@@ -96,6 +98,17 @@
 	Эталонной реализацией Python является интерпретатор CPython.
 
 	В Python всё объект.  
+'''
+
+# Установка
+'''
+	sudo apt-get update
+
+	sudo apt-get -y upgrade
+
+	sudo apt-get install -y python3-pip
+
+	python3 -V
 '''
 
 # Среда разработки IDLE

@@ -86,15 +86,27 @@
 
 Команды
 
-	rabbitmqctl list_queues - выводит список очередей
+	sudo rabbitmqctl status - выводит версию
 
-	rabbitmqctl name messages_ready - выводит список выполненных задач
+	sudo rabbitmqctl list_queues - выводит список очередей
 
-	rabbitmqctl name messages_ready messages_unacknowledged - выводит список невыполненных задач
+	sudo rabbitmqctl name messages_ready - выводит список выполненных задач
 
-	rabbitmqctl list_exchanges - выводит список точек обмена
+	sudo rabbitmqctl name messages_ready messages_unacknowledged - выводит список невыполненных задач
 
-	rabbitmqctl list_bindings - выводит список связанных точек обмена с очередями
+	sudo rabbitmqctl list_exchanges - выводит список точек обмена
+
+	sudo rabbitmqctl list_bindings - выводит список связанных точек обмена с очередями
+
+	sudo systemctl enable rabbitmq-server - ключает сервер
+
+	sudo systemctl start rabbitmq-server - запускает сервер
+	
+	sudo systemctl stop rabbitmq-server - останавливает сервер
+
+	sudo rabbitmqctl add_user admin password
+	sudo rabbitmqctl set_user_tags admin administrator
+	sudo rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
 
 Основные понятия
 
