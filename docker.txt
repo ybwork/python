@@ -426,7 +426,56 @@ Docker Compose
 
 	docker-compose up - это команда, которая запускает приложение со всеми его сервисами.
 
-	 
+	Пример:
+
+		mkdir composetest
+		cd composetest
+
+		app.py
+
+			from flask import Flask
+			from redis import Redis
+
+			app = Flask(__name__)
+			redis = Redis(host='redis', port=6379)
+
+			@app.route('/')
+			def hello():
+			    redis.incr('hits')
+			    return 'Hello World! I have been seen %s times.' % redis.get('hits')
+
+			if __name__ == "__main__":
+			    app.run(host="0.0.0.0", debug=True)
+
+		requirements.txt
+
+			flask
+			redis
+
+		Dockerfile
+
+			FROM python:3.7 - создаёт образ на основе образа python:3.7
+			ADD . /code - добавляет текущую директорию в директорию code, которая в образе
+			WORKDIR /code - устанавливает рабочую директорию
+			RUN pip install -r requirements.txt - устанавливает зависимости
+			CMD python app.py - команда, которая выполниться после создания контейнера
+
+		docker build -t web . - собирает образ
+
+		docker-compose.yml
+
+			version: '2'
+			services:
+			  web:
+			    build: . - говорит, что сервис создаётся из Dockerfile в текущем каталоге
+			    ports:
+			     - "5000:5000" - вязывает 5000 порт контейнера с 5000 портом на локальной машине/хосте
+			    volumes:
+			     - .:/code - добавляет текущий каталог с локальной машины/хоста в директорию code, которая в контейнере
+			    depends_on:
+			     - redis - связывает сервис web с сервисом redis
+			  redis:
+			    image: redis - создаёт контейнер на основе образа redis с docker hub
 
 Docker Hub
 
