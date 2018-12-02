@@ -1,0 +1,92 @@
+Оглавление
+
+	Что это
+
+	Установка
+
+	Команды
+
+	Быстрый старт
+
+	Статические файлы
+
+Что это
+
+	Это микрофреймворк написанный на python.
+
+	Flask не включает уровень абстракции баз данных, валидации форм и других встроенных в большие фреймворки вещей.
+
+	Но Flask имеет простое и расширяемое ядро для подключения всего нужно для полноценной разработки веб-приложений.
+
+Установка
+
+	sudo pip install Flask (pip install Flask)
+
+Команды
+
+	python app.py
+
+Быстрый старт
+
+	from flask import Flask
+
+	app = Flask(__name__) - экземпляр этого класса и будет WSGI-приложением, если используется единственный модуль, нужно использовать __name__, потому что в зависимости от того, запущен ли код как приложение, или был импортирован как модуль, это имя будет разным ('__main__' или актуальное имя импортированного модуля)
+
+	@app.route('/')
+	def home():
+		return 'home'
+
+	if __name__ == '__main__':
+		app.run(debug=True)
+
+	python app.py
+
+	http://127.0.0.1:5000/
+
+Маршрутизация
+
+	Для маршрутизации используется модуль Werkzeug. Он встроен.
+
+	@app.route('/')
+
+	@app.route('/post/<int:id>') - возможно задать string, int, float, path (не допускает слеши), uuid
+	def show(id):
+	    return 'post'
+
+	@app.route('/')
+	def index(): pass
+		return 'index'
+	url_for('index', , next='customers') - позволяет создать урл на основе функции def index() в шаблоне, второй аргумент передаёт параметры в запрос и получается /login?next=customers
+
+	@app.route('/login', methods=['GET', 'POST'])
+
+Статические файлы
+
+	По соглашению, шаблоны и статические файлы хранятся в директории static.
+
+	Создать папку static внутри проекта.
+
+	url_for('static', filename='style.css')
+
+Шаблоны
+
+	В качестве шаблонизатора используется Jinja2. Он встроен.
+
+	from flask import render_template
+
+	def hello(name=None):
+    	return render_template('hello.html', name=name)
+
+    Flask будет искать шаблоны в папке templates, которую нужно создать в корне проекта.
+
+    Jinja2 поддерживает наследование.
+
+    Создаём файл layout.hmtl
+
+    	{% block content %} {% endblock %}
+
+    Создаём файл index.html
+
+    	{% extends 'layout.html' %}
+
+    	{% block content %} {% endblock %}

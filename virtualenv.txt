@@ -12,27 +12,44 @@ Virtualenvwrapper
 
 	Упрощает работу с виртуальным окружением
 
-	pip install virtualenv
+	Ubuntu
 
-	pip install virtualenvwrapper
+		pip install virtualenv
 
-	Для установки в docker container (нужно писать в каждую новую консоль):
+		pip install virtualenvwrapper
 
-		export WORKON_HOME=~/.virtualenvs
-		VIRTUALENVWRAPPER_PYTHON='/usr/bin/python3'
-		source /usr/local/bin/virtualenvwrapper.sh
+		Для установки в docker container (нужно писать в каждую новую консоль):
 
-	workon - показывает все виртуальные окружения
+			export WORKON_HOME=~/.virtualenvs
+			VIRTUALENVWRAPPER_PYTHON='/usr/bin/python3'
+			source /usr/local/bin/virtualenvwrapper.sh
 
-	workon venv_name - выбирает и запускает виртуальное окружение (для того чтобы выбранное окружение привязалось к конкретному проекту, нужно перейти в директорию с проектом и выполнить эту команду)
+		workon - показывает все виртуальные окружения
 
-	deactiavate - выход из выбранного виртуального окружения
+		workon venv_name - выбирает и запускает виртуальное окружение (для того чтобы выбранное окружение привязалось к конкретному проекту, нужно перейти в директорию с проектом и выполнить эту команду)
 
-	rmvirtualenv venv_name - удаление виртуального окружения
+		deactiavate - выход из выбранного виртуального окружения
 
-	which python3 - показывает где в систему питон
+		rmvirtualenv venv_name - удаление виртуального окружения
 
-	mkvirtualenv -p /usr/bin/python3 venv_name - создание виртуального окружения для python3
+		which python3 - показывает где в систему питон
 
-	pip freeze list - показывает все установленные пакеты
+		mkvirtualenv -p /usr/bin/python3 venv_name - создание виртуального окружения для python3
 
+		pip freeze list - показывает все установленные пакеты
+
+	Windows
+
+		pip install virtualenvwrapper-win
+
+		Добавляем в переменные среды конкрентного пользователя (например Ilya) переменную WORKON_HOME и путь, где будут храниться venvs.
+
+		lsvirtualenv - показывает все существующие
+
+		mkvirtualenv name_env - создаёт виртуальное окружение
+
+		rmvirtualenv name_env - удаляет окружение
+
+		workon name_env - активирует окружение в той директории из которой произошёл вызов
+
+		deactivate - выключает окружение
