@@ -68,6 +68,8 @@
 
 	url_for('static', filename='style.css')
 
+	<a href="{{ url_for('login') }}">log in</a>
+
 Шаблоны
 
 	В качестве шаблонизатора используется Jinja2. Он встроен.
