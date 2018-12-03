@@ -424,9 +424,21 @@ Docker Compose
 
 	В docker-compose.yml прописываются все сервисы из которых состоит приложение. Например postgresql, django, redis.
 
-	docker-compose up - это команда, которая запускает приложение со всеми его сервисами.
+	Установка
 
-	Пример:
+		sudo curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+
+		sudo chmod +x /usr/local/bin/docker-compose
+
+		docker-compose --version
+
+	Команды
+
+		docker-compose up - запускает приложение со всеми его сервисами.
+
+		docker-compose ps - выводит все сервисы.
+
+	Пример
 
 		mkdir composetest
 		cd composetest
@@ -476,6 +488,45 @@ Docker Compose
 			     - redis - связывает сервис web с сервисом redis
 			  redis:
 			    image: redis - создаёт контейнер на основе образа redis с docker hub
+
+	Пример c Django и PostgreSQL
+
+		Создали Dockerfile
+
+			FROM python:3.7.1
+			ENV PYTHONUNBUFFERED 1
+			RUN mkdir /code
+			WORKDIR /code
+			ADD requirements.txt /code/
+			RUN pip install -r requirements.txt
+			ADD . /code/
+
+		Создали requirements.txt
+
+			Django
+			psycopg2
+
+		Создали docker-compose.yml
+
+			version: '2'
+			services:
+			  db:
+			    image: postgres
+			  web:
+			    build: .
+			    command: python manage.py runserver 0.0.0.0:8000
+			    volumes:
+			      - .:/code
+			    ports:
+			      - "8000:8000"
+			    depends_on:
+			      - db
+
+		docker-compose run web django-admin.py startproject composeexample . - создаёт django проект из образа web (поскольку образ ещё не создан, compose начнёт сборку автоматически из текущего каталога)
+
+ 		sudo chown -R user:user . - меняем владельца файлов
+
+ 		Устанавливаем подключение с бд в файле settings.py, который в нашем проекте composeexample.
 
 Docker Hub
 
