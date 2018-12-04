@@ -1,7 +1,0 @@
-Изучить
-
-	nginx
-
-	связка в одном контейнере nginx + wsgi/gunicorn + django/flask
-
-	связка в разных контейнерах nginx + wsgi/gunicorn + django/flask
