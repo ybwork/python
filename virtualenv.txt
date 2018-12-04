@@ -38,6 +38,8 @@ Virtualenvwrapper
 
 		pip freeze list - показывает все установленные пакеты
 
+		ls ~/.virtualenvs/ - место, где хранятся все виртуальные окружение, обычно директории с точками скрыты если смотреть не через консоль
+
 	Windows
 
 		pip install virtualenvwrapper-win

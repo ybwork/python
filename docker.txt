@@ -528,6 +528,16 @@ Docker Compose
 
  		Устанавливаем подключение с бд в файле settings.py, который в нашем проекте composeexample.
 
+ 			'ENGINE': 'django.db.backends.postgresql_psycopg2',
+	        'NAME': 'postgres',
+	        'USER': 'postgres',
+	        'HOST': 'db',
+	        'PORT': '5432'
+
+	    	Если нужно нормальное подключение, то заходим в терминал контейнера postgres и создаём новую бд.
+
+	    Переходим в директорию, где лежит docker-compose.yml и выполняем docker-compose up.
+
 Docker Hub
 
 	Docker Hub - это публичный реестр образов
