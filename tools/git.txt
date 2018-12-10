@@ -132,6 +132,10 @@ Commit
 
 	git push --force
 
+	git config --list
+
+	git config user.name
+
 Gitignore
 
     type nul > .gitignore (создали файл .gitignore в windows)
