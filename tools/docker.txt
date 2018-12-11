@@ -25,6 +25,8 @@
 	Что происходит при запуске контейнера?
 
 	Сетевые контейнеры
+
+	Консоль контейнера
 	
 	Тома данных (volumes)
 
@@ -347,6 +349,14 @@ Docker Engine
 	docker exec -it db bash - заходим в терминал контейнера
 
 		ping web - проверяем доступность другого контейнера в сети
+
+Консоль контейнера
+
+	docker exec -it container_name bash
+
+	apt-get udpate
+
+	apt-get install package_name
 
 Тома данных (volumes)
 
