@@ -70,6 +70,16 @@
 
  	kill -9 -process_pid_int - убивает процесс, (process_pid_int это вторая колонка в выводе всех процессов сервиса)
 
+ 	adduser user_name - создаёт пользователя в системе
+
+ 	cut -d: -f1 /etc/passwd - выводит список пользователей в системе
+
+ 	ls -l dir_name - проверяем доступ к директории
+
+ 	mv /home/user/oldname /home/user/newname - переименовывает директорию
+
+ 	mv old_file_name.conf new_file_name.conf - переименовывает файл
+
 
 
 

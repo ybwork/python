@@ -15,3 +15,32 @@
 		Соопрограммы и генераторы python (коротко)
 
 		Asyncio
+
+Транзакции
+
+Выборки
+
+Insert From Select
+
+Основы администрирования
+
+Как работает
+
+Lateral JOIN
+
+View
+
+----------------------
+
+web app servers отличия
+
+wsgi
+
+uwsgi
+
+sapi
+
+redirect proxy отличия
+
+----------------------
+
