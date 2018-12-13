@@ -64,6 +64,12 @@
 
  	sudo chown -R $USER:$USER . - позволяет сменить владельца файлов в текущей директории
 
+ 	find ~/ -type f -name "file_name" - ищет файл
+
+ 	ps -ef | grep service_name - находит все процессы конкретного сервиса
+
+ 	kill -9 -process_pid_int - убивает процесс, (process_pid_int это вторая колонка в выводе всех процессов сервиса)
+
 
 
 

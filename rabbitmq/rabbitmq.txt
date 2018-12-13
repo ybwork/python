@@ -44,9 +44,7 @@
 
 	Docker
 
-	Fanout (пример)
-
-	Topic (пример)
+	Нюансы
 
 Что это
 
@@ -349,107 +347,34 @@ Docker
 
 		docker exec -it container_name bash
 
-Fanout (пример)
-
-	task.py
-
-		import pika
-		import sys
-
-		connection = pika.BlockingConnection(pika.ConnectionParameters(host='127.0.0.1'))
-		channel = connection.channel()
-
-		channel.exchange_declare(
-			exchange='accounts',
-			exchange_type='fanout'
-		)
-
-		message = sys.argv[1]
-
-		channel.basic_publish(
-			exchange='accounts',
-			routing_key='',
-			body=message
-		)
-
-		print('Sent {}'.format(message))
-
-		connection.close()
-
-	worker.py
-
-		import pika
-		import sys
-
-		connection = pika.BlockingConnection(pika.ConnectionParameters(host='127.0.0.1'))
-		channel = connection.channel()
-
-		channel.exchange_declare(
-		    exchange='accounts',
-		    exchange_type='fanout'
-		)
-
-		queue_name = sys.argv[1]
-
-		channel.queue_declare(queue=queue_name)
-
-		channel.queue_bind(
-		    exchange='accounts',
-		    queue=queue_name
-		)
-
-
-		def callback(ch, method, properties, body):
-		    print(body)
-
-
-		channel.basic_consume(
-		    callback,
-		    queue=queue_name,
-		    no_ack=True
-		)
-
-		channel.start_consuming()
-
-Topic (пример)
-
-	task.py
-
-	worker.py
-
 Нюансы
 
 	Если поставщик и подписчики на одном сервере, то имеет смысл разруливать всё с помощью параметров подписчиков внутри callback.
 
 	Если поставщик и подписчики на разных серверах, то имеет смысл сделать роутр, который будет всё разруливать.
-	
-Задача
 
-	Поднять рэбит на хост машине
+	Если обращаемся с другого севера, то нужно создать нового пользователя и настроить подключение в pika:
+
+		credentials = pika.PlainCredentials('yet', 'asdfasdf')
+		parameters = pika.ConnectionParameters(
+			'172.17.0.1',
+			port=5672,
+			credentials=credentials
+		)
+
+Задача
 
 	Создать контейнер task
 
-		Волюм
-
-		Питон
-
-		Вэнв
+		Волюм, Питон
 
 	Создать контейнер web
 
-		Волюм
-
-		Питон
-
-		Вэнв
+		Волюм, Питон
 
 	Создать контейнер service
 
-		Волюм
-
-		Питон
-
-		Вэнв
+		Волюм, Питон
 
 	Создать в контейнере task
 
@@ -459,11 +384,9 @@ Topic (пример)
 
 		файл router.py, который всё разруливает
 
-			если create_user, то пошли add_user_to_mail на порт 76
+			если create_user, то пошли add_user_to_mail
 
-			если added_user_to_mail, то пошли add_user_to_redmine на порт 77
-
-		порт 75
+			если added_user_to_mail, то пошли add_user_to_redmine
 
 	Создать в контейнере service
 
@@ -473,9 +396,7 @@ Topic (пример)
 
 		роутинг кей add_user_to_mail
 
-		в callback принт "добавлен в почту" и новое событие "added_user_to_mail" на порт 75 в роутер
-
-		порт 76
+		в callback принт "добавлен в почту" и новое событие "added_user_to_mail"
 
 	Создать в контейнере web
 
@@ -485,9 +406,7 @@ Topic (пример)
 
 		роутинг кей create_user
 
-		в callback принт "добавлен в редмайн" и новое событие "added_to_redmine" в роутер
-
-		порт 77
+		в callback принт "добавлен в редмайн" и новое событие "added_to_redmine"
 
 	Первый посылает сообщение "создать польователя"
 
@@ -496,6 +415,9 @@ Topic (пример)
 
 	Третий с именем "сектор сервис" "добавляет в почту", при сообщениии "создать пользователя"
 		посылает сообщение "я добавил в почту, добавь в редмайн"
+
+
+	-----------------------
 
 	docker pull ubuntu
 
@@ -507,8 +429,13 @@ Topic (пример)
 
 	docker start container_id
 
+	------------------------------
+
+	apt-get install -y python3-pip
+
+	pip3 install pika
 
 
 
-	
+
 

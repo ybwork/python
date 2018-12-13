@@ -412,7 +412,7 @@ Docker Engine
 
 	docker run -d -P training/webapp python app.py - запускает контейнер в фоновом режиме и связывает все необходимые порты с портами на локальной машине
 
-	docker run -d -p 80:5000 training/webapp python app.py - параметр 80:5000 позволяет чётко указать, какой порт с каким нужно связать
+	docker run -d -p 80:5000 training/webapp python app.py - параметр 80:5000 (current:new) позволяет чётко указать, какой порт с каким нужно связать
 
 	docker-machine ip my-docker-vm - позволяет посмотреть IP-адрес виртуального хоста
 
