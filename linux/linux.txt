@@ -80,6 +80,10 @@
 
  	mv old_file_name.conf new_file_name.conf - переименовывает файл
 
+ 	lsb_release -a - выводит версию системы
+
+ 	ping localhost - пингует сервер (если он не доступен, пишет Name or service not known)
+
 
 
 
