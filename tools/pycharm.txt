@@ -1,0 +1,9 @@
+Оглавление
+
+	Команды
+
+Команды
+
+	cntl + alt + s - вызывает окно настроек
+
+	cntl + alt + s -> Project: project_name -> Project interpreter

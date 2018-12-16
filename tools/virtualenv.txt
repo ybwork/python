@@ -6,7 +6,9 @@
 
 Что это
 
-	virtualenv - виртуальное окружение, которое позволяет для каждого проекта хранить зависимости в отдельных окружениях, а глобально в системе 
+	virtualenv - виртуальное окружение, которое позволяет для каждого проекта хранить зависимости в отдельных окружениях, а глобально в системе.
+
+	Когда мы запускаем виртуальный сервер, оно умеет обрабатывать http запросы и запускать python приложение.
 
 Virtualenvwrapper
 
@@ -19,6 +21,12 @@ Virtualenvwrapper
 		pip install virtualenvwrapper
 
 		Для установки в docker container (нужно писать в каждую новую консоль):
+
+			apt-get python-pip
+
+			pip install virtualenv
+
+			pip install virtualenvwrapper
 
 			export WORKON_HOME=~/.virtualenvs
 			VIRTUALENVWRAPPER_PYTHON='/usr/bin/python3'
@@ -37,6 +45,8 @@ Virtualenvwrapper
 		mkvirtualenv -p /usr/bin/python3 venv_name - создание виртуального окружения для python3
 
 		pip freeze list - показывает все установленные пакеты
+
+		ls ~/.virtualenvs/ - место, где хранятся все виртуальные окружение, обычно директории с точками скрыты если смотреть не через консоль
 
 	Windows
 

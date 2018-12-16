@@ -25,6 +25,8 @@
 	Что происходит при запуске контейнера?
 
 	Сетевые контейнеры
+
+	Консоль контейнера
 	
 	Тома данных (volumes)
 
@@ -41,6 +43,8 @@
 	Docker Compose
 
 	Docker Hub
+
+	Нюансы
 
 	Задача
 
@@ -81,6 +85,34 @@
 	id -nG
 
 Команды
+
+	docker pull ubuntu
+
+	docker run -i -t -v ~/rabbit/task_with_docker/task:/home --name task ubuntu
+
+		exit
+
+	docker ps -l -> contaner_id
+
+	docker start container_id
+
+	-------------------------------
+
+	docker ps - запущенные контейнеры
+
+	docker ps -a - все контейнеры
+
+	docker ps -l - последний созданный контейнер
+
+	docker start d9b100f2f636 (номер контейнера берём из списка всех или созданных)
+
+	docker stop $(docker ps -a -q) - останавливает все контейнеры
+
+	docker rm $(docker ps -a -q) - удаляет все остановленные контейнеры
+
+	docker rmi $(docker images -q)- удаляет все образы
+
+	--------------------------------------------------------------------------------
 
 	docker version
 
@@ -155,12 +187,6 @@
 	docker run -d --network=my-bridge-network --name db training/postgres - добавление в сеть нового контейнера, это делает часть --network=my-bridge-network
 
 	docker run -d -P --name web -v /webapp training/webapp python app.py - запускает контейнер и создаёт том данных для него, это делает часть -v /webapp	
-
-	docker stop $(docker ps -a -q) - останавливает все контейнеры
-
-	docker rm $(docker ps -a -q) - удаляет все остановленные контейнеры
-
-	docker rmi $(docker images -q)- удаляет все образы
 
 	docker volume create my-vol
 
@@ -348,6 +374,16 @@ Docker Engine
 
 		ping web - проверяем доступность другого контейнера в сети
 
+Консоль контейнера
+
+	docker exec -it container_name bash
+
+	apt-get udpate
+
+	apt-get install package_name
+
+	cntl + й - выход
+
 Тома данных (volumes)
 
 	Том данных - это специально отведенная директория для контейнера.
@@ -356,7 +392,7 @@ Docker Engine
 
 	Обычно в томах хранят файлы конфигурации для контейнера.
 
-	Находятся на локальной машине пользователя и существую независимо от контейнера.
+	Находятся на локальной машине пользователя и существуют независимо от контейнера.
 
 	Выручают, если мы случайно удалили нужный контейнер. В таком случае конфиги к нему никогда не потеряются.
 
@@ -376,11 +412,13 @@ Docker Engine
 
 	docker run -d -P training/webapp python app.py - запускает контейнер в фоновом режиме и связывает все необходимые порты с портами на локальной машине
 
-	docker run -d -p 80:5000 training/webapp python app.py - параметр 80:5000 позволяет чётко указать, какой порт с каким нужно связать
+	docker run -d -p 80:5000 training/webapp python app.py - параметр 80:5000 (current:new) позволяет чётко указать, какой порт с каким нужно связать
 
-	docker-machine ip my-docker-vm - позволяет посмотреть P-адрес виртуального хоста контейнерах
+	docker-machine ip my-docker-vm - позволяет посмотреть IP-адрес виртуального хоста
 
-	docker port container_name 5000 - позволяет увидеть номер внешнего порта привязанного к внутреннему 5000 порту в контейнере, nostalgic_morse это имя контейнера
+	docker port container_name 5000 - позволяет увидеть номер внешнего порта привязанного к внутреннему 5000 порту в контейнере
+
+	docker port container_name - выводит порт контейнера
 
 Реестр
 
@@ -424,9 +462,23 @@ Docker Compose
 
 	В docker-compose.yml прописываются все сервисы из которых состоит приложение. Например postgresql, django, redis.
 
-	docker-compose up - это команда, которая запускает приложение со всеми его сервисами.
+	Установка
 
-	Пример:
+		sudo curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+
+		sudo chmod +x /usr/local/bin/docker-compose
+
+		docker-compose --version
+
+	Команды
+
+		docker-compose up - запускает приложение со всеми его сервисами
+
+		docker-compose ps - выводит все сервисы
+
+		docker-compose start service_name - запускает сервис (service_name брать из docker-compose.yaml)
+
+	Пример
 
 		mkdir composetest
 		cd composetest
@@ -477,9 +529,62 @@ Docker Compose
 			  redis:
 			    image: redis - создаёт контейнер на основе образа redis с docker hub
 
+	Пример c Django и PostgreSQL
+
+		Создали Dockerfile
+
+			FROM python:3.7.1
+			ENV PYTHONUNBUFFERED 1
+			RUN mkdir /code
+			WORKDIR /code
+			ADD requirements.txt /code/
+			RUN pip install -r requirements.txt
+			ADD . /code/
+
+		Создали requirements.txt
+
+			Django
+			psycopg2
+
+		Создали docker-compose.yml
+
+			version: '2'
+			services:
+			  db:
+			    image: postgres
+			  web:
+			    build: .
+			    command: python manage.py runserver 0.0.0.0:8000
+			    volumes:
+			      - .:/code
+			    ports:
+			      - "8000:8000"
+			    depends_on:
+			      - db
+
+		docker-compose run web django-admin.py startproject composeexample . - создаёт django проект из образа web (поскольку образ ещё не создан, compose начнёт сборку автоматически из текущего каталога)
+
+ 		sudo chown -R user:user . - меняем владельца файлов
+
+ 		Устанавливаем подключение с бд в файле settings.py, который в нашем проекте composeexample.
+
+ 			'ENGINE': 'django.db.backends.postgresql_psycopg2',
+	        'NAME': 'postgres',
+	        'USER': 'postgres',
+	        'HOST': 'db',
+	        'PORT': '5432'
+
+	    	Если нужно нормальное подключение, то заходим в терминал контейнера postgres и создаём новую бд.
+
+	    Переходим в директорию, где лежит docker-compose.yml и выполняем docker-compose up.
+
 Docker Hub
 
 	Docker Hub - это публичный реестр образов
+
+Нюансы
+
+	Если используем разные контейнеры и они обращаются к одному rabbitmq на локальной машине, то для докера IP - 172.17.0.1
 
 Задача
 
