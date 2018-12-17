@@ -1,6 +1,8 @@
 '''
 	Оглавление:
 
+		Установка
+
 		Модели:
 
 		Один ко многим
@@ -60,6 +62,15 @@
 		Транзакции
 
 		Книги
+
+		Развёртывание (docker + nginx + gunicorn + django)
+'''
+
+# Установка
+'''
+	django-admin startproject mysite
+
+	python manage.py startapp polls
 '''
 
 # Модели
@@ -799,4 +810,110 @@ except Vote.DoesNotExist:
 	Django design patterns
 
 	Two scoope...
+'''
+
+# Развёртывание (docker + nginx + gunicorn + django)
+'''
+	Local machine
+	
+		cd /etc
+
+		sudo nano hosts
+
+		Add 127.0.0.1 yetbetter
+
+	Nginx (docker)
+
+		docker run -p 80:80 --name nginx -v ~/nginx:/usr/share/nginx/html -d nginx
+
+		docker exec -it container_name bash
+
+		apt-get update
+
+		apt-get install nano
+
+		nano /etc/nginx/nginx.conf (docker container)
+
+			user  nginx;
+			worker_processes  1;
+
+			error_log  /var/log/nginx/error.log warn;
+			pid        /var/run/nginx.pid;
+
+			events {
+			    worker_connections  1024;
+			}
+
+			http {
+			    access_log  /var/log/nginx/access.log;
+
+			    sendfile on;
+
+			    keepalive_timeout 65;
+
+			    upstream app_servers {
+			        server 172.17.0.1:8000; - ip адрес докера на локальной машине (только через него можно достучаться)
+			    }
+
+			    server {
+			        listen 80;
+			        server_name yetbetter;
+
+			        location / {
+			            root /usr/share/nginx/html; - здесь должен быть путь к нормальной статики django (узнать) 
+			            index index.html index.htm;
+			            proxy_pass http://app_servers;
+			            proxy_set_header Host $host;
+			        }
+			    }
+			}
+
+		http://yetbetter
+
+	Gunicorn + Django (docker)
+
+		docker pull ubuntu (если нет этого образа на локальной машине, для проверки docker ps)
+
+		docker run -i -t -p 8000:8000 --name container_name ubuntu
+
+			exit
+
+		docker ps -l -> contaner_id/container_name
+
+		docker start container_id
+
+		docker exec -it container_name bash
+
+		apt-get update
+
+		apt-get install -y python3-pip
+
+		pip3 install virtualenv
+
+		pip3 install virtualenvwrapper
+
+		export WORKON_HOME=~/.virtualenvs
+
+		VIRTUALENVWRAPPER_PYTHON='/usr/bin/python3'
+
+		source /usr/local/bin/virtualenvwrapper.sh
+
+		which python3
+
+		mkvirtualenv -p /usr/bin/python3 venv_name
+
+		workon venv_name
+
+		pip3 install django
+
+		cd /home
+
+		mkdir /app
+
+		pip3 install gunicorn
+
+		cd project_name
+
+		gunicorn -b 0.0.0.0:8000 project_name.wsgi
+
 '''

@@ -257,6 +257,8 @@ Nginx как обратный прокси-сервер
 
 	Upstream позволяет передавать запросы нескольким проксируемым серверам.
 
+	Директива upstream должна находиться внутри директивы http.
+
 	Пример:
 
 		upstream backend {
@@ -388,10 +390,11 @@ Docker
 		    }
 		}
 
-
 	nano /etc/nginx/conf.d/default.conf	
 
 	http://localhost:8080
+
+	docker logs container_name - показывает логи nginx
 
 Нюансы
 
