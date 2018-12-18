@@ -910,9 +910,11 @@ except Vote.DoesNotExist:
 
 		mkdir /app
 
+		django-admin startproject project_name
+
 		pip3 install gunicorn
 
-		cd project_name
+		cd django_project_name
 
 		gunicorn -b 0.0.0.0:8000 project_name.wsgi
 
