@@ -3,63 +3,65 @@
 
 		Установка
 
-		Модели:
+		Модели и базы данных
 
-		Один ко многим
+			Один ко многим
 
-		Многие ко многим
+			Многие ко многим
 
-		Один к одному
+			Один к одному
 
-		Связь моделей из разных модулей
+			Связь моделей из разных модулей
 
-		Мета настройки
+			Мета настройки
 
-		Менеджер модели
+			Методы модели
 
-		Методы модели
+			Наследование моделей
 
-		Наследование моделей
+			Абстрактные модели
 
-		Абстрактные модели
+			Multi-table наследование
 
-		Multi-table наследование
+			Proxy-модели
 
-		Proxy-модели
+			Множественное наследование
 
-		Множественное наследование
+			Переопределение полей при наследовании
 
-		Переопределение полей при наследовании
+			Создание
 
-		Выполнение запросов:
+			Обновление
 
-		Создание
+			Получение
 
-		Обновление
+			Ограничение выборки
 
-		Получение
+			Фильтры
 
-		Ограничение выборки
+			Фильтры по связанным объектам
 
-		Фильтры
+			Сравнение одного поля с другим
 
-		Фильтры по связанным объектам
+			Кэширование и QuerySets
 
-		Сравнение одного поля с другим
+			Сложные запросы с помощью объектов Q
 
-		Кэширование и QuerySets
+			Сравнение объектов
 
-		Сложные запросы с помощью объектов Q
+			Удаление
 
-		Сравнение объектов
+			Копирование объекта
 
-		Удаление
+			Агрегация
 
-		Копирование объекта
+			Менеджеры
 
-		Агрегация (min/max, count, avg)
+			Транзакции
 
-		Транзакции
+
+
+		Менеджер URL-ов
 
 		Книги
 
@@ -106,18 +108,19 @@
 	Если ни одно существующее поле не удовлетворяет вашим потребностям, или вам необходимо использовать какие-либо особенности поля, присущие определенной базе данных - вы можете создать собственный тип поля.
 '''
 class Person(models.Model):
-	SHIRT_SIZES = (
+    SHIRT_SIZES = (
         ('S', 'Small'),
         ('M', 'Medium'),
         ('L', 'Large'),
     )
-    shirt_size = models.CharField(max_length=1, choices=SHIRT_SIZES) # позволяет выбирать значение для поля и автоматически создаёт select на его основе
+    # позволяет выбирать значение для поля и автоматически создаёт select на его основе
+    shirt_size = models.CharField(max_length=1, choices=SHIRT_SIZES)
     first_name = models.CharField(max_length=30)
     poll = models.ForeignKey(
-	    Poll,
-	    on_delete=models.CASCADE,
-	    verbose_name="the related poll",
-	)
+        Poll,
+        on_delete=models.CASCADE,
+        verbose_name="the related poll",
+    )
 
 # Один ко многим
 '''
@@ -128,6 +131,9 @@ class Person(models.Model):
 	Для создания рекурсивной связи – объект со связью один ко многим на себя или связь на модель, которая еще не определена, вы можете использовать имя модели вместо класса.
 '''
 class Manufacturer(models.Model):
+    '''
+        
+    '''
     pass
 
 class Car(models.Model):
@@ -138,9 +144,6 @@ class Car(models.Model):
         'Manufacturer',
         on_delete=models.CASCADE,
     )
-
-class Manufacturer(models.Model):
-    pass
 
 '''
 	ForeignKey принимает дополнительные аргументы, которые определяют, как должна работать связь.
@@ -177,9 +180,9 @@ class Pizza(models.Model):
     toppings = models.ManyToManyField(Topping, through='History')
 
 class History(models.Model):
-	topping = models.ForeignKey(Topping, on_delete=models.CASCADE)
+    topping = models.ForeignKey(Topping, on_delete=models.CASCADE)
     pizza = models.ForeignKey(Pizza, on_delete=models.CASCADE)
-	description = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
 
 # Один к одному
 '''
@@ -224,11 +227,6 @@ class Car(models.Model):
     class Meta:
         ordering = ['id'] # сортировка
         verbose_name_plural = 'super_cars' # переопределение названия таблицы
-
-# Менеджер модели
-'''
-	Менеджер модели - это интерфейс, через который Django выполняет запросы к базе данных и получает объекты. Если собственный Manager не указан, название по умолчанию будет objects.
-'''
 
 # Методы модели
 '''
@@ -731,6 +729,30 @@ q = Book.objects.annotate(Count('authors'))
 q[0].authors__count
 q[1].authors__count
 
+# Менеджеры
+'''
+	Это интерфейс, через который создаются запросы к моделям Django. 
+
+	Каждая модель имеет хотя бы один менеджер.
+
+	По умолчанию Django добавляет Manager с именем objects для каждого класса модели.
+
+	Чтобы переименовать Manager добавьте в класс атрибут, значение которого экземпляр models.Manager()
+
+	Вы можете использовать собственный менеджер, создав его через наследование от основного класса Manager и добавив его в модель.
+'''
+class Person(models.Model):
+    people = models.Manager() # переименование менеджера
+
+
+class MyBookManager(models.Manager):
+    def get_queryset(self):
+        return super(MyBookManager, self).get_queryset().filter(author='Roald Dahl')
+
+class Book(models.Model):
+    my_objects = MyBookManager() # добавление нового менеджера
+
+
 # Транзакции
 '''
 	Суть транзакции в том, что она объединяет последовательность действий в одну операцию "всё или ничего". Промежуточные состояния внутри последовательности не видны другим транзакциям, и если что-то помешает успешно завершить транзакцию, ни один из результатов этих действий не сохранится в базе данных.
@@ -804,6 +826,24 @@ try:
 except Vote.DoesNotExist:
 	vote = Vote(voting=voting, person=person, number_of_votes=1)
 	vote.save()
+
+
+# Менеджер URL-ов
+'''
+	
+
+'''
+
+
+
+
+
+
+
+
+
+
+
 
 # Книги
 '''
