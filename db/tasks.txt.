@@ -38,13 +38,19 @@
 
 	models
 
-	id  name 
+	id  name
 
 	1   X5
 
 	2   M1
 
 	3   A8
+
+	-------------------------
+
+	marks_models
+
+	id mark_id model_id
 
 	-----------------------------------------
 

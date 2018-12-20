@@ -14,9 +14,19 @@
 
 	Удаление
 
-	Выборка
+	SELECT и подзапросы
 
-	Профилирование, EXPLAIN, оптимизация запросов.
+	JOIN
+
+	UNION, INTERSECT, EXCEPT
+
+	LIKE
+
+	CASE
+
+	Агрегатные функции
+
+	EXPLAIN
 
 	Индексы
 
@@ -48,17 +58,21 @@
 
 	Развёртывание
 
-	Репликация (один из лучших вариантов master slawe)
+	Репликация
 
 	Нюансы
 
 	Команды
 
+	Шпора по запросам
+
 Что это
 
-	PostgreSQL — это объектно-реляционная система управления базами данных
+	PostgreSQL - это объектно-реляционная система управления базами данных.
 
-	Реляционная система управления базами данных - это система, которая позволяет хранить данные в структурированном и целостном виде.
+	Реляционная бд - это бд, которая позволяет обеспечить целостность данных.
+
+	Целостность данных достигается с помощью связей таблиц.
 
 Установка и настройка
 
@@ -132,11 +146,206 @@
 
 	DELETE FROM products;
 
-Выборка
+SELECT и подзапросы
 	
+	SELECT * FROM table1;
 
+	SELECT a, b + c FROM table1;
 
-Профилирование, EXPLAIN, оптимизация запросов.
+	Псевдонимы обязательно нужно назначать подзапросам
+
+	SELECT * FROM (my_table AS a CROSS JOIN my_table) AS b
+
+	Подзапросы, образующие таблицы, должны заключаться в скобки
+
+	SELECT name FROM users WHERE invoice_num = (SELECT num FROM invoices WHERE year = 2001)
+
+	Табличные функции - это функции, выдающие набор строк. Они применяются в запросах как таблицы, представления или подзапросы в предложении FROM. Столбцы, возвращённые табличными функциями, можно включить в выражения SELECT, JOIN или WHERE
+
+	CREATE FUNCTION getfoo(int) RETURNS SETOF foo AS $$
+	    SELECT * FROM foo WHERE fooid = $1;
+	$$ LANGUAGE SQL;
+
+	SELECT * FROM getfoo(1) AS t1;
+
+	Перед подзапросами в предложении FROM можно добавить ключевое слово LATERAL. Это позволит ссылаться в них на столбцы главного FROM.
+
+	SELECT * FROM foo, LATERAL (SELECT * FROM bar WHERE bar.id = foo.bar_id) ss;
+
+	Оператор EXISTS используется в предложении WHERE с подзапросом. 
+
+	Он проверяет, возвращает ли подзапрос строки в результате. 
+
+	Если да, EXISTS вернёт true, если нет, то false.
+
+	SELECT col1 FROM tab1 WHERE EXISTS (SELECT 1 FROM tab2 WHERE col2 = tab1.col2);
+
+	Этот пример выдаёт максимум одну строку для каждой строки в tab1, даже если в tab2 ей соответствуют несколько строк.
+
+	Оператор IN сравнивает каждое значение, которое вернул подзапрос со значением в условии WHERE.
+
+	SELECT col1 FROM tab1 WHERE name IN (SELECT 1 FROM tab2 WHERE col2 = tab1.col2);
+
+	Оператор NOT IN говорит, что значение в условии WHERE не должно соответствовать значения из подзапроса.
+
+	SELECT col1 FROM tab1 WHERE name NOT IN (SELECT 1 FROM tab2 WHERE col2 = tab1.col2);
+
+	Оператор ALL сначала выбрать все значения из подзапроса, а потом сравнить каждое из них с условие заданным в WHERE главного запроса.
+
+	SELECT name FROM customers WHERE rating > ALL (SELECT rating FROM customers WHERE city = Rome)
+
+GROUP BY и HAVING
+
+	GROUP BY позволяет группировать строки.
+
+	GROUP BY объединяет значения в одну группу при совпадении значений в столбцах.
+
+	id symbol
+
+	1  a
+
+	2  b
+
+	3  b
+
+	SELECT * FROM test GROUP BY symbol;
+
+	id symbol
+
+	1  a
+
+	2  b
+
+	В таблице с группировкой столбцы, не включённые в список GROUP BY, можно использовать только в агрегатных выражениях.
+
+	SELECT x, sum(y) FROM test1 GROUP BY x;
+
+	GROUP BY является неотъемлемой часть запросов с использованием array_agg.
+
+	Если в запросе есть вызовы агрегатных функций, но нет предложения GROUP BY, строки всё равно будут группироваться.
+
+	HAVING позволяет оставить только нужные строки после группировки.
+
+	В предложении HAVING могут использоваться и группирующие выражения, и выражения, не участвующие в группировке (в этом случае это должны быть агрегирующие функции).
+
+	SELECT x, sum(y) FROM test1 GROUP BY x HAVING sum(y) > 3;
+
+	SELECT x, sum(y) FROM test1 GROUP BY x HAVING x < 'c';
+
+JOIN
+
+	Позволяет соединять таблицы.
+
+	При использовании JOIN использование слова лова INNER и OUTER необязательны.
+
+	По умолчанию подразумевается INNER - внутреннее соединение, а при указании LEFT, RIGHT и FULL - внешнее соединение.
+
+	CROSS JOIN - образует все возможные сочетания строк из T1 и T2.
+
+	INNER JOIN - в результате будут только строки чьи значения чётко соответствуют условию.
+
+	LEFT JOIN - сначала выполняется внутреннее соединение, затем в результат добавляются все строки из T1, которым не соответствуют никакие строки в T2, а вместо значений столбцов T2 вставляются NULL.
+
+	RIGHT JOIN - сначала выполняется внутреннее соединение, затем в результат добавляются все строки из T2, которым не соответствуют никакие строки в T1, а вместо значений столбцов T1 вставляются NULL.
+
+	FULL JOIN - сначала выполняется внутреннее соединение, затем в результат добавляются все строки из T1, которым не соответствуют никакие строки в T2, а вместо значений столбцов T2 вставляются NULL, затем в результат включаются все строки из T2, которым не соответствуют никакие строки в T1, а вместо значений столбцов T1 вставляются NULL.
+
+	USING — это сокращённая запись условия ON, полезная, когда с обеих сторон соединения столбцы имеют одинаковые имена. USING (a, b) формирует условие ON T1.a = T2.a AND T1.b = T2.b.
+
+	SELECT * FROM t1 JOIN t2 ON t1.num = t2.num;
+
+	SELECT * FROM t1 LEFT JOIN t2 ON t1.num = t2.num;
+
+DISTINCT
+
+	Исключает дублирующиеся строки.
+
+	Две строки считаются разными, если они содержат различные значения минимум в одном столбце. При этом значения NULL полагаются равными.
+
+	SELECT DISTINCT * FROM t1
+
+UNION, INTERSECT, EXCEPT
+
+	Позволяют делать объединение, пересечение и вычитание запросов.
+
+	Для удачного выполнения каждый запрос должен иметь одинаковое число столбцов и эти столбцы должны быть совместимых типов.
+
+	запрос1 UNION [ALL] запрос2
+
+	запрос1 INTERSECT [ALL] запрос2
+
+	запрос1 EXCEPT [ALL] запрос2
+
+	UNION - добавляет результаты второго запроса к результатам первого, при этом порядок возвращаемых строк не гарантируется.
+
+	INTERSECT - возвращает все строки из первого и второго запроса.
+
+	EXCEPT - возвращает все строки, которые есть в результате первого запроса, но отсутствуют в результате второго.
+
+	Если не указать параметр ALL во всех трёх типах, то будут убраны все дублирующиеся строки.
+
+LIKE
+
+	Позволяет искать текст по заданному шаблону.
+
+	Поиск с LIKE безопаснее использовать с недоверенными источниками шаблонов поиска.
+
+	При проверке по шаблону LIKE всегда рассматривается вся строка. 
+
+	Поэтому, если нужно найти последовательность символов где-то в середине строки, шаблон должен начинаться и заканчиваться знаками процента.
+
+	Чтобы найти в строке буквальное вхождение знака процента или подчёркивания, перед соответствующим символом в шаблоне нужно добавить спецсимвол. 
+
+	По умолчанию в качестве спецсимвола выбрана обратная косая черта.
+
+	Чтобы включить спецсимвол в шаблон поиска, продублируйте его.
+
+	Так же есть оператор NOT LIKE.
+
+	SELECT * FROM users LIKE 'Mike'
+
+	SELECT * FROM users LIKE '%Mike%'
+
+CASE
+
+	Позволяет исползовать условия в запросах. (эквивалент if/else)
+
+	SELECT a,
+       CASE WHEN a=1 THEN 'one'
+            WHEN a=2 THEN 'two'
+            ELSE 'other'
+       END
+    FROM test;
+
+Агрегатные функции
+
+	Позволяют вычислить одно значение для группы значений для одного столбца (минимальное значение столбца num).
+
+	array_agg - значения, включая NULL, объединяются в массив
+
+	avg - среднее значение из всех
+
+	bool_and - true, если все значения равны true, и false в противном случае
+
+	bool_or - true, если хотя бы одно значение равно true, и false в противном случае
+
+	count - количество строк
+
+	json_agg - значения объединяются в массив формата JSON
+
+	json_object_agg - агрегирует пары имя/значение в виде объекта JSON
+
+	max - максимальное значение среди всех значений
+
+	min - минимальное значение среди всех значений
+
+	string_agg - данные складываются в строку через заданный разделитель (аналог GROUP_CONCAT)
+
+	sum - общая сумма всех значений стоблца
+
+	Следует заметить, что за исключением count, все эти функции возвращают NULL, если для них не была выбрана ни одна строка.
+
+EXPLAIN
 
 	Выполняя запрос, PostgreSQL разрабатывает для него план запроса.
 
@@ -144,7 +353,7 @@
 
 	Узнать, какой план был выбран для какого-либо запроса, можно с помощью команды EXPLAIN.
 
-	EXPLAIN SELECT * FROM tenk1;
+	EXPLAIN SELECT * FROM tenk1;	
 
 		Seq Scan on tenk1  (cost=0.00..458.00 rows=10000 width=244)
 
@@ -472,7 +681,9 @@ VACUUM
 
 	Поэтому сначала уставливаем локаль на машину, а потом postgres.
 
-Репликация (один из лучших вариантов master slawe)
+Репликация
+	
+	Один из лучших вариантов master slawe.
 
 	...
 
@@ -485,6 +696,74 @@ VACUUM
 	\dt - показывает список таблиц внутри базы
 
 	createdb mydb - создаёт бд
+
+Шпора по возможностям
+
+	Условия
+
+	Подзапросы
+
+	Соединения
+
+	Группировка
+
+	Агрегация
+
+Шпора по запросам
+
+	SELECT name FROM users
+
+	SELECT name FROM users WHERE city = London
+
+	SELECT DISTINCT num FROM orders
+
+	SELECT name FROM users WHERE city = San Jose AND/OR rating > 200
+
+
+	SELECT name FROM users WHERE NOT (city = San Jose)
+
+	SELECT name FROM users WHERE name IN (SELECT name FROM customers WHERE id = users.id)
+
+	SELECT name FROM users WHERE name NOT IN (SELECT name FROM customers WHERE rating < 100)
+
+
+	SELECT name FROM users WHERE num BETWEEN 10 AND 12
+
+	SELECT name FROM users WHERE name LIKE '%Mike%'
+
+	SELECT name FROM customers WHERE rating > ALL (SELECT rating FROM customers WHERE city = Rome)
+
+
+	SELECT name FROM customers GROUP BY rating
+
+	SELECT name FROM customers GROUP BY rating HAVING SUM(money) > 1000
+
+
+	SELECT u.name, c.mark FROM users u JOIN cars c ON u.car_id = c.id
+
+	SELECT u.name, c.mark FROM users u LEFT JOIN cars c ON u.car_id = c.id
+
+	SELECT u.name, c.mark FROM users u RIGHT JOIN cars c ON u.car_id = c.id
+
+	SELECT u.name, c.mark FROM users u FULL JOIN cars c ON u.car_id = c.id
+
+
+	SELECT num, name, price FROM customers WHERE EXISTS (SELECT id FROM customers WHERE city = San Jose)
+
+	SELECT num, name, price FROM customers WHERE NOT EXISTS (SELECT id FROM customers WHERE city = San Jose)
+
+
+	SELECT name FROM salespeople WHERE city = Rome UNION SELECT name FROM customers WHERE city = Rome
+
+
+	SELECT a,
+       CASE WHEN a=1 THEN 'one'
+            WHEN a=2 THEN 'two'
+            ELSE 'other'
+       END
+    FROM test
+
+
 
 
 
