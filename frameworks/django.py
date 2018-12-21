@@ -1269,3 +1269,8 @@ class TablespaceExample(models.Model):
 
 '''
 
+@transaction.atomic
+def first(self):
+    ...
+    with transaction.atomic:
+        second()

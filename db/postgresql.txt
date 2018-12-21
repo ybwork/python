@@ -697,6 +697,52 @@ VACUUM
 
 	createdb mydb - создаёт бд
 
+	sudo -i -u postgres - переключение на аккаунт (в нём создаются пользователи и выполняются другие действия)
+
+		dropdb events;
+
+		dropuser yetbetter;
+
+		createuser -P -s -e yetbetter - создаёт суперпользователя с предустановленным паролем
+
+		createuser --interactive joe
+
+	sudo /etc/init.d/postgresql restart - перезапуск postgresql
+
+	psql - доступ к командной строке
+
+	exit - выход из командной строки
+
+	\q - выход из аккаунта
+
+	ALTER USER postgres PASSWORD ''; - сменить пароль для пользователя
+
+	CREATE USER yetbetter WITH PASSWORD 'asdf1234'; - создаёт пользователя
+
+	CREATE USER davide WITH PASSWORD 'jw8s0F4';
+
+	CREATE DATABASE ctw_development OWNER yetbetter;
+
+	DROP USER yetbetter; - удаляет пользователя
+
+	\du - показыввает таблицу с пользователями
+
+	pg_dump dbname > outfile
+
+	\list - показывает все базы
+
+	psql -> \c db_name (коннект с базой) -> \dt (показывает таблицы) -> SELECT id FROM organizers;
+
+	psql ctw_development < map-db-3008.dump; - делает дамп
+
+	cat /var/lib/postgresql/map-db-3008.dump | psql -d ctw_development - делает дамп
+
+	dropdb ctw_development
+
+	createdb ctw_development (CREATE DATABASE dbname;)
+
+	\d table_name - показывает все колонки в таблице
+	
 Шпора по возможностям
 
 	Условия
