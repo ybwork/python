@@ -57,11 +57,15 @@
 
 			Менеджеры
 
+			Использование чистого SQL
+
 			Транзакции
 
+			Использование нескольких баз данных
 
+			Табличные пространства
 
-		Менеджер URL-ов
+			Оптимизация работы с базой данных
 
 		Книги
 
@@ -739,7 +743,9 @@ q[1].authors__count
 
 	Чтобы переименовать Manager добавьте в класс атрибут, значение которого экземпляр models.Manager()
 
-	Вы можете использовать собственный менеджер, создав его через наследование от основного класса Manager и добавив его в модель.
+	Вы можете использовать собственный менеджер.
+
+	Создание своего менеджера может понадобиться в том случае если есть какой то кастомный метод модели, который делает сложный запрос и используется во многих местах. В таком случае мы создаём метод внутри своего менеджера и добавляем этот менеджер в модель. 
 '''
 class Person(models.Model):
     people = models.Manager() # переименование менеджера
@@ -749,9 +755,56 @@ class MyBookManager(models.Manager):
     def get_queryset(self):
         return super(MyBookManager, self).get_queryset().filter(author='Roald Dahl')
 
+    def my_custom_method_hard_query():
+    	pass
+
 class Book(models.Model):
     my_objects = MyBookManager() # добавление нового менеджера
 
+# Использование чистого SQL
+'''
+	Можно использовать Manager.raw() или выполнить запрос напрямую.
+
+	Этот метод принимает чистый SQL запрос, выполняет его, и возвращает экземпляр django.db.models.query.RawQuerySet
+
+	При использовании помнить о экранировании.
+
+	Также следует проявлять осторожность при использовании extra() и RawSQL.
+
+	SQL Запрос переданный в .raw() не проверяется, поэтому сли запрос возвращает не набор записей, вы получите ошибку.
+
+	Хотя RawQuerySet и можно проитерировать как QuerySet, RawQuerySet не предоставляет все методы QuerySet. Например, __bool__() и __len__()
+
+	raw() поддерживает доступ к объекту из набора по индексу.
+
+	Если вам необходимо выполнить запрос с параметрами, используйте аргумент params. Используя params вы полностью защищены от Атак с внедрением SQL-кода.
+
+	Не используйте форматирование строк в запросе!
+
+	Если используется подключение к бд без использования моделей и нужно подключаться к разным базам данных, то можно использовать connections['my_db_alias'].cursor()
+
+	С помощью чистого запроса без моделей можно достучаться до хранимой процедуры - cursor.callproc('test_procedure', [1, 'test'])
+'''
+Person.objects.raw('SELECT * FROM myapp_person')
+
+Person.objects.raw('SELECT * FROM myapp_person')[0]
+
+name = 'Doe'
+Person.objects.raw('SELECT * FROM myapp_person WHERE last_name = %s', [name])
+
+# Не используйте форматирование строк в запросе!
+query = 'SELECT * FROM myapp_person WHERE last_name = %s' % lname
+Person.objects.raw(query)
+
+# Использование без уровня моделей
+def my_custom_sql(self):
+	with connection.cursor() as cursor:
+	    cursor.execute('UPDATE bar SET foo = 1 WHERE baz = 2')
+	    row = cursor.fetchone()
+
+    ''' По умолчанию вернётся результат только со значениями, без названия полей. '''
+
+    return row
 
 # Транзакции
 '''
@@ -828,22 +881,278 @@ except Vote.DoesNotExist:
 	vote.save()
 
 
-# Менеджер URL-ов
+# Использование нескольких баз данных
 '''
+	Первым шагом к использованию нескольких баз данных с Django будет определение серверов БД, которые вы планируете использовать.
+
+	Это выполняется с помощью параметра конфигурации DATABASES.
+
+	Этот параметр привязывает к базам данных псевдонимы, по которым эти базы будут доступны в Django и словари параметров с характеристиками подключения к ним.
+
+	Базам данных можно назначать любой псевдоним. Тем не менее, псевдоним default имеет особое значение. Django использует базу данных с псевдонимом default, если явно не указано использование другой базы данных.
+
+	Вы должны настроить DATABASE_ROUTERS для всех моделей ваших приложений, включая те, которые расположены в сторонних приложениях, чтобы ни один запрос не был отправлен в стандартную базу.
+
+	Команда migrate работает единовременно только с одной базой данных. По умолчанию, она работает с базой данных default, но добавив аргумент --database, вы можете указать команде, что надо работать с другой базой данных.
+
+		./manage.py migrate
+
+		./manage.py migrate --database=users
+
+	Простейшим способом использования нескольких баз данных является настройка схемы роутинга.
+
+	Стандартная схема роутинга проверяет, что если база данных не указана, то все запросы направляются к базе данных default.
+
+	Для активации стандартной схемы роутинга делать ничего не надо. Она уже настроена для каждого проекта Django.
+
+	Кастомные роутеры можно использовать, указав в настройке DATABASE_ROUTERS, которая находится в setting.py
+
+	Порядок применения кастомных роутеров имеет важное значение. Роутеры вызываются в порядке, в котором они перечислены в параметре конфигурации DATABASE_ROUTERS.
+'''
+# Должно находиться в settings.py
+DATABASES = {
+    'default': {
+        'NAME': 'app_data',
+        'ENGINE': 'django.db.backends.postgresql',
+        'USER': 'postgres_user',
+        'PASSWORD': 's3krit'
+    },
+    'users': {
+        'NAME': 'user_data',
+        'ENGINE': 'django.db.backends.mysql',
+        'USER': 'mysql_user',
+        'PASSWORD': 'priv4te'
+    }
+}
+
+Author.objects.using('default').all() # метод using позволяет выбрать базу данных
+Author.objects.using('users').all()
+my_object.save(using='users')
+
+# Перемещение объекта между базами данных
+p = Person(name='Fred')
+p.save(using='default')
+p.save(using='users')
+
+
+'''
+	Этот пример показывает как можно использовать роутеры для управления несколькими БД. В нем намеренно игнорируются некоторые проблемы такой конфигурации, основная цель - продемонстрировать возможности роутеров.
+'''
+DATABASES = {
+    'default': {},
+    'author': {
+        'NAME': 'author_db',
+        'ENGINE': 'django.db.backends.mysql',
+        'USER': 'mysql_user',
+        'PASSWORD': 'swordfish',
+    },
+    'book': {
+        'NAME': 'primary',
+        'ENGINE': 'django.db.backends.mysql',
+        'USER': 'mysql_user',
+        'PASSWORD': 'spam',
+    }
+}
+
+# Данный роутер шлёт запросы от приложения author в базу данных author_db
+class AuthorRouter(object):
+    def db_for_read(self, model, **hints):
+    	"""
+			Выбирает базу данных, которая должна использоваться для операций чтения
+    	"""
+        if model._meta.app_label == 'author':
+            return 'author_db'
+        return None
+
+    def db_for_write(self, model, **hints):
+        """
+        	Выбирает базу данных, которая должна использоваться для операций записи
+        """
+        if model._meta.app_label == 'author':
+            return 'author_db'
+        return None
+
+    def allow_relation(self, obj1, obj2, **hints):
+        """
+        	Возвращает True, если связь между obj1 и obj2 должна быть разрешена, 
+        	Allow relations if a model in the auth app is involved.
+        """
+        if obj1._meta.app_label == 'author' or obj2._meta.app_label == 'author':
+           return True
+        return None
+
+    def allow_migrate(self, db, app_label, model=None, **hints):
+        """
+        	Определяет должна ли выполняться миграция
+        """
+        if app_label == 'author':
+            return db == 'author_db'
+        return None
+
+# Данный роутер шлёт запросы от приложения book в базу данных book_db
+class BookRouter(object):
+	# Елюбую дополнительную информацию, которая может помочь в выборе базы данных можно посмотреть в словаре hints
+    def db_for_read(self, model, **hints):
+    	"""
+			Выбирает базу данных, которая должна использоваться для операций чтения
+    	"""
+        if model._meta.app_label == 'book':
+            return 'book_db'
+        return None
+
+    def db_for_write(self, model, **hints):
+        """
+        	Выбирает базу данных, которая должна использоваться для операций записи
+        """
+        if model._meta.app_label == 'book':
+            return 'book_db'
+        return None
+
+    def allow_relation(self, obj1, obj2, **hints):
+        """
+        	Возвращает True, если связь между obj1 и obj2 должна быть разрешена, 
+        	Allow relations if a model in the auth app is involved.
+        """
+        if obj1._meta.app_label == 'book' or obj2._meta.app_label == 'book':
+           return True
+        return None
+
+    def allow_migrate(self, db, app_label, model=None, **hints):
+        """
+        	Определяет должна ли выполняться миграция
+        """
+        if app_label == 'book':
+            return db == 'book_db'
+        return None
+
+# В settings.py
+DATABASE_ROUTERS = ['path.to.AuthRouter', 'path.to.PrimaryReplicaRouter']
+
+Author.objects.get(username='fred') # сделает запрос к бд author_db
+
+Book.objects.all() # сделает запрос к бд book_db
+
+
+# Табличные пространства
+'''
+	Используются для оптимизации производительности бд.
+
+	Предполагают создание табличных пространст для распределения данных по дискам.
+
+	Django не создаёт табличные пространства для вас. Пожалуйста, обратитесь к документации на вашу базу данных насчёт подробностей по созданию и управлению табличными пространствами.
+
+	Для таблицы, созданной по модели, может быть указано табличное пространство с помощью атрибута db_tablespace внутри класса Meta. 
+
+	Атрибут db_tablespace также имеет влияние на таблицы, которые автоматически создаются для ManyToManyField полей в модели.
 	
+	Вы можете использовать параметр конфигурации DEFAULT_TABLESPACE для указания значения по-умолчанию для атрибута db_tablespace.
 
+	PostgreSQL и Oracle поддерживают табличные пространства. SQLite и MySQL не поддерживают.
+
+	При использовании бэкэнда, который не обеспечивает поддержку табличных пространств, Django будет игнорировать все атрибуты для табличных пространств.
 '''
 
+'''
+	В данном примере, таблицы, созданные для модели TablespaceExample будут размещены в табличном пространстве tables.
+'''
+class TablespaceExample(models.Model):
+    name = models.CharField(max_length=30, db_index=True, db_tablespace="indexes")
+    data = models.CharField(max_length=255, db_index=True)
+    edges = models.ManyToManyField(to="self", db_tablespace="indexes")
 
+    class Meta:
+        db_tablespace = "tables"
 
+# Оптимизация работы с базой данных
+'''
+	Определяем какие запросы выполняются и как быстро
 
+		django-debug-toolbar
 
+		from django.db import connection
+		connection.queries)
 
+	Определяем нагрузку на сервер с момощью Zabbix (бесплатный, можно мониторить rabbit) или New Relic (платный)
 
+	Все советы ниже могут и не сработать в вашем случае, или даже понизить производительность.
 
+	Используем индексы.
 
+	Используем правильные типы полей.
 
+	Понимаем QuerySets:
 
+		QuerySets ленивый
+
+		когда происходит вычисление QuerySets
+
+		как данные загружаются в память
+
+	Кэширование всего QuerySet.
+
+	Кэширование значения атрибутов в объектах ORM.
+
+	Для использования кэширования в QuerySet можно использовать шаблонный тэг with.
+
+	Если очень много объектов, кэширование в QuerySet может использовать большой объем памяти. В этом случае может помочь iterator().
+
+	Выполнять задачи базы данных в базе данных, а не в Python:
+	
+		использовать filter и exclude для фильтрации данных в БД
+
+		использовать объект F() для фильтрации по другим полям модели
+
+		ипользовать annotate для выполнения агрегации в базе данных
+
+	Использовать RawSQL (если это необходимо)
+
+	Использовать SQL (если возможностей моделей или RawSQL недостаточно)
+
+	При выборке использовать уникальное или проиндексированное поле.
+
+	Загружайте все данные сразу, если уверены, что будете использовать их. Обращение несколько раз к базе данных для получения различных частей одного “массива” данных обычно менее эффективно, чем получение всех данных одним запросом. Это особенно важно для запросов, выполняемых в цикле, что может привести к большому количеству запросов.
+
+	Использовать QuerySet.select_related() и prefetch_related() в коде представлений и менеджерах.
+
+	Не получать данные, которые не нужны. Для этого использовать QuerySet.values() и values_list()
+
+	Использовать defer() и only(), если есть колонки в базе данных, которые не будут использованы. Если все же использовать потом эти колонки, то ORM сделает дополнительный запрос для их получения, что уменьшит производительность.
+
+ 	Используйте QuerySet.count() вместо len(queryset)
+
+ 	QuerySet.exists() вместо if queryset
+
+ 	Вместо загрузки данных в объекты, изменения значений и отдельного их сохранения использовать QuerySet.update() и delete(), помнить отсутствие сигналов
+
+ 	Используйте значения ключей непосредственно
+
+ 		Плохо: entry.blog.id
+
+ 		Хорошо: entry.blog_id
+	
+	Не сортировать данные, если вам это не требуется, потому что сортировка требует ресурсы. Добавление индекса в вашу базу данных может улучшить производительность операции сортировки.
+
+	Используйте общее добавление.
+
+	При создании объектов, если возможно, используйте метод bulk_create() чтобы сократить количество SQL запросов.
+
+		Плохо:
+
+			Entry.objects.create(headline="Python 3.0 Released")
+			Entry.objects.create(headline="Python 3.1 Planned")
+
+			my_band.members.add(me)
+			my_band.members.add(my_friend
+
+		Хорошо:
+
+			Entry.objects.bulk_create([
+			    Entry(headline="Python 3.0 Released"),
+			    Entry(headline="Python 3.1 Planned")
+			])
+	
+			my_band.members.add(me, my_friend)
+'''
 
 # Книги
 '''
@@ -959,3 +1268,4 @@ except Vote.DoesNotExist:
 		gunicorn -b 0.0.0.0:8000 project_name.wsgi
 
 '''
+
