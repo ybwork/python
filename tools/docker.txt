@@ -110,15 +110,21 @@
 
 Команды
 
-	docker pull ubuntu
+	docker pull ubuntu - берёт образ с docker hub
 
 	docker run -i -t -v ~/rabbit/task_with_docker/task:/home --name task ubuntu
 
 		exit
 
-	docker ps -l -> contaner_id
+	docker ps -l -> contaner_id - показывает список контейнеров
 
-	docker start container_id
+	docker start container_id - запускает контейнер
+
+	docker attach container_name - переходит в контейнер
+
+	ctrl + p + q - выходит из контейнера без его выключения
+
+	ctrl + d - выходит из контейнера и выключает его
 
 	-------------------------------
 
@@ -280,6 +286,10 @@ Docker Engine
 		FROM docker/whalesay:latest - слово FROM говорит Docker какой образ будет базовым
 
 		RUN apt-get -y update && apt-get install -y fortunes - fortunes имеет команду которая выводит мудрые фразы для нашего кита, а эта строка устанавливает программу в образ
+
+		WORKDIR /path/to/workdir - устанавливает рабочий каталог для всех инструкций RUN, CMD, ENTRYPOINT, COPY, ADD, которые будут выполнены в Dockerfile
+
+		COPY service.py 
 
 		CMD /usr/games/fortune -a | cowsay - позволяет указать, что запускать при старте контейнера
 
@@ -633,4 +643,6 @@ Docker Hub
 
 Задачи
 
-	Сделать докер файл, который поднимает всё нужное окружение и запускает процесс
+	Сделать докер файл, который поднимает всё нужное окружение и запускает процесс.
+
+	Посмотреть в сторону entry point, cmd, неновторяемости слоёв.
