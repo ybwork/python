@@ -1,4 +1,4 @@
-docker build -t my_image .
+docker build .
 
-docker run -i -t --name my_container my_image
+docker run image_id / docker run image_id /usr/src/app/provider.py
 
