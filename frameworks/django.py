@@ -1499,6 +1499,8 @@ request.session.modified = True
 	Данные формы отправляются обратно в Django и обрабатываются представлением, обычно тем же, которое и создает форму.
 
 	Если ваша форма содержит URLField, EmailField или одно из числовых полей, Django будет использовать url, email и number поля ввода HTML5.
+
+	Атрибут формы is_bound позволяет узнать связана форма с данными или нет.
 '''
 class NameForm(forms.Form):
     your_name = forms.CharField(label='Your name', max_length=100)
