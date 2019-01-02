@@ -1,0 +1,4 @@
+docker build .
+
+docker run image_id / docker run image_id /usr/src/app/provider.py
+

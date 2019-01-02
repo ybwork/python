@@ -1,65 +1,102 @@
 '''
 	Оглавление:
 
-		Модели:
+		Установка
 
-		Один ко многим
+		Модели и базы данных
 
-		Многие ко многим
+			Один ко многим
 
-		Один к одному
+			Многие ко многим
 
-		Связь моделей из разных модулей
+			Один к одному
 
-		Мета настройки
+			Связь моделей из разных модулей
 
-		Менеджер модели
+			Мета настройки
 
-		Методы модели
+			Методы модели
 
-		Наследование моделей
+			Наследование моделей
 
-		Абстрактные модели
+			Абстрактные модели
 
-		Multi-table наследование
+			Multi-table наследование
 
-		Proxy-модели
+			Proxy-модели
 
-		Множественное наследование
+			Множественное наследование
 
-		Переопределение полей при наследовании
+			Переопределение полей при наследовании
 
-		Выполнение запросов:
+			Создание
 
-		Создание
+			Обновление
 
-		Обновление
+			Получение
 
-		Получение
+			Ограничение выборки
 
-		Ограничение выборки
+			Фильтры
 
-		Фильтры
+			Фильтры по связанным объектам
 
-		Фильтры по связанным объектам
+			Сравнение одного поля с другим
 
-		Сравнение одного поля с другим
+			Кэширование и QuerySets
 
-		Кэширование и QuerySets
+			Сложные запросы с помощью объектов Q
 
-		Сложные запросы с помощью объектов Q
+			Сравнение объектов
 
-		Сравнение объектов
+			Удаление
 
-		Удаление
+			Копирование объекта
 
-		Копирование объекта
+			Агрегация
 
-		Агрегация (min/max, count, avg)
+			Менеджеры
 
-		Транзакции
+			Использование чистого SQL
+
+			Транзакции
+
+			Использование нескольких баз данных
+
+			Табличные пространства
+
+			Оптимизация работы с базой данных
+
+		Обработка HTTP запросов
+
+			Менеджер URL-ов
+
+			Создание представлений
+
+			Декораторы представлений
+
+			Загрузка файлов
+
+			Вспомогательные функции
+
+			Промежуточный слой (Middleware)
+
+			Как использовать сессии
+
+		Работа с формами
+
+			HTML формы
 
 		Книги
+
+		Развёртывание (docker + nginx + gunicorn + django)
+'''
+
+# Установка
+'''
+	django-admin startproject mysite
+
+	python manage.py startapp polls
 '''
 
 # Модели
@@ -95,18 +132,19 @@
 	Если ни одно существующее поле не удовлетворяет вашим потребностям, или вам необходимо использовать какие-либо особенности поля, присущие определенной базе данных - вы можете создать собственный тип поля.
 '''
 class Person(models.Model):
-	SHIRT_SIZES = (
+    SHIRT_SIZES = (
         ('S', 'Small'),
         ('M', 'Medium'),
         ('L', 'Large'),
     )
-    shirt_size = models.CharField(max_length=1, choices=SHIRT_SIZES) # позволяет выбирать значение для поля и автоматически создаёт select на его основе
+    # позволяет выбирать значение для поля и автоматически создаёт select на его основе
+    shirt_size = models.CharField(max_length=1, choices=SHIRT_SIZES)
     first_name = models.CharField(max_length=30)
     poll = models.ForeignKey(
-	    Poll,
-	    on_delete=models.CASCADE,
-	    verbose_name="the related poll",
-	)
+        Poll,
+        on_delete=models.CASCADE,
+        verbose_name="the related poll",
+    )
 
 # Один ко многим
 '''
@@ -117,6 +155,9 @@ class Person(models.Model):
 	Для создания рекурсивной связи – объект со связью один ко многим на себя или связь на модель, которая еще не определена, вы можете использовать имя модели вместо класса.
 '''
 class Manufacturer(models.Model):
+    '''
+        
+    '''
     pass
 
 class Car(models.Model):
@@ -127,9 +168,6 @@ class Car(models.Model):
         'Manufacturer',
         on_delete=models.CASCADE,
     )
-
-class Manufacturer(models.Model):
-    pass
 
 '''
 	ForeignKey принимает дополнительные аргументы, которые определяют, как должна работать связь.
@@ -166,9 +204,9 @@ class Pizza(models.Model):
     toppings = models.ManyToManyField(Topping, through='History')
 
 class History(models.Model):
-	topping = models.ForeignKey(Topping, on_delete=models.CASCADE)
+    topping = models.ForeignKey(Topping, on_delete=models.CASCADE)
     pizza = models.ForeignKey(Pizza, on_delete=models.CASCADE)
-	description = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
 
 # Один к одному
 '''
@@ -213,11 +251,6 @@ class Car(models.Model):
     class Meta:
         ordering = ['id'] # сортировка
         verbose_name_plural = 'super_cars' # переопределение названия таблицы
-
-# Менеджер модели
-'''
-	Менеджер модели - это интерфейс, через который Django выполняет запросы к базе данных и получает объекты. Если собственный Manager не указан, название по умолчанию будет objects.
-'''
 
 # Методы модели
 '''
@@ -720,6 +753,79 @@ q = Book.objects.annotate(Count('authors'))
 q[0].authors__count
 q[1].authors__count
 
+# Менеджеры
+'''
+	Это интерфейс, через который создаются запросы к моделям Django. 
+
+	Каждая модель имеет хотя бы один менеджер.
+
+	По умолчанию Django добавляет Manager с именем objects для каждого класса модели.
+
+	Чтобы переименовать Manager добавьте в класс атрибут, значение которого экземпляр models.Manager()
+
+	Вы можете использовать собственный менеджер.
+
+	Создание своего менеджера может понадобиться в том случае если есть какой то кастомный метод модели, который делает сложный запрос и используется во многих местах. В таком случае мы создаём метод внутри своего менеджера и добавляем этот менеджер в модель. 
+'''
+class Person(models.Model):
+    people = models.Manager() # переименование менеджера
+
+
+class MyBookManager(models.Manager):
+    def get_queryset(self):
+        return super(MyBookManager, self).get_queryset().filter(author='Roald Dahl')
+
+    def my_custom_method_hard_query():
+    	pass
+
+class Book(models.Model):
+    my_objects = MyBookManager() # добавление нового менеджера
+
+# Использование чистого SQL
+'''
+	Можно использовать Manager.raw() или выполнить запрос напрямую.
+
+	Этот метод принимает чистый SQL запрос, выполняет его, и возвращает экземпляр django.db.models.query.RawQuerySet
+
+	При использовании помнить о экранировании.
+
+	Также следует проявлять осторожность при использовании extra() и RawSQL.
+
+	SQL Запрос переданный в .raw() не проверяется, поэтому сли запрос возвращает не набор записей, вы получите ошибку.
+
+	Хотя RawQuerySet и можно проитерировать как QuerySet, RawQuerySet не предоставляет все методы QuerySet. Например, __bool__() и __len__()
+
+	raw() поддерживает доступ к объекту из набора по индексу.
+
+	Если вам необходимо выполнить запрос с параметрами, используйте аргумент params. Используя params вы полностью защищены от Атак с внедрением SQL-кода.
+
+	Не используйте форматирование строк в запросе!
+
+	Если используется подключение к бд без использования моделей и нужно подключаться к разным базам данных, то можно использовать connections['my_db_alias'].cursor()
+
+	С помощью чистого запроса без моделей можно достучаться до хранимой процедуры - cursor.callproc('test_procedure', [1, 'test'])
+'''
+Person.objects.raw('SELECT * FROM myapp_person')
+
+Person.objects.raw('SELECT * FROM myapp_person')[0]
+
+name = 'Doe'
+Person.objects.raw('SELECT * FROM myapp_person WHERE last_name = %s', [name])
+
+# Не используйте форматирование строк в запросе!
+query = 'SELECT * FROM myapp_person WHERE last_name = %s' % lname
+Person.objects.raw(query)
+
+# Использование без уровня моделей
+def my_custom_sql(self):
+	with connection.cursor() as cursor:
+	    cursor.execute('UPDATE bar SET foo = 1 WHERE baz = 2')
+	    row = cursor.fetchone()
+
+    ''' По умолчанию вернётся результат только со значениями, без названия полей. '''
+
+    return row
+
 # Транзакции
 '''
 	Суть транзакции в том, что она объединяет последовательность действий в одну операцию "всё или ничего". Промежуточные состояния внутри последовательности не видны другим транзакциям, и если что-то помешает успешно завершить транзакцию, ни один из результатов этих действий не сохранится в базе данных.
@@ -794,9 +900,751 @@ except Vote.DoesNotExist:
 	vote = Vote(voting=voting, person=person, number_of_votes=1)
 	vote.save()
 
+
+# Использование нескольких баз данных
+'''
+	Первым шагом к использованию нескольких баз данных с Django будет определение серверов БД, которые вы планируете использовать.
+
+	Это выполняется с помощью параметра конфигурации DATABASES.
+
+	Этот параметр привязывает к базам данных псевдонимы, по которым эти базы будут доступны в Django и словари параметров с характеристиками подключения к ним.
+
+	Базам данных можно назначать любой псевдоним. Тем не менее, псевдоним default имеет особое значение. Django использует базу данных с псевдонимом default, если явно не указано использование другой базы данных.
+
+	Вы должны настроить DATABASE_ROUTERS для всех моделей ваших приложений, включая те, которые расположены в сторонних приложениях, чтобы ни один запрос не был отправлен в стандартную базу.
+
+	Команда migrate работает единовременно только с одной базой данных. По умолчанию, она работает с базой данных default, но добавив аргумент --database, вы можете указать команде, что надо работать с другой базой данных.
+
+		./manage.py migrate
+
+		./manage.py migrate --database=users
+
+	Простейшим способом использования нескольких баз данных является настройка схемы роутинга.
+
+	Стандартная схема роутинга проверяет, что если база данных не указана, то все запросы направляются к базе данных default.
+
+	Для активации стандартной схемы роутинга делать ничего не надо. Она уже настроена для каждого проекта Django.
+
+	Кастомные роутеры можно использовать, указав в настройке DATABASE_ROUTERS, которая находится в setting.py
+
+	Порядок применения кастомных роутеров имеет важное значение. Роутеры вызываются в порядке, в котором они перечислены в параметре конфигурации DATABASE_ROUTERS.
+'''
+# Должно находиться в settings.py
+DATABASES = {
+    'default': {
+        'NAME': 'app_data',
+        'ENGINE': 'django.db.backends.postgresql',
+        'USER': 'postgres_user',
+        'PASSWORD': 's3krit'
+    },
+    'users': {
+        'NAME': 'user_data',
+        'ENGINE': 'django.db.backends.mysql',
+        'USER': 'mysql_user',
+        'PASSWORD': 'priv4te'
+    }
+}
+
+Author.objects.using('default').all() # метод using позволяет выбрать базу данных
+Author.objects.using('users').all()
+my_object.save(using='users')
+
+# Перемещение объекта между базами данных
+p = Person(name='Fred')
+p.save(using='default')
+p.save(using='users')
+
+
+'''
+	Этот пример показывает как можно использовать роутеры для управления несколькими БД. В нем намеренно игнорируются некоторые проблемы такой конфигурации, основная цель - продемонстрировать возможности роутеров.
+'''
+DATABASES = {
+    'default': {},
+    'author': {
+        'NAME': 'author_db',
+        'ENGINE': 'django.db.backends.mysql',
+        'USER': 'mysql_user',
+        'PASSWORD': 'swordfish',
+    },
+    'book': {
+        'NAME': 'primary',
+        'ENGINE': 'django.db.backends.mysql',
+        'USER': 'mysql_user',
+        'PASSWORD': 'spam',
+    }
+}
+
+# Данный роутер шлёт запросы от приложения author в базу данных author_db
+class AuthorRouter(object):
+    def db_for_read(self, model, **hints):
+    	"""
+			Выбирает базу данных, которая должна использоваться для операций чтения
+    	"""
+        if model._meta.app_label == 'author':
+            return 'author_db'
+        return None
+
+    def db_for_write(self, model, **hints):
+        """
+        	Выбирает базу данных, которая должна использоваться для операций записи
+        """
+        if model._meta.app_label == 'author':
+            return 'author_db'
+        return None
+
+    def allow_relation(self, obj1, obj2, **hints):
+        """
+        	Возвращает True, если связь между obj1 и obj2 должна быть разрешена, 
+        	Allow relations if a model in the auth app is involved.
+        """
+        if obj1._meta.app_label == 'author' or obj2._meta.app_label == 'author':
+           return True
+        return None
+
+    def allow_migrate(self, db, app_label, model=None, **hints):
+        """
+        	Определяет должна ли выполняться миграция
+        """
+        if app_label == 'author':
+            return db == 'author_db'
+        return None
+
+# Данный роутер шлёт запросы от приложения book в базу данных book_db
+class BookRouter(object):
+	# Елюбую дополнительную информацию, которая может помочь в выборе базы данных можно посмотреть в словаре hints
+    def db_for_read(self, model, **hints):
+    	"""
+			Выбирает базу данных, которая должна использоваться для операций чтения
+    	"""
+        if model._meta.app_label == 'book':
+            return 'book_db'
+        return None
+
+    def db_for_write(self, model, **hints):
+        """
+        	Выбирает базу данных, которая должна использоваться для операций записи
+        """
+        if model._meta.app_label == 'book':
+            return 'book_db'
+        return None
+
+    def allow_relation(self, obj1, obj2, **hints):
+        """
+        	Возвращает True, если связь между obj1 и obj2 должна быть разрешена, 
+        	Allow relations if a model in the auth app is involved.
+        """
+        if obj1._meta.app_label == 'book' or obj2._meta.app_label == 'book':
+           return True
+        return None
+
+    def allow_migrate(self, db, app_label, model=None, **hints):
+        """
+        	Определяет должна ли выполняться миграция
+        """
+        if app_label == 'book':
+            return db == 'book_db'
+        return None
+
+# В settings.py
+DATABASE_ROUTERS = ['path.to.AuthRouter', 'path.to.PrimaryReplicaRouter']
+
+Author.objects.get(username='fred') # сделает запрос к бд author_db
+
+Book.objects.all() # сделает запрос к бд book_db
+
+
+# Табличные пространства
+'''
+	Используются для оптимизации производительности бд.
+
+	Предполагают создание табличных пространст для распределения данных по дискам.
+
+	Django не создаёт табличные пространства для вас. Пожалуйста, обратитесь к документации на вашу базу данных насчёт подробностей по созданию и управлению табличными пространствами.
+
+	Для таблицы, созданной по модели, может быть указано табличное пространство с помощью атрибута db_tablespace внутри класса Meta. 
+
+	Атрибут db_tablespace также имеет влияние на таблицы, которые автоматически создаются для ManyToManyField полей в модели.
+	
+	Вы можете использовать параметр конфигурации DEFAULT_TABLESPACE для указания значения по-умолчанию для атрибута db_tablespace.
+
+	PostgreSQL и Oracle поддерживают табличные пространства. SQLite и MySQL не поддерживают.
+
+	При использовании бэкэнда, который не обеспечивает поддержку табличных пространств, Django будет игнорировать все атрибуты для табличных пространств.
+'''
+
+'''
+	В данном примере, таблицы, созданные для модели TablespaceExample будут размещены в табличном пространстве tables.
+'''
+class TablespaceExample(models.Model):
+    name = models.CharField(max_length=30, db_index=True, db_tablespace="indexes")
+    data = models.CharField(max_length=255, db_index=True)
+    edges = models.ManyToManyField(to="self", db_tablespace="indexes")
+
+    class Meta:
+        db_tablespace = "tables"
+
+# Оптимизация работы с базой данных
+'''
+	Определяем какие запросы выполняются и как быстро
+
+		django-debug-toolbar
+
+		from django.db import connection
+		connection.queries)
+
+	Определяем нагрузку на сервер с момощью Zabbix (бесплатный, можно мониторить rabbit) или New Relic (платный)
+
+	Все советы ниже могут и не сработать в вашем случае, или даже понизить производительность.
+
+	Используем индексы.
+
+	Используем правильные типы полей.
+
+	Понимаем QuerySets:
+
+		QuerySets ленивый
+
+		когда происходит вычисление QuerySets
+
+		как данные загружаются в память
+
+	Кэширование всего QuerySet.
+
+	Кэширование значения атрибутов в объектах ORM.
+
+	Для использования кэширования в QuerySet можно использовать шаблонный тэг with.
+
+	Если очень много объектов, кэширование в QuerySet может использовать большой объем памяти. В этом случае может помочь iterator().
+
+	Выполнять задачи базы данных в базе данных, а не в Python:
+	
+		использовать filter и exclude для фильтрации данных в БД
+
+		использовать объект F() для фильтрации по другим полям модели
+
+		ипользовать annotate для выполнения агрегации в базе данных
+
+	Использовать RawSQL (если это необходимо)
+
+	Использовать SQL (если возможностей моделей или RawSQL недостаточно)
+
+	При выборке использовать уникальное или проиндексированное поле.
+
+	Загружайте все данные сразу, если уверены, что будете использовать их. Обращение несколько раз к базе данных для получения различных частей одного “массива” данных обычно менее эффективно, чем получение всех данных одним запросом. Это особенно важно для запросов, выполняемых в цикле, что может привести к большому количеству запросов.
+
+	Использовать QuerySet.select_related() и prefetch_related() в коде представлений и менеджерах.
+
+	Не получать данные, которые не нужны. Для этого использовать QuerySet.values() и values_list()
+
+	Использовать defer() и only(), если есть колонки в базе данных, которые не будут использованы. Если все же использовать потом эти колонки, то ORM сделает дополнительный запрос для их получения, что уменьшит производительность.
+
+ 	Используйте QuerySet.count() вместо len(queryset)
+
+ 	QuerySet.exists() вместо if queryset
+
+ 	Вместо загрузки данных в объекты, изменения значений и отдельного их сохранения использовать QuerySet.update() и delete(), помнить отсутствие сигналов
+
+ 	Используйте значения ключей непосредственно
+
+ 		Плохо: entry.blog.id
+
+ 		Хорошо: entry.blog_id
+	
+	Не сортировать данные, если вам это не требуется, потому что сортировка требует ресурсы. Добавление индекса в вашу базу данных может улучшить производительность операции сортировки.
+
+	Используйте общее добавление.
+
+	При создании объектов, если возможно, используйте метод bulk_create() чтобы сократить количество SQL запросов.
+
+		Плохо:
+
+			Entry.objects.create(headline="Python 3.0 Released")
+			Entry.objects.create(headline="Python 3.1 Planned")
+
+			my_band.members.add(me)
+			my_band.members.add(my_friend
+
+		Хорошо:
+
+			Entry.objects.bulk_create([
+			    Entry(headline="Python 3.0 Released"),
+			    Entry(headline="Python 3.1 Planned")
+			])
+	
+			my_band.members.add(me, my_friend)
+'''
+
+# Менеджер URL-ов
+'''
+	Определяются в файле urls.py для каждого приложения.
+
+	Как Django обрабатывает запрос:
+
+		Django определяет какой корневой модуль URLconf использовать. Обычно, это значение настройки ROOT_URLCONF
+
+		Django загружает модуль конфигурации URL и ищет переменную urlpatterns
+
+		Django перебирает каждый URL-шаблон по порядку, и останавливается при первом совпадении с запрошенным URL-ом
+
+		После этого Django импортирует и вызывает соответствующее представление, которое является функцией или классом
+
+		В представление передаются объект HttpRequest, позиционные аргументы (если они были в урле)
+
+		Если совпадение не найдено, то Django вызывает соответствующий обработчик ошибок
+
+	В урлах не нужно добавлять косую черту в начале, потому что каждый URL содержит её.
+
+	Символ 'r' вначале урла говорит о том, что строка сырая и ничего в строке не должно быть экранировано.
+
+	URLconf использует запрашиваемый URL как обычную строку Python. Он не учитывает параметры GET, POST и имя домена, поэтому все запросы будут обработаны одним представлением при одинаковом URL.
+
+	Например, при запросе к https://www.example.com/myapp/, URLconf возьмет myapp/
+
+	Каждый найденный аргумент передается в представление как строка.
+
+	Если Django не может найти подходящий шаблон по урлу, то Django вызовет соответствующее представление обрабатывающее ошибку.
+
+	Эти представления определены в четырёх переменных (handler400, handler403, handler404, handler500)
+
+	Django предоставляет инструменты для получения URL-ов в различных компонентах фреймворка:
+
+		В шаблонах это тег url - {% url 'url-name' v1 v2 %}
+
+		Или такой вариант в шаблоне - <a href="{{ object.get_absolute_url }}">Go</a>
+
+		В коде это функция reverse() - reverse('url-name')
+
+		В моделях метод get_absolute_url(). Django использует get_absolute_url() в интерфейсе администратора. Если объект содержит этот метод, страница редактирования объекта будет содержать ссылку "Показать на сайте".
+
+	При выборе названия для URL-шаблона, убедитесь что оно достаточно уникально. Мы советуем использовать myapp-comment вместо comment.
+'''
+urlpatterns = [
+    path('articles/2003/', views.special_case_2003),
+    path('articles/<int:pk>/', views.article_list),
+]
+
+# В любой момент, ваш urlpatterns может включать и другие модули URLconf
+urlpatterns = [
+    path('contact/', include('django_website.contact.urls'))
+]
+
+# Функция path может принимать третий необязательный элемент. Этот элемент является словарем и аргументом для функции представления
+urlpatterns = [
+    path('blog/<int:year>/', views.year_archive, {'foo': 'bar'}),
+]
+
+#  Можно передать дополнительные аргументы в include(). При этом, каждый URL-шаблон включенного URLconf будет дополнен этими аргументами
+urlpatterns = [
+    path('blog/', include('inner'), {'blog_id': 3}),
+]
+
+# Именование урла
+urlpatterns = [
+    path('articles/<int:year>/', views.year_archive, name='news-year-archive'),
+]
+
+# Создание представлений
+'''
+	Представление – это функция Python, которая принимает Web-запрос и возвращает Web-ответ.
+
+	Ответом может быть HTML-содержимое страницы, или перенаправление, или 404 ошибка, или XML-документ, или изображение или ещё что то.
+
+	Код представления принято держать его в файле views.py для каждого приложения.
+
+	Название функции представления может быть каким угодно.
+
+	В ответ представление может вернуть ошибку. Для этого в Django доступны подклассы, например HttpResponseNotFound.
+
+	Если используем исключение Http404, то для переопределение страницы, которую возвращает Django нужно создать шаблон с названием 404.html в корне каталога с шаблонами.
+
+	Представления обрабатывающие ошибки можно переопределить - handler404 = 'mysite.views.my_custom_page_not_found_view'
+'''
+def current_datetime(request):
+    now = datetime.datetime.now()
+    return HttpResponse(html)
+
+# Для возвращения ошибок можно использовать встроенные исключения. Они сразу генерирует готовую html страницу.
+def create(request):
+	try:
+		Poll.objects.get(pk=poll_id)
+	except Poll.DoesNotExist:
+		raise Http404('Poll does not exist')
+
+# Декораторы представлений
+'''
+	Декораторы могут быть использованы для ограничения доступа к представлению в зависимости от типа запроса И возвращают HttpResponseNotAllowed.
+
+	require_GET() - допустимы только GET запросы
+
+	require_POST() - допустимы только POST запросы
+
+	require_safe() - допустимы только GET и HEAD запросы
+
+	Декораторы могут быть использованы для управления кэширования определенных представлений.
+
+	Декораторы могут управлять сжатием ответа представления.
+'''
+@require_http_methods(['GET', 'POST'])
+def my_view(request):
+    pass
+
+# Загрузка файлов
+'''
+	Когда Django обрабатывает загрузку файла, данные о нем в конце концов попадают в request.FILES
+
+	Данные из формы будут доступны в request.FILES['file']
+
+	request.FILES будет содержать данные только при POST запросе и если тег <form> содержит enctype="multipart/form-data"
+
+	Использование ModelForm значительно упрочает процесс загрузки файла, потому что он сохраняется по указанному в аргументе upload_to поля FileField пути, при вызове form.save()
+
+	Например, если ImageField назван mug_shot, вы можете получить URL к файлу в шаблоне используя {{ object.mug_shot.url }}
+
+	Имя файла, сохраненного на диске, не будет доступно, пока объект к которому относится файл не будет сохранен.
+
+	Когда пользователь загружает файл, Django передает содержимое файла в обработчик загрузки.
+
+	Обработчики загрузки по умолчанию определенны в настройке FILE_UPLOAD_HANDLERS (settings.py).
+
+	MemoryFileUploadHandler - обработчик, который загружает небольшие файлы в память 
+
+	TemporaryFileUploadHandler - обработчик, загружает большие файлы на диск.
+
+	Вы можете написать собственный обработчик загрузки файлов.
+
+	Иногда различные представления требуют различной обработки файлов. В таких случаях можно переопределять обработчики загрузки на лету, изменив request.upload_handlers
+
+		request.upload_handlers.insert(0, ProgressBarUploadHandler())
+'''
+class UploadFileForm(forms.Form):
+	# Если используется бэкенд FileSystemStorage, значение upload_to будет добавлено к MEDIA_ROOT в котором определён путь
+    file = forms.FileField(upload_to='uploads')
+
+def upload_file(request):
+    if request.method == 'POST':
+    	# При работе с файлами и формой передаём файлы в форму 
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            handle_uploaded_file(request.FILES['file'])
+            return HttpResponseRedirect('/success/url/')
+    else:
+        form = UploadFileForm()
+    return render_to_response('upload.html', {'form': form})
+
+def handle_uploaded_file(f):
+    with open('some/file/name.txt', 'wb+') as destination:
+    	# chunks(), вместо использования read(), обезопасит вас от нагрузки системы при загрузке большого файла.
+        for chunk in f.chunks():
+            destination.write(chunk)
+
+# Вспомогательные функции
+'''
+	Пакет django.shortcuts содержит вспомогательные функции
+
+	render - выполняет указанный шаблон с переданным словарем контекста и возвращает HttpResponse с полученным содержимым.
+
+	render_to_response - выполняет указанный шаблон с переданным словарем контекста и возвращает HttpResponse с полученным содержимым.
+
+	redirect - перенаправляет на URL указанный через аргументы.
+
+	get_object_or_404 - вызывает get() для переданной модели и возвращает полученный объект, если объект не существует, то вызывает исключение Http404 вместо DoesNotExist. Вместо модели можно передать объект QuerySet.
+
+	get_list_or_404 - возвращает результат метода filter() для переданной модели, вызывает Http404 если получен пустой список.
+'''
+render(request, template_name='myapp/index.html', context={"foo": "bar"}...)
+
+render_to_response('myapp/index.html', {"foo": "bar"}...)
+
+redirect('url-name', foo='bar')
+
+get_object_or_404(MyModel, pk=1)
+
+get_list_or_404(MyModel, published=True)
+
+# Промежуточный слой (Middleware)
+'''
+	Это промежуточный слой между запросом и представлением.
+
+	Каждый компонент промежуточного слоя отвечает за определенный функционал.
+
+	Чтобы подключить промежуточный слой, добавьте его в список MIDDLEWARE_CLASSES в settings.py
+
+	Django не требует никаких промежуточных слоёв для своей работы, но настоятельно рекомендуется использовать хотя бы CommonMiddleware.
+
+	Порядок MIDDLEWARE_CLASSES важен, так как один промежуточный слой может зависеть от другого.
+
+	Во время обработки запроса, перед вызовом представления, Django применяет промежуточные слои в порядке указанном в MIDDLEWARE_CLASSES.
+
+	На этом этапе доступны 2 функции:
+
+		process_request() - вызывается для каждого запроса перед тем, как Django решит какое представление вызывать
+
+		process_view() - вызывается перед вызовом представления
+
+	На этапе обработки ответа, после вызова представления, промежуточные слои применяются в обратном порядке, снизу вверх. Это значит, что классы, указанные в конце MIDDLEWARE_CLASSES, будет выполнены в первую очередь.
+
+	На этом этапе доступны 3 функции:
+
+		process_exception() - сработает если представление вызвало исключение
+
+		process_template_response() - вызывается после выполнение представления, если объект ответа содержит метод render()
+
+		process_response() - вызывается для каждого ответа перед тем, как он будет оптравлен браузеру.
+
+	Промежуточные слои могут работать и с потоковыми ответами.
+
+	Возможно исключать некоторые промежуточные слои на лету. Это можно сделать с помощью в методе __init__ с помощью исключения MiddlewareNotUsed.
+
+	Класс промежуточного слоя не должен наследоваться от другого класса.
+
+	Большое кол-во промежуточных слоёв отрицательно влияет на скорость работы приложения.
+'''
+MIDDLEWARE_CLASSES = [
+    'django.middleware.security.SecurityMiddleware',
+]
+
+# Как использовать сессии
+'''
+	Механизм сессии сохраняет данные на сервере и самостоятельно управляет сессионными куками.
+
+	Куки содержат ID сессии, а не сами данные.
+
+	Чтобы активировать сессии нужно подключить SessionMiddleware.
+
+	Если сессии не нужны, то можно удалить SessionMiddleware и это немного повысит производительность.
+
+	По умолчанию, Django хранит сессии в базе данных.
+
+	Если вы хотите использовать базу данных для хранения сессии, укажите 'django.contrib.sessions' в настройке INSTALLED_APPS и выполните manage.py migrate, чтобы добавить таблицу в базу данных.
+
+	Для улучшения производительности вы можете использовать кэш для хранения сессии.
+
+	Вам следует использовать кэш только при использовании Memcached. Кэш в памяти не хранит данные достаточно долго, и лучше использовать файлы или базу данных для сессии, чем каждый раз обращаться к кэшу в файловой системе или базе данных.
+
+	Для большинства случаев cached_db будет достаточно быстрым, но если производительность для вас важнее, чем надежное хранение сессии, используйте бэкенд cache.
+
+	Чтобы использовать файловую систему для сессии, нужно указать "django.contrib.sessions.backends.file" в SESSION_ENGINE.
+
+	Вы также можете указать SESSION_FILE_PATH, чтобы указать Django, где сохранять сессионные файлы. Убедитесь, что ваш сервер имеет права на чтение и запись указанного каталога.
+
+	Чтобы хранить сессию в куках, укажите "django.contrib.sessions.backends.signed_cookies" в SESSION_ENGINE. Данные сессии будут сохранены в куках, используя криптографическую подпись и значение SECRET_KEY.
+
+	Рекомендуем указать True в SESSION_COOKIE_HTTPONLY, чтобы запретить доступ JavaScript к кукам.
+
+	Когда SessionMiddleware активный, каждый объект HttpRequest будет содержать атрибут session.
+
+	Сессию можно сериализовать. Есть встроенная, но можно написть и свою.
+
+	Используйте обычные строки Python в качестве ключей словаря в request.session. Это больше соглашение, чем правило.
+
+	Ключи словаря сессии, которые начинаются с подчёркивания зарезервированы для внутреннего использования Django.
+
+	Не перекрывайте request.session новым объектом, не меняйте его атрибута. Пользуйтесь им как обычным словарём Python.
+
+	Для удобства Django представляет простой способ проверить принимает ли браузер пользователя куки или нет. Просто вызовите метод set_test_cookie() объекта request.session в предоставлении и затем вызовите метод test_cookie_worked() в следующем вызове представления, это важный момент.
+
+	Хорошим тоном будет использование метода delete_test_cookie() для очистки куки после проверки.
+
+	Обычно Django выполняет сохранение в базу данных сессии только в случае внесения изменений в сессию, то есть при назначении или удалении значений.
+
+	Вы можете указать какой должна быть длительность сессии, пока браузер не завершается или до некоторой даты, с помощью параметра конфигурации SESSION_EXPIRE_AT_BROWSER_CLOSE.
+
+	Если параметр конфигурации SESSION_EXPIRE_AT_BROWSER_CLOSE установлен в True, то Django будет использовать временные куки, такие куки работают до момента закрытия браузера.
+
+	Django не обеспечивает автоматическую очистку просроченных сессий (если они хранятся в бд), поэтому это придётся делать самостоятельно. Для этого в Django есть команда clearsessions. Следует отметить, что хранилище на основе кэша не подтверждено этой проблеме так как кэш автоматически удаляет устаревшие данные. Так же нет проблемы и с хранилищем на основе кук, потому что они хранятся в браузерах у пользователей.
+
+	Django отправляем куки только когда это требуется. Если вы не сохранили никаких данных в сессию, то сессионная кука не будет отправляться.
+
+	Django не помещает идентификатор сессии в URL в качестве крайнего варианта, как это делает PHP. Это - осознанное проектное решение. Мало того, что такое поведение делает URL уродливыми, оно делает ваш сайт уязвимым для воровства идентификатора сессии через заголовок Referer.
+'''
+def create(request):
+	request.session.get('has_commented', False)
+	request.session['member_id'] = m.id
+	del request.session['member_id']
+
+
+def login(request):
+    if request.method == 'POST':
+        if request.session.test_cookie_worked():
+            request.session.delete_test_cookie()
+            return HttpResponse("You're logged in.")
+        else:
+            return HttpResponse("Please enable cookies and try again.")
+    request.session.set_test_cookie()
+    return render_to_response('foo/login_form.html')
+
+# Мы можем явно указать объекту сессии, что он был модифицирован
+request.session.modified = True
+
+# HTML формы
+'''
+	GET и POST – единственные HTTP методы, которые используются для форм.
+
+	Не следует использовать GET запросы для формы с паролем, т.к. пароль появится в URL, а следовательно в истории браузера и журналах сервера.
+
+	Применение POST запросов, объединённых с другими видами защиты подобных CSRF, предоставляет больше контроля за доступом к данным.
+
+	Сердце всего механизма – класс Form.
+
+	Form описывает форму, как она работает и показывается пользователю.
+
+	Поля формы сами являются классами. Они управляют данными формы и выполняют их проверку при отправке формы.
+
+	При создании формы мы может оставить её пустой, или добавить начальные данные.
+
+	Формы определяются в файле forms.py
+
+	Экземпляр Form содержит метод is_valid(), который выполняет проверку всех полей формы.
+
+	Данные формы отправляются обратно в Django и обрабатываются представлением, обычно тем же, которое и создает форму.
+
+	Если ваша форма содержит URLField, EmailField или одно из числовых полей, Django будет использовать url, email и number поля ввода HTML5.
+
+	Атрибут формы is_bound позволяет узнать связана форма с данными или нет.
+'''
+class NameForm(forms.Form):
+    your_name = forms.CharField(label='Your name', max_length=100)
+
+
+def get_name(request):
+    if request.method == 'POST':
+    	# Привязываем данные к форме
+        form = NameForm(request.POST)
+        if form.is_valid():
+            return form.cleaned_data
+    else:
+    	# Если запрос не прошёл, то форма будет содержать ранее отправленные данные и их можно будет повторно отредактировать
+        form = NameForm()
+
+    return render(request, 'name.html', {'form': form})
+
+
+<form action="/your-name/" method="post">
+    {% csrf_token %}
+    # С этим тэгом будут добавлены все поля из класса NameForm
+    {{ form }}
+    <input type="submit" value="Submit" />
+</form>
+
+
+
 # Книги
 '''
 	Django design patterns
 
 	Two scoope...
 '''
+
+# Развёртывание (docker + nginx + gunicorn + django)
+'''
+	Local machine
+	
+		cd /etc
+
+		sudo nano hosts
+
+		Add 127.0.0.1 yetbetter
+
+	Nginx (docker)
+
+		docker run -p 80:80 --name nginx -v ~/nginx:/usr/share/nginx/html -d nginx
+
+		docker exec -it container_name bash
+
+		apt-get update
+
+		apt-get install nano
+
+		nano /etc/nginx/nginx.conf (docker container)
+
+			user  nginx;
+			worker_processes  1;
+
+			error_log  /var/log/nginx/error.log warn;
+			pid        /var/run/nginx.pid;
+
+			events {
+			    worker_connections  1024;
+			}
+
+			http {
+			    access_log  /var/log/nginx/access.log;
+
+			    sendfile on;
+
+			    keepalive_timeout 65;
+
+			    upstream app_servers {
+			        server 172.17.0.1:8000; - ip адрес докера на локальной машине (только через него можно достучаться)
+			    }
+
+			    server {
+			        listen 80;
+			        server_name yetbetter;
+
+			        location / {
+			            root /usr/share/nginx/html; - здесь должен быть путь к нормальной статики django (узнать) 
+			            index index.html index.htm;
+			            proxy_pass http://app_servers;
+			            proxy_set_header Host $host;
+			        }
+			    }
+			}
+
+		http://yetbetter
+
+	Gunicorn + Django (docker)
+
+		docker pull ubuntu (если нет этого образа на локальной машине, для проверки docker ps)
+
+		docker run -i -t -p 8000:8000 --name container_name ubuntu
+
+			exit
+
+		docker ps -l -> contaner_id/container_name
+
+		docker start container_id
+
+		docker exec -it container_name bash
+
+		apt-get update
+
+		apt-get install -y python3-pip
+
+		pip3 install virtualenv
+
+		pip3 install virtualenvwrapper
+
+		export WORKON_HOME=~/.virtualenvs
+
+		VIRTUALENVWRAPPER_PYTHON='/usr/bin/python3'
+
+		source /usr/local/bin/virtualenvwrapper.sh
+
+		which python3
+
+		mkvirtualenv -p /usr/bin/python3 venv_name
+
+		workon venv_name
+
+		pip3 install django
+
+		cd /home
+
+		mkdir /app
+
+		django-admin startproject project_name
+
+		pip3 install gunicorn
+
+		cd django_project_name
+
+		gunicorn -b 0.0.0.0:8000 project_name.wsgi
+
+'''
+
+@transaction.atomic
+def first(self):
+    ...
+    with transaction.atomic:
+        second()
