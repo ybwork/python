@@ -145,6 +145,7 @@ Commit
 	git push name_repo name_branch - заливает данные в репозиторий, имя ветки может быть любое, в том числе и то на которой я сейчас нахожусь
 
 	git log - просмотр коммитов
+git branch --set-upstream-to=mp/deal deal
 
 	git clone name_repo - клонирует уже существующий репозиторий
 
@@ -159,6 +160,14 @@ Commit
 	git config --list
 
 	git config user.name
+
+	git reset - сбрасывает все изменения, которые были добавлены с помощью команды git add
+
+	git commit --amend - добавляет существующие изменения в последний коммит (если запушил, то не использовать)
+
+	git reset --hard HEAD^ - удаляет последний коммит
+
+	git branch --set-upstream-to=mp/deal deal - связывает локальную ветку и веткой из репозитория (используется для пула после hard reset)
 
 Gitignore
 

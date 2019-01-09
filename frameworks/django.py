@@ -87,6 +87,8 @@
 
 			HTML формы
 
+		Команды
+
 		Книги
 
 		Развёртывание (docker + nginx + gunicorn + django)
@@ -1527,6 +1529,12 @@ def get_name(request):
 </form>
 
 
+# Команды
+'''
+	pip install django-extensions -> ./manage.py show_urls - показывает все существующие урлы
+
+	./manage.py test name_app.tests - запускает тесты конкретного приложения
+'''
 
 # Книги
 '''
