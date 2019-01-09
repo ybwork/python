@@ -84,6 +84,8 @@
 
  	ping localhost - пингует сервер (если он не доступен, пишет Name or service not known)
 
+ 	\ - перенос строки в консоли
+
 
 
 
