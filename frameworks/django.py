@@ -5,6 +5,8 @@
 
 		Модели и базы данных
 
+			Общее
+
 			Один ко многим
 
 			Многие ко многим
@@ -87,6 +89,8 @@
 
 			HTML формы
 
+		Тестирование
+
 		Команды
 
 		Книги
@@ -101,9 +105,11 @@
 	python manage.py startapp polls
 '''
 
-# Модели
+# Общее
 '''
 	Обычно одна модель представляет одну таблицу в базе данных.
+
+	В сообществе принято называть таблицы и модели в единственном числе. Например product.
 
 	Каждая модель это класс унаследованный от models.Model.
 
@@ -1529,6 +1535,15 @@ def get_name(request):
 </form>
 
 
+# Тестирование
+'''
+	./manage.py test name_app.tests - запускает тесты конкретного приложения
+'''
+class InvoiceTestCase(TestCase):
+    def test_create_invoice(self):
+        self.assertEqual(Invoice(user_id=4, num='lll333'), True)
+
+        
 # Команды
 '''
 	pip install django-extensions -> ./manage.py show_urls - показывает все существующие урлы
