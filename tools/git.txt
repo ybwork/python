@@ -1,8 +1,12 @@
 Оглавление
 
-	Git flow
+	Что это
+
+	Настройка
 
 	SSH
+
+	Git flow
 
 	Merge request
 
@@ -13,6 +17,98 @@
 	Команды
 
 	Gitignore
+
+Что это
+
+	Система контроля версий
+
+Настройка
+
+	sudo apt update
+
+	sudo apt install git
+
+	git --version
+
+	git config --global user.name "Your Name"
+
+	git config --global user.email "youremail@domain.com"
+
+	git config --list
+
+SSH
+
+	Позволяет делать push без пароля.
+
+	cd ~/.ssh
+
+	ls
+
+	Если не видим файлы id_dsa и id_dsa.pu, то создаём - ssh-keygen (или команда указанная в доке github/gitlab)
+
+	Если видим файлы, то открываем id_rsa.pub 
+
+	Копируем всё содержимое 
+
+	Переходим в github/gitlab -> settings -> ssh keys -> add ssh key
+
+	Вставляем скопированное в поле для ключа и нажимаем создать
+
+Основы работы
+
+	Создаём удалённый репозиторий.
+
+	Клонируем удалённый репозиторий на локальную машину.
+
+		git clone git@gitlab0.km-union.ru:kaduk_ia/marketplace.git
+
+	Теперь имя репозитория на локальной машине - origin.
+
+	Для каждой новой фичи создаём отдельную ветку.
+
+		git checkout -b name_branch
+
+	Делаем коммит на каждое небольшое изменение.
+
+		git status
+
+		git add .
+
+		git commit -m "Overview commit"
+
+	Остаёмся на этой же ветке и заливаем код с фичёй на удалённый репозиторий.
+
+		git push (зальёт в репозиторий ветку на которой сейчас находимся)
+
+	Заходим на удалённый репозиторий и создаём merge или pull request.
+
+	Создаём новую ветку и продолжаем работать.
+
+	Если следующая задача связана с предыдущей, то либо ждём пока проверят код или договариваемся о том как работать дальше.
+
+	Когда код проверили и сделали merge, переходим на ветку master и забираем изменения из удалённого репозитория.
+
+		git pull
+
+	Если на удалённом репозитории возникли конфликты при merge, то выясняем на какой ветке и вытаскиваем её из того что спулили.
+
+		git checkout -r (показывает все ветки на удалённом репозитории)
+
+		git checkout name_branch (заново создаёт ветку, такую же, как и в удалённом репозитории)
+
+		git merge name_branch
+
+	Решаем конфликты.
+
+	Делаем коммит.
+
+	Удаляем ветку в слиянии с которой был конфликт.
+
+		git branch -d branch_name
+
+	Заливаем в мастер.
+
+		git push
 
 Git flow
 
@@ -31,30 +127,6 @@ Git flow
 	Если вы довольны текущей версией, но хотите продолжить работу, создается ветка release, куда перемещается текущая версия develop с новыми фичами. Правка багов будет происходить на этой же ветке.
 
 	Когда с веткой release покончено, время слить ее в master и продолжить работу с develop.
-
-SSH
-
-	cd ~/.ssh
-
-	ls
-
-	Если есть, то увижу файлы id_dsa и id_dsa.pub
-
-	ssh-keygen - создаём ssh
-
-	cat ~/.ssh/id_rsa.pub - проверяем ssh на наличие
-
-	Переходим в github -> Settings -> SSH Keys -> Add SSH key и добавляем ключ
-
-	ssh-agent - переходим в ssh-agent
-
-	Если видим вывод после команды, то всё ок. Если нет, то запускаем ssh-agent в фоне eval "$(ssh-agent -s)"
-
-	Добавляем ключ ssh-add ~/.ssh/id_rsa
-
-	git remote add ror-events git@github.com:ybwork/ror-events.git
-
-	git push ror-events master
 
 Merge request
 
