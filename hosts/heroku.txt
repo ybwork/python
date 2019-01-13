@@ -1,0 +1,78 @@
+Оглавление
+
+	Развертывание
+
+Развертывание
+
+	Ставим heroku cli.
+
+		sudo snap install heroku --classic
+
+	Клонируем проект с удалённого репозитория
+
+		git clone https://github.com/heroku/app.git
+
+	Переходим в проект
+
+		cd app
+
+	Активируем виртуальное окружение для проекта
+
+		workon hudi
+
+	Устанавливаем application server
+
+		pip install gunicorn
+
+	Создаём файл wsgi.py в корне проекта
+
+		touch wsgi.py
+
+	Наполняем файл wsgi.py
+
+		Для flask:
+
+			#!flask/bin/python
+			from app import app
+
+	Запускаем приложение с помощью application server
+
+		web: gunicorn wsgi:app
+
+		wsgi - имя файла wsgi.py
+
+		app - метод, который должен запустить application server
+
+	Создаём и наполняем файл с зависимостями
+
+		pip freeze > requirements.txt
+
+	Создаём файл для запуска приложения на heroku
+
+		touch Procfile
+
+	Наполняем файл для запуска приложения на heroku
+
+		web: gunicorn wsgi:app
+
+	Входим в heroku cli
+
+		heroku login
+
+		если после ввода логина и пароля увидели Logged in as, значит вошли
+
+	Создаём приложение на heroku
+
+		heroku create
+
+	Отправляем код проекта в приложение
+
+		git push heroku master
+
+	Открываем приложение
+
+		heroku open
+
+	Если что то не работает, то смотрим логи
+
+		heroku logs
