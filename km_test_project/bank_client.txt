@@ -111,9 +111,9 @@ Cчёт
 	2   alfa  20 000 000
 
 	clients
-	id  name
-	1   mike
-	2   jane
+	id  name  email
+	1   mike  mike@gmail.com
+	2   jane  jane@gmail.com
 
 	banks_clients
 	id  bank_id  client_id  number_invoice  balance
