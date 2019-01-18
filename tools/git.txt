@@ -227,7 +227,7 @@ Commit
 
 	git branch name_branch - создаёт ветку
 
-	git checkout - переключает на ветку
+	git checkout name_branch - переключает на ветку
 
 	git branch -v - показывает последний коммит на ветке
 
@@ -273,6 +273,22 @@ git branch --set-upstream-to=mp/deal deal
 	git stash save - отменяет все индексированные и неиндексированные изменения в рабочей области, возвращая состояние к последнему коммиту
 
 	git branch -r - показывает связанные ветки на удалённом репозитории
+
+	git checkout hash_code_commit - переключает на нужный коммит
+
+	git reflog - показывает всю историю внутри гита
+
+	git checkout deal_start
+	git rebase deal_tmp - перемещает все коммиты с deal_tmp в deal_start
+	Если возникли ошибки, то исправляем их, выполняем только команду git add . и выполняем git rebase --continue
+
+	git log --all - выводит все коммиты (для просмотра мотать стрелками клавы вниз)
+
+	git reset --soft HEAD^ - удаляет последний коммит, но оставляет все изменения
+
+	git branch -m new_name - переименовывает ветку
+
+	git branch -f - ...
 
 Gitignore
 
