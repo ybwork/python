@@ -18,6 +18,8 @@
 
 	Логгирование
 
+	SQLAlchemy
+
 Что это
 
 	Это микрофреймворк написанный на python.
@@ -32,7 +34,9 @@
 
 Команды
 
-	python app.py
+	python app.py - запускает проект если есть проверка if __name__ == '__main__': app.run()
+
+	flask run - запускает проект
 
 Быстрый старт
 
@@ -124,3 +128,39 @@
 	По умолчанию используется стандартное логгирование питона.
 
 	Для кооректной работы нужно заменить from flask import logging на import logging.
+
+SQLAlchemy
+
+	pip install Flask-SQLAlchemy
+
+	pip install psycopg2
+
+	pip install Flask-Migrate
+
+	SQLALCHEMY_DATABASE_URI = \
+        'postgresql+psycopg2://postgres:asdf@127.0.0.1:5432/bank_client'
+
+    flask_app
+    db = SQLAlchemy(flask_app)
+    import models
+	migrate = Migrate(flask_app, db)
+
+	models.py
+
+		class User(db.Model):
+		    id = db.Column(db.Integer, primary_key=True)
+		    name = db.Column(db.String(128))
+
+
+	flask db init - создаёт место для хранения миграций
+
+	flask db migrate - создаёт таблицу в базе данных для хранения версий миграций
+
+	flask db migrate -m "Migration name" - создаёт миграцию
+
+	flask db upgrade - выполняет миграцию
+
+	flask db downgrade - откатывает миграцию
+
+
+
