@@ -92,9 +92,13 @@ SSH
 
 	Если на удалённом репозитории возникли конфликты при merge, то выясняем на какой ветке и вытаскиваем её из того что спулили.
 
-		git checkout -r (показывает все ветки на удалённом репозитории)
+		git branch -r (показывает все ветки на удалённом репозитории)
 
 		git checkout name_branch (заново создаёт ветку, такую же, как и в удалённом репозитории)
+
+		или
+
+		git checkout --track origin/deal_start - позволяет вытащить ветку из удалённого репозитория, если привязано несколько
 
 		git merge name_branch
 
@@ -290,6 +294,10 @@ git branch --set-upstream-to=mp/deal deal
 
 	git branch -f - ...
 
+	git checkout --track origin/deal_start - позволяет вытащить ветку из удалённого репозитория, если привязано несколько
+
+	git remote rm name_repo - удаляет привязанный репозиторий
+
 Gitignore
 
     type nul > .gitignore (создали файл .gitignore в windows)
@@ -297,3 +305,13 @@ Gitignore
     git rm -r --cached .idea (исключаем папку/файл из репозитория, если она там есть)
 
     добавили в файл .gitignore, то что нужно игнорировать (.idea)
+
+Нюансы
+
+	Если не применяются изменения в .gitignore, то: 
+
+		git rm -r --cached .
+
+		git add .
+
+		git commit -m "..."

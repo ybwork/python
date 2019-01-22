@@ -2,6 +2,10 @@
 
 	Что это
 
+	Установка
+
+	Backup
+
 Что это
 
 	Это графический интерфейс для работы с postgresql.
@@ -33,5 +37,7 @@
 		source bin/activate
 		python3 lib/python3.6/site-packages/pgadmin4/pgAdmin4.py
 
+Backup
 
+	
 
