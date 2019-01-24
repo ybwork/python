@@ -1,0 +1,4 @@
+http GET http://127.0.0.1:5000/v1/invoices/5956f/balances api_key=ccc42a8314596799
+
+http POST http://127.0.0.1:5000/v1/payment_confirm_codes api_key=ccc42a8314596799
+invoice=5956f
