@@ -88,6 +88,8 @@
 
 	start rabbit manage panel on http://localhost:15672
 
+	Если не заработала эта установка, то использовать из официальной доки (пакет bithday)
+
 	pip install pika
 
 Команды
@@ -104,10 +106,8 @@
 
 	sudo rabbitmqctl list_bindings - выводит список связанных точек обмена с очередями
 
-	sudo systemctl enable rabbitmq-server - ключает сервер
-
+	sudo systemctl enable rabbitmq-server - включает сервер
 	sudo systemctl start rabbitmq-server - запускает сервер
-	
 	sudo systemctl stop rabbitmq-server - останавливает сервер
 
 	sudo rabbitmqctl add_user admin password
