@@ -1,5 +1,7 @@
-http GET http://127.0.0.1:5000/v1/invoices/5956f/balances api_key=ccc42a8314596799
+http GET http://127.0.0.1:5000/v1/invoices/asdf@/balances api_key=ccc42a8314596799
 
-http POST http://127.0.0.1:5000/v1/payments api_key=ccc42a8314596799 amount_money=300 invoice_provider=5956 invoice_reciever=5956
+http POST http://127.0.0.1:5000/v1/payments api_key=ccc42a8314596799 amount_money=300 number_invoice_provider=asdf@ number_invoice_reciever=asdf#
 
-http POST http://127.0.0.1:5000/v1/payments/confirm api_key=ccc42a8314596799 invoice=5956 code_confirm=152
+http POST http://127.0.0.1:5000/v1/payments/confirm api_key=ccc42a8314596799 invoice=asdf@ code_confirm=152
+
+http POST http://127.0.0.1:5000/v1/payments/perform api_key=ccc42a8314596799 key=8024b
