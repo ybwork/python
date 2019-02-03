@@ -36,9 +36,15 @@
 
 			deal_id
 
+			number_invoice_provider
+
+			number_invoice_reciever
+
 			key
 
 			amount
+
+			status_id
 
 Банк клиент
 	
@@ -67,14 +73,6 @@
 		-----
 
 		торговая площадка отправила ключ платежа в банк - метод payments/pay
-
-		Ошибки:
-
-			invoices на invoice
-
-			invoice_provider на number_invoice_provider
-
-			Code invalid на Invalid code
 
 	Оплата - 
 
