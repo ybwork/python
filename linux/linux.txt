@@ -26,7 +26,7 @@
 
 	sudo apt-get update - получить обновлённые списки пакетов
 
-	sudo apt-get install package_name - установка нового пакета
+	sudo apt-get install package_name if_need_version - установка нового пакета
 
 	sudo apt-get remove package_name - удаление пакета
 
@@ -49,6 +49,8 @@
 	unzip ./folder.zip -d ./folder - распаковать архив в папку folder
 
 	rm -rf folder_name - удалить директорию
+
+	rm -f file_name - удаляет файл
 
 	ls -a ~/ - просмотр скрытых файлов
 
@@ -85,6 +87,8 @@
  	ping localhost - пингует сервер (если он не доступен, пишет Name or service not known)
 
  	\ - перенос строки в консоли
+
+ 	sudo dpkg -i имя_пакета - устанавливает deb пакет
 
 
 
