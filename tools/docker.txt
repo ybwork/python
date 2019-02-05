@@ -80,7 +80,7 @@
 
 	sudo apt-get install docker-ce
 
-	udo systemctl status docker (должна показать active running)
+	sudo systemctl status docker (должна показать active running)
 
 	sudo usermod -aG docker ${USER}
 

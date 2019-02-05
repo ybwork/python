@@ -20,6 +20,17 @@ Virtualenvwrapper
 
 		pip install virtualenvwrapper
 
+		if workon command not found:
+
+			cd ~
+			nano .profile
+
+			export WORKON_HOME=$HOME/envs
+			export PROJECT_HOME=$HOME/dev
+			source ~/.local/bin/virtualenvwrapper.sh
+
+			$ . .profile
+
 		Для установки в docker container (нужно писать в каждую новую консоль):
 
 			apt-get python-pip

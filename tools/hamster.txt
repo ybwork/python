@@ -6,6 +6,12 @@ if error:
 
 sudo dpkg -i hamster-applet_2.91.3+git20120514.b9fec3e1-1ubuntu2_all.deb
 
+if error:
+
+	sudo apt-get --fix-broken install
+
 sudo dpkg -i hamster-indicator_0.1+037dd2e-0ubuntu2_all.deb
 
-sudo apt-get install python-appindicator
+if error:
+
+	sudo apt-get --fix-broken install
