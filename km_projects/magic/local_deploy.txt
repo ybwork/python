@@ -1,0 +1,38 @@
+Оглавление
+
+	Версии баз
+
+	Развёртывание
+
+Версии баз
+
+	postgres 9.5
+
+	mysql 5.7
+
+Развёртывание
+
+	Убедиться, что стоит pip для python 2
+
+		pip --version должен вывести ...from /usr/lib/python2.7/dist-packages (python 2.7)
+
+		если нет, то sudo apt-get install python-pip
+
+	Убедиться, что стоит virtualenv
+
+		если нет, то sudo pip install virtualenv
+
+	Переходим в директорию с проектом 
+
+		python create_bootstrap.py
+
+		должен появиться bootstrap.py
+
+		python bootstrap.py
+
+		должна появиться директория bin
+
+	Устанавливаем нужные версии субд
+
+
+

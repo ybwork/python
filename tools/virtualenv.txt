@@ -22,14 +22,10 @@ Virtualenvwrapper
 
 		if workon command not found:
 
-			cd ~
+			sudo nano
+
 			nano .profile
 
-			export WORKON_HOME=$HOME/envs
-			export PROJECT_HOME=$HOME/dev
-			source ~/.local/bin/virtualenvwrapper.sh
-
-			$ . .profile
 
 		Для установки в docker container (нужно писать в каждую новую консоль):
 
@@ -74,3 +70,7 @@ Virtualenvwrapper
 		workon name_env - активирует окружение в той директории из которой произошёл вызов
 
 		deactivate - выключает окружение
+
+Команды
+
+	virtualenv --python=/usr/bin/python2.7 name_venv - создаёт виртуальное окружение, флаг --python=... позволяет указать с какой версией питона будет работать окружение 

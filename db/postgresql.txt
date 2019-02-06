@@ -68,6 +68,8 @@
 
 	Шпора по запросам
 
+	Docker
+
 Что это
 
 	PostgreSQL - это объектно-реляционная система управления базами данных.
@@ -744,6 +746,8 @@ VACUUM
 	createdb ctw_development (CREATE DATABASE dbname;)
 
 	\d table_name - показывает все колонки в таблице
+
+	psql -> show data_directory; - показывает где хранятся данные (обычно в /var/lib/postgresql/data)
 	
 Шпора по возможностям
 
@@ -811,6 +815,14 @@ VACUUM
        END
     FROM test
 
+Docker
+
+		psql -U postgres
+
+		docker run --name postgres_9.5 \
+		-v ~/work/docker/volumes/postgres_9.5/config:/etc/postgresql \
+		-v ~/work/docker/volumes/postgres_9.5/data:/var/lib/postgresql/data \
+		-p 5432:5432 -e POSTGRES_PASSWORD=asdf1234 -d postgres:9.5
 
 
 

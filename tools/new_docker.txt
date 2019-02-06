@@ -1,0 +1,25 @@
+Оглавление
+
+	Что это
+
+	Установка
+
+	Команды
+
+Команды
+
+	docker run -d container_name - запускает контейнер в фоновом режиме
+
+	docker run container_name:9.6 - запускает контейнер определённой версии
+
+	docker start container_name - запускает контейнер после остановки
+
+	docker stop container_name - останавливает контейнер
+
+	docker exec -it container_name bash - позволяет зайти в терминал контейнера
+
+	docker -v ~/folder/on/my/machine:/folder/in/container - создаёт точку монтирования
+
+	docker -p 80(current):5000(new) - пробрасывает порт
+
+	docker ps - показывает все запущенные контейнеры
