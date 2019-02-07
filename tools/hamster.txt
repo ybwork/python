@@ -1,17 +1,35 @@
-sudo dpkg -i python-wnck_2.32.0+dfsg-4_amd64.deb
+Оглавление
 
-if error:
+	Что это
 
-	sudo apt-get --fix-broken install
+	Установка
 
-sudo dpkg -i hamster-applet_2.91.3+git20120514.b9fec3e1-1ubuntu2_all.deb
+	Процесс работы
 
-if error:
+Что это
 
-	sudo apt-get --fix-broken install
+ 	Тайм трекер.
 
-sudo dpkg -i hamster-indicator_0.1+037dd2e-0ubuntu2_all.deb
+Установка
 
-if error:
+	sudo dpkg -i python-wnck_2.32.0+dfsg-4_amd64.deb
 
-	sudo apt-get --fix-broken install
+	if error:
+
+		sudo apt-get --fix-broken install
+
+	sudo dpkg -i hamster-applet_2.91.3+git20120514.b9fec3e1-1ubuntu2_all.deb
+
+	if error:
+
+		sudo apt-get --fix-broken install
+
+	sudo dpkg -i hamster-indicator_0.1+037dd2e-0ubuntu2_all.deb
+
+	if error:
+
+		sudo apt-get --fix-broken install
+
+Процесс работы
+
+	

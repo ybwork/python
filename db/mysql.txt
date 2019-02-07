@@ -2,10 +2,38 @@
 
 	Docker
 
+	Команды
+
+	Нюансы
+
 Docker
 
 	docker run --name mysql_5.7 -v ~/work/docker/volumes/mysql_5.7/config:/etc/mysql/conf.d -v ~/work/docker/volumes/mysql_5.7/data:/var/lib/mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=asdf1234 -d mysql:5.7
 
 	mysql -u root -p asdf1234 - позволяет войти в интерфейс
 
-	mysql -> select @@datadir; - показывает место, где храняся данные 
+	mysql -> select @@datadir; - показывает место, где храняся данные
+
+Команды
+
+	mysql -u root -p
+
+	enter password: asdf1234
+
+		CREATE USER 'ilya'@'localhost' IDENTIFIED BY 'asdf1234'; - создаёт нового пользователя
+
+		GRANT ALL PRIVILEGES ON * . * TO 'ilya'@'localhost'; - дает пользователю привелеггии на все
+
+		CREATE DATABASE db_name; - создаёт базу
+
+		show databases; - показывает все базы
+
+		use db_name; - коннектит к базе
+
+		show tables; - выводит все таблицы базы
+
+Нюансы
+
+	Создавать базы данных из под конкретного пользователя.
+
+	Пользователь должен иметь права для различных действий в рамках субд.

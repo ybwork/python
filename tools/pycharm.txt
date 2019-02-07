@@ -2,8 +2,14 @@
 
 	Команды
 
+	Настройки
+
 Команды
 
 	cntl + alt + s - вызывает окно настроек
 
 	cntl + alt + s -> Project: project_name -> Project interpreter
+
+Настройки
+
+	File -> Settings -> Project -> Project interpreter -> шестерёнка -> Show all -> плюс -> Existing enviroment -> путь к виртуальному окружению (/home/ilya/work/projects/magic-env/bin/python) 	

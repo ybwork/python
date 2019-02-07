@@ -697,10 +697,6 @@ VACUUM
 
 Команды
 
-	\dt - показывает список таблиц внутри базы
-
-	createdb mydb - создаёт бд
-
 	sudo -i -u postgres - переключение на аккаунт (в нём создаются пользователи и выполняются другие действия)
 
 		dropdb events;
@@ -713,27 +709,11 @@ VACUUM
 
 	sudo /etc/init.d/postgresql restart - перезапуск postgresql
 
-	psql - доступ к командной строке
-
-	exit - выход из командной строки
-
 	\q - выход из аккаунта
-
-	ALTER USER postgres PASSWORD ''; - сменить пароль для пользователя
-
-	CREATE USER yetbetter WITH PASSWORD 'asdf1234'; - создаёт пользователя
-
-	CREATE USER davide WITH PASSWORD 'jw8s0F4';
-
-	CREATE DATABASE ctw_development OWNER yetbetter;
 
 	DROP USER yetbetter; - удаляет пользователя
 
-	\du - показыввает таблицу с пользователями
-
 	pg_dump dbname > outfile
-
-	\list - показывает все базы
 
 	psql -> \c db_name (коннект с базой) -> \dt (показывает таблицы) -> SELECT id FROM organizers;
 
@@ -748,6 +728,28 @@ VACUUM
 	\d table_name - показывает все колонки в таблице
 
 	psql -> show data_directory; - показывает где хранятся данные (обычно в /var/lib/postgresql/data)
+
+	------------------------
+
+	psql -U postgres
+
+		CREATE USER ilya WITH PASSWORD 'asdf1234'; - создаёт пользователя
+
+		\du - выводит всех пользователей
+
+		ALTER USER ilya RENAME TO ilya; - изменяет имя пользователя
+
+		ALTER USER ilya PASSWORD 'asdf1234'; - изменяет пароль пользователя
+
+		CREATE DATABASE magic OWNER ilya; - создает базу
+
+		\l - показывает все базы
+
+		DROP DATABASE magic; - удаляет базу данных
+
+		\c db_name - коннектится к базе
+
+		\dt - показывает список таблиц внутри базы
 	
 Шпора по возможностям
 

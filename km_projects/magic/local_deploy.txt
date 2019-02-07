@@ -34,5 +34,65 @@
 
 	Устанавливаем нужные версии субд
 
+	Активируем виртуальное окружение
+
+	Устанавливаем зависимости
+
+		Перед установкой убедиться, что есть:
+
+			- права в gitlab на клонирование пакетов
+
+			- системная библиотеки libxml2 and libxslt
+
+				sudo apt-get update
+
+				sudo apt-get install libxml2-dev libxslt-dev python-dev
+
+	Создаем нужные бд
+
+	Миграции
+
+		Перед выполнением убедиться, что есть:
+
+			- драйвер MySQLdb
+
+				sudo apt-get update
+
+				sudo apt-get install python-mysqldb
+
+				pip install mysql
+
+		Выдаст ошибку в конце:
+
+			File "/home/ilya/work/projects/magic-env/local/lib/python2.7/site-packages/django/contrib/sites/models.py", line 34, in _get_site_by_id
+		    if site_id not in SITE_CACHE:
+			TypeError: unhashable type: 'dict
+
+			Убираем 
+
+	Переходим в имя_проекта/conf, открываем файл settings_local.py.template, копируем все
+
+	В имя_проекта/conf созаем файл settings_local.py и вставляем все скопированное
+
+	Создаём необходимые бд
+
+		Одну postgres и mysql. ()
+
+	Вопросы
+
+		Где коннекты к постгрес?
+
+		Нужен ли кусок в /magic/modules/configurator/admin.py на строке 151? (Создаем формы конфигураторов для тестов)
+
+	Не работало
+
+		ALLOWED_HOSTS
+
+		маршрутизация баз данных
+
+
+
+
+
 
 
