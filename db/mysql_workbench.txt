@@ -1,0 +1,11 @@
+Оглавление
+
+	Установка на ubuntu
+
+Установка на ubuntu
+
+	sudo apt-get update
+
+	sudo apt-get install mysql-workbench
+
+	mysql-workbench

@@ -717,16 +717,6 @@ VACUUM
 
 	psql -> \c db_name (коннект с базой) -> \dt (показывает таблицы) -> SELECT id FROM organizers;
 
-	psql ctw_development < map-db-3008.dump; - делает дамп
-
-	cat /var/lib/postgresql/map-db-3008.dump | psql -d ctw_development - делает дамп
-
-	dropdb ctw_development
-
-	createdb ctw_development (CREATE DATABASE dbname;)
-
-	\d table_name - показывает все колонки в таблице
-
 	psql -> show data_directory; - показывает где хранятся данные (обычно в /var/lib/postgresql/data)
 
 	------------------------
@@ -734,6 +724,8 @@ VACUUM
 	psql -U postgres
 
 		CREATE USER ilya WITH PASSWORD 'asdf1234'; - создаёт пользователя
+
+		CREATE ROLE korallmicro LOGIN; - создаёт пользователя/роль без пароля
 
 		\du - выводит всех пользователей
 
@@ -750,6 +742,12 @@ VACUUM
 		\c db_name - коннектится к базе
 
 		\dt - показывает список таблиц внутри базы
+
+		\d table_name - показывает все колонки в таблице
+
+		SELECT * FROM public.table_name;
+
+	переходим в директорию с дампом -> pg_restore -U user_name -d db_name -1 file.dump
 	
 Шпора по возможностям
 

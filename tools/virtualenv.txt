@@ -2,7 +2,13 @@
 
 	Что это
 
-	Virtualenvwrapper
+	Установка в ubuntu
+
+	Установка в	windows
+
+	Установка в docker
+
+	Команды
 
 Что это
 
@@ -10,67 +16,66 @@
 
 	Когда мы запускаем виртуальный сервер, оно умеет обрабатывать http запросы и запускать python приложение.
 
-Virtualenvwrapper
+Установка в ubuntu
 
-	Упрощает работу с виртуальным окружением
+	sudo pip install virtualenv
 
-	Ubuntu
+	sudo pip install virtualenvwrapper
 
-		pip install virtualenv
+	sudo nano ~/.bashrc
 
-		pip install virtualenvwrapper
+	export WORKON_HOME=~/work/virtualenvs
+	VIRTUALENVWRAPPER_PYTHON='/usr/bin/python3'
+	source /usr/local/bin/virtualenvwrapper.sh
 
-		if workon command not found:
+	source ~/.bashrc
 
-			sudo nano
+Установка в	windows
 
-			nano .profile
+	pip install virtualenvwrapper-win
 
+	Добавляем в переменные среды конкрентного пользователя (например Ilya) переменную WORKON_HOME и путь, где будут храниться venvs.
 
-		Для установки в docker container (нужно писать в каждую новую консоль):
+Установка в docker
 
-			apt-get python-pip
+	apt-get python-pip
 
-			pip install virtualenv
+	pip install virtualenv
 
-			pip install virtualenvwrapper
+	pip install virtualenvwrapper
 
-			export WORKON_HOME=~/.virtualenvs
-			VIRTUALENVWRAPPER_PYTHON='/usr/bin/python3'
-			source /usr/local/bin/virtualenvwrapper.sh
-
-		workon - показывает все виртуальные окружения
-
-		workon venv_name - выбирает и запускает виртуальное окружение (для того чтобы выбранное окружение привязалось к конкретному проекту, нужно перейти в директорию с проектом и выполнить эту команду)
-
-		deactiavate - выход из выбранного виртуального окружения
-
-		rmvirtualenv venv_name - удаление виртуального окружения
-
-		which python3 - показывает где в систему питон
-
-		mkvirtualenv -p /usr/bin/python3 venv_name - создание виртуального окружения для python3
-
-		pip freeze list - показывает все установленные пакеты
-
-		ls ~/.virtualenvs/ - место, где хранятся все виртуальные окружение, обычно директории с точками скрыты если смотреть не через консоль
-
-	Windows
-
-		pip install virtualenvwrapper-win
-
-		Добавляем в переменные среды конкрентного пользователя (например Ilya) переменную WORKON_HOME и путь, где будут храниться venvs.
-
-		lsvirtualenv - показывает все существующие
-
-		mkvirtualenv name_env - создаёт виртуальное окружение
-
-		rmvirtualenv name_env - удаляет окружение
-
-		workon name_env - активирует окружение в той директории из которой произошёл вызов
-
-		deactivate - выключает окружение
+	export WORKON_HOME=~/.virtualenvs
+	VIRTUALENVWRAPPER_PYTHON='/usr/bin/python3'
+	source /usr/local/bin/virtualenvwrapper.sh
 
 Команды
 
+	virtualenv --version - выводит версию
+
 	virtualenv --python=/usr/bin/python2.7 name_venv - создаёт виртуальное окружение, флаг --python=... позволяет указать с какой версией питона будет работать окружение 
+
+	workon - показывает все виртуальные окружения
+
+	workon venv_name - выбирает и запускает виртуальное окружение (для того чтобы выбранное окружение привязалось к конкретному проекту, нужно перейти в директорию с проектом и выполнить эту команду)
+
+	deactiavate - выход из выбранного виртуального окружения
+
+	rmvirtualenv venv_name - удаление виртуального окружения
+
+	which python3 - показывает где в систему питон
+
+	mkvirtualenv -p /usr/bin/python3 venv_name - создание виртуального окружения для python3
+
+	pip freeze list - показывает все установленные пакеты
+
+	ls ~/.virtualenvs/ - место, где хранятся все виртуальные окружение, обычно директории с точками скрыты если смотреть не через консоль
+
+	lsvirtualenv - показывает все существующие
+
+	mkvirtualenv name_env - создаёт виртуальное окружение
+
+	rmvirtualenv name_env - удаляет окружение
+
+	workon name_env - активирует окружение в той директории из которой произошёл вызов
+
+	deactivate - выключает окружение

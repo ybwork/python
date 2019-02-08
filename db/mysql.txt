@@ -8,7 +8,13 @@
 
 Docker
 
-	docker run --name mysql_5.7 -v ~/work/docker/volumes/mysql_5.7/config:/etc/mysql/conf.d -v ~/work/docker/volumes/mysql_5.7/data:/var/lib/mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=asdf1234 -d mysql:5.7
+	docker run \
+	--name mysql_5.7 \
+	-v ~/work/docker/volumes/mysql_5.7/config:/etc/mysql/conf.d \
+	-v ~/work/docker/volumes/mysql_5.7/data:/var/lib/mysql \
+	-p 3306:3306 \
+	-e MYSQL_ROOT_PASSWORD=asdf1234 \
+	-d mysql:5.7
 
 	mysql -u root -p asdf1234 - позволяет войти в интерфейс
 
@@ -28,9 +34,17 @@ Docker
 
 		show databases; - показывает все базы
 
+		DROP DATABASE magic; - удаляет базу
+
 		use db_name; - коннектит к базе
 
 		show tables; - выводит все таблицы базы
+
+		SHOW COLUMNS FROM table_name; - выводит все колонки таблицы
+
+	переходим в директорию с бэкапом -> mysqldump -u user_name -p db_name < dbexport.sql - заливает дамп базы
+
+	enter password:
 
 Нюансы
 
