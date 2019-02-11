@@ -23,3 +23,5 @@
 	docker -p 80(current):5000(new) - пробрасывает порт
 
 	docker ps - показывает все запущенные контейнеры
+
+	sudo journalctl -fu docker.service - показывает логи docker сервера
