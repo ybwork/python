@@ -1,24 +1,28 @@
-Октрываем проект в pycharm
+Окружение и зависимости
 
-Переходим в директорию с проектом 
+	автоматическое создание
 
-	python create_bootstrap.py
+		chmod +x deploy.sh
 
-	должен появиться bootstrap.py
+		./deploy.sh
 
-	python bootstrap.py
+	ручное создание
 
-	должно создасться виртуальное окружение magic-env
+		python create_bootstrap.py
 
-	должна появиться директория bin
+		должен появиться bootstrap.py
+
+		python bootstrap.py
+
+		должно создасться виртуальное окружение magic-env
+
+		должна появиться директория bin
+
+		bin/pip install -r requirements.txt
 
 Привязываем виртуальное окружение к проекту через pycharm
 
 	File -> Settings -> Project -> Project interpreter -> шестеренка -> Show all -> + -> выбираем Existing environment -> /path/to/envs/name_env/bin/python
-
-Устанавливаем зависимости
-
-	bin/pip install -r requirements.txt
 
 Устанавливаем нужные версии субд в docker контейнерах
 
@@ -60,6 +64,8 @@
 
 		goods_office
 
+Заполняем файл settings_local.py
+
 Миграции
 
 	Устанавливаем драйвер MySQLdb
@@ -67,8 +73,6 @@
 		sudo apt-get update
 
 		sudo apt-get install python-mysqldb
-
-		pip install mysql
 
 	Переходим в /magic/modules/configurator/admin.py и комментируем код на строках (152 - 157 включительно)
 
@@ -95,10 +99,6 @@
 	Переходим в имя_проекта/conf, открываем файл settings_local.py.template, копируем все
 
 	В имя_проекта/conf созаем файл settings_local.py и вставляем все скопированное из settings_local.py.template
-
-Вопросы
-
-	Нужен ли кусок в /magic/modules/configurator/admin.py на строке 151? (Создаем формы конфигураторов для тестов)
 
 
 

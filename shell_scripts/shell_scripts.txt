@@ -1,0 +1,22 @@
+Оглавление
+
+	Пример
+
+	Запуск
+
+Пример
+
+	local_deploy.sh
+
+		#!/bin/bash
+
+		python ./create_bootstrap.py &&
+		python ./bootstrap.py &&
+		./bin/pip install -r requirements.txt &&
+		cp ./conf/settings_local.py.template ./conf/settings_local.py
+
+Запуск
+
+	chmod +x deploy.sh
+
+	./deploy.sh
