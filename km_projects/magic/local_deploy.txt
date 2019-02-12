@@ -1,3 +1,11 @@
+Получение проекта
+
+	Если настроен ssh, то git clone git@gitlab0.km-union.ru:python/magic.git
+
+	Если не настроен ssh, то git clone http://gitlab0.km-union.ru/python/magic.git
+
+Открываем проект в pycharm
+
 Окружение и зависимости
 
 	автоматическое создание
@@ -20,15 +28,17 @@
 
 		bin/pip install -r requirements.txt
 
-Привязываем виртуальное окружение к проекту через pycharm
+		Переходим в имя_проекта/conf, открываем файл settings_local.py.template, копируем все
 
-	File -> Settings -> Project -> Project interpreter -> шестеренка -> Show all -> + -> выбираем Existing environment -> /path/to/envs/name_env/bin/python
+		В имя_проекта/conf созаем файл settings_local.py и вставляем все скопированное из settings_local.py.template
+
+Привязка иртуального окружения к проекту через pycharm
+
+	File -> Settings -> Project -> Project interpreter -> иконка шестеренка -> Show all -> знак плюс -> выбираем Existing environment -> /path/to/envs/name_env/bin/python
 
 Устанавливаем нужные версии субд в docker контейнерах
 
-	postgres 9.5
-
-	mysql 5.7
+	Должен быть установлен docker server
 
 	postgresql
 
@@ -80,27 +90,83 @@
 
 	В /magic/modules/configurator/admin.py убираем комментарии со строк (152 - 157 включительно)
 
-Дамп
+Дамп бд
 
-	Делать через mysql workbench
+	Mysql
 
-	При заливки дампов lin-web-dp@korallmicro.pgsql и lin-web-dp@snr.pgsql будет ошибка pg_restore: [archiver (db)] could not execute query: ERROR:  role "korallmicro" does not exist
+		Лучше делать через mysql workbench
 
-	Решение: создаем роль korallmicro и заливаем заново
+	Postgresql
 
-	Удостовериться, что в базе magic (mysql) есть таблица django_site со значениями (1, example.com, example.com)
+		При заливки дампов lin-web-dp@korallmicro.pgsql и lin-web-dp@snr.pgsql будет ошибка pg_restore: [archiver (db)] could not execute query: ERROR:  role "korallmicro" does not exist
+
+		Решение: создаем роль korallmicro и заливаем заново
+
+		Удостовериться, что в базе magic (mysql) есть таблица django_site со значениями (1, example.com, example.com)
 
 	На 11.02.2019 используются базы:
 
 		default, 1c_8_raw, istore, korallmicro, sales_base_models, snr_new 
 
-Файл настроек
+Rabbit
 
-	Переходим в имя_проекта/conf, открываем файл settings_local.py.template, копируем все
+	Должен быть установлен rabbitmq.
 
-	В имя_проекта/conf созаем файл settings_local.py и вставляем все скопированное из settings_local.py.template
+	Удостовериться, что settings_local.py имеет:
 
+		BROKER_URL = [
+		    # Важно, чтобы на dev был localhost
+		    "amqp://guest:guest@localhost:5672/magic"
+		]
 
+		BROKER_TARGET_URL = [
+		    # Важно, чтобы на dev был localhost
+		    "amqp://guest:guest@localhost:5672/broker"
+		]
+
+		guest:guest - это логин и пароль от rabbit
+
+		/magic и /broker - это имена виртуальных хостов rabbit-а, которые должны быть созданы:
+
+			через web морду идем в Admin -> Virtual Hosts -> Add virtual host
+
+	Все существующие очереди можно посмотреть в settings.py -> CELERY_QUEUES
+
+Run в pycharm
+
+	Справа сверху находим зеленую стрелочку.
+
+	Слева от нее нажимаем Add configuration или если какая то конфигурация уже существует, то Edit configuration.
+
+	В открывшемся окне ищем и нажимаем знак плюс.
+
+	Из выпадающего списка выбираем Python.
+
+	В поле Script path вводим путь до выполняемого файла - bin/manage
+
+	В поле Parameters вводим команду, которая должна сработать - runserver 0.0.0.0:8000
+
+	В поле Python interpreter выбираем Project default (Python 2.7 (magic-env))
+
+	В поле Working directory вводим путь к корневой директории с проектом - ./magic
+
+Celery
+
+	Справа сверху находим зеленую стрелочку.
+
+	Слева от нее нажимаем Add configuration или если какая то конфигурация уже существует, то Edit configuration.
+
+	В открывшемся окне ищем и нажимаем знак плюс.
+
+	Из выпадающего списка выбираем Python.
+
+	В поле Script path вводим путь до выполняемого файла - bin/celery
+
+	В поле Parameters вводим команду, которая должна сработать - -A app_celery worker -l info -Q default,system,description,image_prepare --purge
+
+	В поле Python interpreter выбираем Project default (Python 2.7 (magic-env))
+
+	В поле Working directory вводим путь к корневой директории с проектом - /home/ilya/work/projects/magic
 
 
 
