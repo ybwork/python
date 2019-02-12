@@ -181,8 +181,13 @@ EMAIL_HOST = 'smtp1.km-union.ru'
 SERVER_EMAIL = 'magic_local@error'
 
 
+# ?
 CELERY_ACKS_LATE = True
+
+# кол-во задач в секунду, которые будет обрабатывать каждый worker
 CELERYD_PREFETCH_MULTIPLIER = 2
+
+# если возникнут ошибки при выполнении задачи, то об этом будет оповещен админ
 CELERY_SEND_TASK_ERROR_EMAILS = True
 
 # параметр нужен для работы мониторинга типа celery flower
@@ -191,12 +196,12 @@ CELERY_SEND_EVENTS = False
 
 BROKER_URL = [
     # Важно, чтобы на dev был localhost
-    "amqp://rabbitmq:rabbitmq@localhost:5672/magic"
+    "amqp://guest:guest@localhost:5672/magic"
 ]
 
 BROKER_TARGET_URL = [
     # Важно, чтобы на dev был localhost
-    "amqp://rabbitmq:rabbitmq@localhost:5672/broker"
+    "amqp://guest:guest@localhost:5672/broker"
 ]
 
 
@@ -251,8 +256,10 @@ STORE_UID = '1bab7b05-b1fc-11e2-93f1-002655df3ac1'
 # Группа для рассылки статистики по конфигуратору
 CONFIGURATOR_ANALITICS = []
 
+# Группа для отправки отчетов о наличии товаров
 SITE_PRODUCTS_REPORT_EMAILS = ['kaduk_ia@km-union.ru']
 
+# Группа для отправки отчетов о критических ошибках
 CRITICAL_ERROR_EMAIL_GROUPS = {
     'phones': [],
     'emails': [
@@ -310,5 +317,5 @@ ADDITIONAL_COST_FOR_ISTORE = {
     ]
 }
 
-
+# запускается несколько задач параллельно по COUNT_ITERATED элементов [[1, 2], [3, 4], ...]
 COUNT_ITERATED = 10

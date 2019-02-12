@@ -247,6 +247,10 @@ Routing
 
 	celery -A proj status -
 
+	bin/celery call -A app_celery send_report_korallmicro
+
+
+
 
 
 
