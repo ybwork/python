@@ -181,7 +181,8 @@ EMAIL_HOST = 'smtp1.km-union.ru'
 SERVER_EMAIL = 'magic_local@error'
 
 
-# ?
+# Отправляет сообщение об успешном выполнении задачи в rabbit только по её успешному выполнению
+# По умолчанию (False) отправляет сообщение об успешном выполнении задачи до её выполнения
 CELERY_ACKS_LATE = True
 
 # кол-во задач в секунду, которые будет обрабатывать каждый worker
@@ -195,12 +196,12 @@ CELERY_SEND_EVENTS = False
 
 
 BROKER_URL = [
-    # Важно, чтобы на dev был localhost
+    # Важно, чтобы на локальной машине было подключение к локальному rabbit-у, чтобы не отправить задачи в боевой
     "amqp://guest:guest@localhost:5672/magic"
 ]
 
 BROKER_TARGET_URL = [
-    # Важно, чтобы на dev был localhost
+    # Важно, чтобы на локальной машине было подключение к локальному rabbit-у, чтобы не отправить задачи в боевой
     "amqp://guest:guest@localhost:5672/broker"
 ]
 
