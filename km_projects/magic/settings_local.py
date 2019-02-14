@@ -239,6 +239,9 @@ UNIQUE_FULL_ALIAS_CHECKER_NOTIFICATION_EMAIL_GROUPS = []
 # Группа для рассылки ответственные за смену актуальности
 ACTUAL_CHECKER_NOTIFICATION_EMAIL_GROUPS = []
 
+# Путь к хранилищу с файлами
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
 # Абсолютный путь к папке images сайта korallmicro
 PATH_TO_KORALLMICRO = '/media/storage/korallmicro/images/'
 
@@ -250,6 +253,19 @@ PATH_TO_SNR = '/media/storage/snr/images/'
 
 # Абсолютный путь к папки media хранилица на cdn
 PATH_TO_STORAGE = '/media/storage/magic/'
+
+
+# Путь и настройки к хранилищу на CDN (использовать только если нужно протестировать в боевом режиме)
+# DEFAULT_FILE_STORAGE = 'storage.SFTPStorage'
+
+# Пути к тестовым каталогам
+# PATH_TO_KORALLMICRO = '/media/storage/korallmicro/images.dev/'
+# PATH_TO_ISTORE = '/media/storage/istore/images.dev/'
+# PATH_TO_SNR = '/media/storage/snr/images.dev/'
+# PATH_TO_STORAGE = '/media/storage/magic.dev/'
+
+# при тестировании выгрузки по каким-то своим путям не забыть права
+# авторизация на cdn по ключу, если будет другой сервер - не забыть про авторизацию
 
 STORE_UID = '1bab7b05-b1fc-11e2-93f1-002655df3ac1'
 

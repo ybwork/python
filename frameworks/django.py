@@ -1551,6 +1551,8 @@ class InvoiceTestCase(TestCase):
 	pip install django-extensions -> ./manage.py show_urls - показывает все существующие урлы
 
 	./manage.py test name_app.tests - запускает тесты конкретного приложения
+
+	./manage.py test --noinput - запускает тесты и автоматом удаляет тестовую базу
 '''
 
 # Книги
