@@ -168,6 +168,19 @@ Celery
 
 	В поле Working directory вводим путь к корневой директории с проектом - /home/ilya/work/projects/magic
 
+Примечание
+
+	Можно установить наши пакеты от которых зависит magic в режиме разработки.
+
+	Для этого нужно:
+
+		git clone git@gitlab0.km-union.ru:abakarov_ag/py-env-utils.git
+
+		cd py-env-utils
+
+		sudo python setup.py install
+
+		рядом с проектом должна появиться директория magic_packages
 
 
 
