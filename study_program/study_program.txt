@@ -1,16 +1,40 @@
-Интернет
+Интернет +
 
-Web
+Web +
 
-Сервер
+Сервер +
 
-Протоколы
+Протоколы +
 
-Клиент серверное взаимодействие
+Клиент серверное взаимодействие +
 
-Язык
+Cookie
 
-База
+Сессии
+
+Save points ?
+
+Язык (python 3)
+
+Стандарт кодирования (pep8)
 
 Паттерны
+
+База (postgresql)
+
+Django
+
+Unit tests
+
+Memcached
+
+Celery
+
+RabbitMQ
+
+Redis
+
+Django rest
+
+Docker
 
