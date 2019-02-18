@@ -729,6 +729,11 @@ class MyError(Exception): # создание собственного исклю
 	'''
 	pass
 
+try:
+    return self._connection.stat(name)
+except IOError:
+    raise - пустой raise выбрасывает последнее сработавшее исключение
+
 # Встроенные ошибки
 '''
 	IndentationError - ошибка отступа

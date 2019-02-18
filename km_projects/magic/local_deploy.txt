@@ -182,6 +182,20 @@ Celery
 
 		рядом с проектом должна появиться директория magic_packages
 
+		команды:
 
+			py_env_utils --apply-frontend --verbose --gulp-mode=gulp-simple
+
+			py_env_utils --checkout-packages --packages=dev --verbose
+
+			py_env_utils --remove-pycs --packages='dev' --verbose
+
+			py_env_utils --install-packages --packages=all
+
+Нюансы
+
+	Для раздачи статики используется свой cdn сервер.
+
+	В качестве сервера используется nginx.
 
 

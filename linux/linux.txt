@@ -90,8 +90,29 @@
 
  	sudo dpkg -i имя_пакета - устанавливает deb пакет
 
+ 	ssh devel@cdn2.km-union.ru - установка соединения по ssh
+
+ 		для работы нужно создать ssh ключ и отправить его админу, чтобы он установил его на машине к которой идет подключение
+
+ 		результатом успешного подключения будет:
+
+ 			переключение слева в терминале с пользователя системы на пользователя той машины к которой подключаемся (с ilya@ilya: на devel@lin-web-cdn2:)
+
+ 			Warning: Permanently added 'cdn2.km-union.ru,10.10.100.5' (ECDSA) to the list of known hosts.
+			Welcome to Ubuntu 16.04 LTS (GNU/Linux 4.4.0-51-generic x86_64)
+
+			 * Documentation:  https://help.ubuntu.com/
+
+			95 packages can be updated.
+			7 updates are security updates.
+
+			New release '18.04.2 LTS' available.
+			Run 'do-release-upgrade' to upgrade to it.
 
 
+			Last login: Mon Feb 18 10:31:11 2019 from 10.10.54.50
+
+	 tar -xvf имя_архива.tar.gz - извлекает файл из архива
 
 
 
