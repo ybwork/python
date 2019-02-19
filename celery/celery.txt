@@ -266,14 +266,53 @@ Routing
 	Заходим в local_settings.py и добавляем конфиги:
 
 		# подключение к брокеру (в данном случае rabbit), параметр market это имя виртуального хоста, который нужно создать через админку rabbit
-		BROKER_URL = [
-		    'amqp://guest:guest@localhost:5672/market'
-		]
+		# для корректного подключения к виртуальному хосту нужно, чтобы на него имел разрешения пользователю по которому идет подключение 
+		CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672/market'
+
+		CELERY_ACCEPT_CONTENT = ['json']
+		CELERY_TASK_SERIALIZER = 'json'
 
 		# теперь celery будет слать сообщение в брокер о том, что выполнил задачу после её полного выполнения
-		ELERY_ACKS_LATE = True
+		CELERY_ACKS_LATE = True
 
-	В mysite создаем celery.py
+	В mysite создаем __init__.py и добавляем туда:
 
-	celery -A tasks worker --loglevel=info - запуск (делать в директории с файлом tasks.py, tasks - имя файла)
+		from __future__ import absolute_import, unicode_literals
+		from .celery import app as celery_app
 
+		__all__ = ('celery_app',)
+
+		Это гарантирует, что celery загрузится при старте django. 
+
+	В mysite создаем celery.py и добавляем туда:
+
+		from __future__ import absolute_import, unicode_literals
+		import os
+		from celery import Celery
+
+		os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
+
+		app = Celery('celery_app')
+		app.config_from_object('django.conf:settings', namespace='CELERY')
+
+		# загружает все модули задач (tasks.py) из каждого приложения, которое зарегистрировано
+		app.autodiscover_tasks()
+
+		@app.task(bind=True)
+		def debug_task(self):
+		    print('Request: {0!r}'.format(self.request))
+
+	В любом приложении создаем файл tasks.py и в нем пишем например это:
+
+		from __future__ import absolute_import, unicode_literals
+		from celery import shared_task
+
+		@shared_task
+		def add():
+		    print('working celery')
+
+	В первой директории mysite запускаем воркер: 
+
+		celery -A mysite worker --loglevel=info
+
+	Для проверки

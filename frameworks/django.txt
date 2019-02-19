@@ -18,6 +18,8 @@
 
 	Запросы
 
+	Нюансы
+
 Тестирование
 
 	Есть класс Client для тестов клиентской части приложения.
@@ -71,3 +73,7 @@
 	Permission.objects.filter(codename__in=['add_invoice', 'view_invoice'])
 
 	Invoice.objects.order_by('?') - сортировка по asc
+
+Нюансы
+
+	Чтобы отправлялись сообщения об ошибках DEBUG должен быть в False и в ADMINS = [('Ilya', 'kaduk@gmail.com')] указана почта куда оптравлять ошибки.
