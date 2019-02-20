@@ -14,11 +14,19 @@
 
 		Есть карточка товара (модель ProductCard).
 
-		У карточки товара есть вид-тип (модель Kind). Почему так?
+		У карточки товара есть вид-тип (модель Kind).
 
 			К примеру, есть ноутбук с видом-типом 'ноутбук-ультрабук'.
 
-		У вида-типа может быть несколько шаблонов (модель ProductCardPreviewTemplate).
+		У карточки товара может быть несколько шаблонов описания (модель ProductCardPreviewTemplate, админка ProductCardPreviewTemplateAdmin, таблица mysql-magic-cards_productcard_preview_templates).
+
+		-----------------------------------------------------------------
+
+		Есть шаблон описания для карточки товара (модель ProductCardPreviewTemplate, админка ProductCardPreviewTemplateAdmin).
+
+		У шаблона может быть вид-тип
+
+		У вида-типа может быть несколько шаблонов (модель ProductCardPreviewTemplate, админка ProductCardPreviewTemplateAdmin).
 
 		-------------------------------------------------------------------------------- 
 
