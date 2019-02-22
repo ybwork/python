@@ -14,7 +14,7 @@
 
 	Множественное создание
 
-	Админ (доступ к списку сущности)
+	Админка
 
 	Запросы
 
@@ -64,16 +64,20 @@
 		Invoice(num='aaa')
 	)
 
-Админ (доступ к списку сущности)
+Админка
 
-	response.context['cl'].queryset
+	response.context['cl'].queryset - доступ к списку сущности
 
 Запросы
 
-	Permission.objects.filter(codename__in=['add_invoice', 'view_invoice'])
+	Permission.objects.filter(codename__in=['add_invoice', 'view_invoice']) - фильтр по нескольким условиям
 
 	Invoice.objects.order_by('?') - сортировка по asc
+
+	TemplateEntry.objects.filter(template=obj.template.pk).query - вывод чистого sql запроса
 
 Нюансы
 
 	Чтобы отправлялись сообщения об ошибках DEBUG должен быть в False и в ADMINS = [('Ilya', 'kaduk@gmail.com')] указана почта куда оптравлять ошибки.
+
+	У формы нельзя взять старое значение (только через базу).

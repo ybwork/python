@@ -1,0 +1,27 @@
+Оглавление
+
+	Комментарии
+
+Комментарии
+
+	Стараться редко использовать встрочные комметарии: x = x + 1 # Increment x
+
+	Комментирование классов, методов, функций. Пишем после ключевых слов class и def:
+
+		"""Return a foobang plotz says to frobnicate the 
+		bizbaz first.
+
+		Optional plotz says to frobnicate the bizbaz first.
+
+		"""
+
+		"""Return a foobang
+
+		Optional plotz says to frobnicate the bizbaz first.
+		
+		"""
+
+		Очень важно, чтобы закрывающие кавычки стояли на отдельной строке и между ними и последней строкой была пустая. 
+
+	Для однострочной документации можно оставить закрывающие кавычки на той же строке:
+
