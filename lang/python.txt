@@ -804,7 +804,10 @@ Lambda функции
 	    def say(self, name):
 	        print('Hi, I am {}'.format(name))
 
-	Как обратиться к методу say класса А через класс В?
+	a = A()
+	b = B()
+
+	b.__class__.__bases__[0].say(b) - обращаемся к методу say класса A
 
 Исключения
 

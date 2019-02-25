@@ -315,4 +315,6 @@ Routing
 
 		celery -A mysite worker --loglevel=info
 
-	Для проверки
+	Для проверки в какой то из view:
+
+		add.delay()
