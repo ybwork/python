@@ -97,6 +97,15 @@
 
 	User.objects.create(name='Ilya') - создает и возвращает созданную сущность
 
+    Book.objects.filter(name='name').select_related('author') - позволяет взять сразу все связанные объекты (если мы в дальнейшем будем в цикле использовать данный queryset, то выполниться только один запрос, а не столько сколько итераций в цикле.
+
+        attr_list = Template.objects.filter(options__isnull=False).select_related('options')
+
+        for attr_old_template in attr_old_template_list:
+        	# здесь .exists() уже не будет делать запрос к базе, а проверять в существующем queryset из attr_list
+            if not attr_list.filter(options__name=attr_old_template.options.name).exists():
+                pass
+
 Модели
 
 	@property - позволяет определить имя функции, как поле модели (значения поля будет выдаваться динамически результатом функции)

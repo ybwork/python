@@ -342,3 +342,102 @@ self.mark_product_cards_how_are_not_actual(
 )
 
 obj.save()
+
+def compare_templates(self, template_old, template_new):
+    attr_old_template_list = template_old.groups.filter(
+        template=F('template')
+    ).filter(
+        options__isnull=False
+    )
+    attr_new_template_list = template_new.groups.filter(
+        template=template_new.pk
+    ).filter(
+        options__isnull=False
+    )
+
+    attr_old_list = []
+    for attr_old_template in attr_old_template_list:
+        if not self.is_exists_attr_in_template(
+            attr_template_list=attr_new_template_list,
+            attr_name=attr_old_template.options.name
+        ):
+            attr_old_list.append(attr_old_template.options.pk)
+    return attr_old_list
+
+def is_exists_attr_in_template(self, attr_template_list, attr_name):
+    return attr_template_list.filter(
+        options__name=attr_name
+    ).exists()
+
+def create_report_about_attr_sync(self, product_card_list):
+    message = []
+
+    info = {}
+    for product_card in product_card_list:
+        info['Код товара: '] = product_card.code
+        info['Ссылка на товар: '] = product_card.pk
+        # info['product_name'] = product_card.product.name
+        info['Список атрибутов по которым не прошла связка'] = \
+            product_card.attributes.all().values_list('options__name')
+        message.append(info)
+    return message
+
+def create_report(self, product_card_list):
+    report_list = []
+    for product_card in product_card_list:
+        product_card_attr_without_bind_list = [
+            attr.options.name for attr in product_card.attributes.all()
+        ]
+        product_card_attr_without_bind_str = ', '.join(
+            product_card_attr_without_bind_list
+        )
+        message = u"""Код товара: 
+        <a href='{product_card_link}'>{product_card_code}<a/>
+        <br />
+        Не связанные атрибуты: {product_card_attr_without_bind}
+        <br />""".format(
+            product_card_code=product_card.code,
+            product_card_link=settings.BASE_URL + reverse(
+                viewname='admin:cards_productcard_change',
+                args=[product_card.pk]
+            ),
+            product_card_attr_without_bind= \
+                product_card_attr_without_bind_str
+        )
+        report_list.append(message)
+    return '<br />\n'.join(report_list)
+
+    send_html_email(
+        subject=u'Карточки товара с новыми шаблонами',
+        message='',
+        recipient_list=settings.SYSTEM_NOTIFICATION_EMAIL_GROUPS,
+        html_message='<br />\n'.join(message_list)
+    )
+
+def mark_product_cards_how_are_not_actual(self, cards):
+    return cards.update(
+        is_actual=False,
+        is_checked=False,
+        is_ready=True
+    )
+
+дополнение после собрания 26.02.2019
+
+
+1. Изменение вид/подвид будет происходить только в 1С
+
+2. Возможно изменение привязанного шаблона в magic. при этом так же должны запускаться процессы перепривязки карточек, к новому шаблону.
+
+3. при смене шаблона, должны сбрасыываться шаблоны описания и наименование, привязанные к связки вид/подвид
+
+
+
+текст письма при смене шаблона, должен содержать:
+
+- код товара (он должен быть кликабельным и вести в карточку товара)
+
+- наименование товара
+
+- смена шаблона "с/на" какой
+
+- факт сброса шаблонов описания товара и наименования, желательно указать названия этих шаблонов и сделать их кликабельными для перехода на их.
