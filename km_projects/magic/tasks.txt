@@ -360,3 +360,161 @@ def sync_attr(template_old, template_new, product_card_list):
         recipient_list=settings.SYSTEM_NOTIFICATION_EMAIL_GROUPS,
         html_message='<br />\n'.join(message_list)
     )
+
+-------------------------------------------------------------------
+
+if form.changed_data:
+    # делаю так, потому что нет доступа к старому шаблону
+    template_old = Property.objects.get(pk=obj.pk).template
+    template_new = obj.template
+    product_card_list = obj.kind.cards.all()
+    attr_value_helper = AttrValueHelper()
+    attr_value_helper.transfer_attr_values(
+        template_old=template_old,
+        template_new=template_new,
+        product_card_list=product_card_list
+    )
+    obj.save()
+    attr_value_helper.inform(
+        template_old=template_old,
+        template_new=template_new,
+        product_card_list=product_card_list
+    )
+
+# -*- coding: utf-8 -*-
+import settings
+from cards import infoblock
+from cards.models import InformationBlockAttr, Attribute
+from django.core.urlresolvers import reverse
+from django.db import transaction
+from django.db.models import F
+from primitive import send_html_email
+
+
+def get_info_block_cls(block_type='ones'):
+    return getattr(infoblock, '{0}InfoBlock'.format(block_type.capitalize()))
+
+
+def get_info_block_attrs_list(info_block):
+    """
+    Передаем InformationBlockAttr в зависимости от требуемого типа инфоблока;
+    Для выгодных строим инфоблок с нужными параметрами "на лету";
+    """
+    if info_block.type == 'offer':
+        attribute = get_info_block_cls('offer').get_common_attr_object()
+        info_block_attr = InformationBlockAttr()
+        info_block_attr.attribute = attribute
+        info_block_attr.label_on_site = attribute.name
+        info_block_attr.in_sitemap = False
+        return [info_block_attr]
+    return list(info_block.attrs.all())
+
+
+class AttrValueHelper:
+    def transfer_attr_values(self, template_old, template_new, product_card_list):
+        with transaction.atomic():
+            attr_old_list = self.__compare_templates(
+                template_old=template_old,
+                template_new=template_new
+            )
+            self.__delete_attr_old_template(
+                attr_old_list=attr_old_list,
+                product_card_list=product_card_list
+            )
+            self.__mark_product_cards_how_are_not_actual(
+                cards=product_card_list
+            )
+
+    def __compare_templates(self, template_old, template_new):
+        attr_old_template_list = template_old.groups.filter(
+            template=F('template'),
+            options__isnull=False
+        )
+        attr_new_template_list = template_new.groups.filter(
+            template=template_new.pk,
+            options__isnull=False
+        )
+
+        attr_old_list = []
+        for attr_old_template in attr_old_template_list:
+            if not self.__is_exists_attr_in_template(
+                attr_template_list=attr_new_template_list,
+                attr_name=attr_old_template.options.name
+            ):
+                attr_old_list.append(attr_old_template.options.pk)
+        return attr_old_list
+
+    def __is_exists_attr_in_template(self, attr_template_list, attr_name):
+        return attr_template_list.filter(
+            options__name=attr_name
+        ).exists()
+
+    def __delete_attr_old_template(self, attr_old_list, product_card_list):
+        Attribute.objects.filter(
+            options__in=attr_old_list,
+            card__pk__in=product_card_list.values_list('pk')
+        ).delete()
+
+    def __mark_product_cards_how_are_not_actual(self, cards):
+        return cards.update(
+            is_actual=False,
+            is_checked=False,
+            is_ready=True
+        )
+
+    def inform(self, template_old, template_new, product_card_list):
+        report = self.__create_report(
+            template_old=template_old,
+            template_new=template_new,
+            product_card_list=product_card_list
+        )
+        send_html_email(
+            subject=u'Карточки товара с новыми шаблонами',
+            message='',
+            recipient_list=settings.SYSTEM_NOTIFICATION_EMAIL_GROUPS,
+            html_message=report
+        )
+
+    def __create_report(self, template_old, template_new,  product_card_list):
+        report = []
+        for product_card in product_card_list:
+            product_card_attr_without_bind_list = [
+                attr.options.name for attr in product_card.attributes.all()
+            ]
+            product_card_attr_without_bind_str = ', '.join(
+                product_card_attr_without_bind_list
+            )
+            # ссылки на шаблоны
+            message = u"""Код товара:
+            <a href='{product_card_link}'>{product_card_code}<a/>
+            <br />
+            Наименование товара: {product_card_name}
+            <br />
+            Смена шаблона с
+            <a href="{template_old_link}">{template_old_name}</a> на
+            <a href="{template_new_link}">{template_new_name}</a>
+            <br />
+            Не связанные атрибуты: {product_card_attr_without_bind}
+            <br />""".format(
+                product_card_code=product_card.code,
+                product_card_name=product_card.name,
+                # назван так для разрешения конф-та имен
+                template_old_name=template_old,
+                template_old_link=settings.BASE_URL + reverse(
+                    viewname='admin:cards_template_change',
+                    args=[template_old.pk]
+                ),
+                template_new_name=template_new,
+                template_new_link=settings.BASE_URL + reverse(
+                    viewname='admin:cards_template_change',
+                    args=[template_new.pk]
+                ),
+                product_card_link=settings.BASE_URL + reverse(
+                    viewname='admin:cards_productcard_change',
+                    args=[product_card.pk]
+                ),
+                product_card_attr_without_bind=\
+                product_card_attr_without_bind_str
+            )
+            report.append(message)
+        return '<br />\n'.join(report)
