@@ -363,23 +363,24 @@ def sync_attr(template_old, template_new, product_card_list):
 
 -------------------------------------------------------------------
 
-if form.changed_data:
-    # делаю так, потому что нет доступа к старому шаблону
-    template_old = Property.objects.get(pk=obj.pk).template
-    template_new = obj.template
-    product_card_list = obj.kind.cards.all()
-    attr_value_helper = AttrValueHelper()
-    attr_value_helper.transfer_attr_values(
-        template_old=template_old,
-        template_new=template_new,
-        product_card_list=product_card_list
-    )
-    obj.save()
-    attr_value_helper.inform(
-        template_old=template_old,
-        template_new=template_new,
-        product_card_list=product_card_list
-    )
+def save_model(self, request, obj, form, change):
+    if form.changed_data:
+        # делаю так, потому что нет доступа к старому шаблону
+        template_old = Property.objects.get(pk=obj.pk).template
+        template_new = obj.template
+        product_card_list = obj.kind.cards.all()
+        attr_value_helper = AttrValueHelper()
+        attr_value_helper.transfer_attr_values(
+            template_old=template_old,
+            template_new=template_new,
+            product_card_list=product_card_list
+        )
+        obj.save()
+        attr_value_helper.inform(
+            template_old=template_old,
+            template_new=template_new,
+            product_card_list=product_card_list
+        )
 
 # -*- coding: utf-8 -*-
 import settings
