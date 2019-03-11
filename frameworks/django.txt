@@ -91,7 +91,7 @@
 
 	Permission.objects.filter(codename__in=['add_invoice', 'view_invoice']) - фильтр по нескольким условиям
 
-	Invoice.objects.order_by('?') - сортировка по asc
+	Invoice.objects.order_by('?') - рандомная сортировка, может быть медленным и сильно нагружать базу данных, поэтому лучше явно задавать
 
 	TemplateEntry.objects.filter(template=obj.template.pk).query - вывод чистого sql запроса
 
@@ -105,6 +105,8 @@
         	# здесь .exists() уже не будет делать запрос к базе, а проверять в существующем queryset из attr_list
             if not attr_list.filter(options__name=attr_old_template.options.name).exists():
                 pass
+
+    Attribute.objects.bulk_create([Attribute(name='one'), Attribute(name='two')]) - multiple создание объектов одним запросом, возвращает созданные объекты
 
 Модели
 
