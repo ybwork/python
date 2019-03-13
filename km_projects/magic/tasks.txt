@@ -84,6 +84,28 @@
             if template:
                 form.base_fields.update(template.get_fields(obj))
 
+    Тесты
+
+    	пока работают с дефолтной базой и приложениями:
+
+    		'admin_tools',
+		    'admin_tools.theming',
+		    'admin_tools.menu',
+		    'admin_tools.dashboard',
+		    'django.contrib.auth',
+		    'django.contrib.contenttypes',
+		    'django.contrib.sessions',
+		    'django.contrib.sites',
+		    'django.contrib.messages',
+		    'django.contrib.staticfiles',
+		    'django.contrib.humanize',
+		    'django.contrib.admin',
+		    'gunicorn',
+		    'catalog',
+		    'ones',
+		    'cards',
+		    'online_shopping',
+
 -----------------------------------------------------------------
 
         kind = Kind.objects.create(

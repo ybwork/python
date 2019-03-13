@@ -20,6 +20,10 @@
 
 	Модели
 
+	Трассировка (pycharm)
+
+	Настройка бд
+
 	Нюансы
 
 Тестирование
@@ -111,6 +115,24 @@
 Модели
 
 	@property - позволяет определить имя функции, как поле модели (значения поля будет выдаваться динамически результатом функции)
+
+	ForeignKey('Manufacturer', on_delete=models.CASCADE) - позволяет создать связь с моделью, которая еще не определена. Если нужно обратиться к модели из другого приложения, то пишем так 'name_app.Manufacturer'
+
+Трассировка (pycharm)
+
+	...
+
+	Для просмотра кол-ва запросов в debug режиме
+	
+		from django.conf import settings
+		settings.DEBUG = True
+		from django.db import connection
+		Model.objects.count()
+		print len(connection.queries)
+
+Настройка бд
+
+    'TEST': { 'CHARSET': 'utf8', 'COLLATION': 'utf8_general_ci',} - позволяет задать кодировку бд при выполнении тестов
 
 Нюансы
 
