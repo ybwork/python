@@ -1,0 +1,12 @@
+Preferences -> Browse Packages -> User -> create file Default.sublime-theme
+
+Default.sublime-theme
+
+	[
+	    {
+	        "class": "sidebar_label",
+	        "color": [0, 0, 0],
+	        "font.bold": false,
+	        "font.size": 12
+	    },
+	]

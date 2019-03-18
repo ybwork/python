@@ -8,6 +8,12 @@
 
 Docker
 
+	Создаем директории (mkdir):
+
+		~/work/docker/volumes/mysql_5.7/config
+
+		~/work/docker/volumes/mysql_5.7/data
+
 	docker run \
 	--name mysql_5.7 \
 	-v ~/work/docker/volumes/mysql_5.7/config:/etc/mysql/conf.d \

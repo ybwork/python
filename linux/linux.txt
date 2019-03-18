@@ -30,7 +30,7 @@
 
 	sudo apt-get remove package_name - удаление пакета
 
-	touch file.txt
+	touch file.txt - создает файл
 
 	ls - смотреть, что в директории
 

@@ -68,29 +68,45 @@
 
 	sudo apt-get install erlang erlang-nox
 
-	echo 'deb http://www.rabbitmq.com/debian/ testing main' | sudo tee /etc/apt/sources.list.d/rabbitmq.list
+	------------------------------------------------------------------------
 
-	wget -O- https://www.rabbitmq.com/rabbitmq-release-signing-key.asc | sudo apt-key add -
+	sudo apt-get update
+
+	sudo apt-cache policy
+
+	sudo apt-key adv --keyserver "hkps.pool.sks-keyservers.net" --recv-keys "0x6B73A36E6026DFCA"
+
+	wget -O - "https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc" | sudo apt-key add -
+
+	sudo apt-get install apt-transport-https
+
+	echo "deb https://dl.bintray.com/rabbitmq/debian {distribution} main" | sudo tee /etc/apt/sources.list.d/bintray.rabbitmq.list
+
+	echo "deb https://dl.bintray.com/rabbitmq/debian bionic main" | sudo tee /etc/apt/sources.list.d/bintray.rabbitmq.list
+
+	echo "deb https://dl.bintray.com/rabbitmq/debian xenial main" | sudo tee /etc/apt/sources.list.d/bintray.rabbitmq.list
 
 	sudo apt-get update
 
 	sudo apt-get install rabbitmq-server
 
-	sudo systemctl enable rabbitmq-server
-	sudo systemctl start rabbitmq-server
-	sudo systemctl stop rabbitmq-server
+	sudo service rabbitmq-server start
+
+	-----------------------------------------------------------
 
 	sudo rabbitmqctl add_user admin password 
 	sudo rabbitmqctl set_user_tags admin administrator
 	sudo rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
 
+	-----------------------------------------------------------
+
 	sudo rabbitmq-plugins enable rabbitmq_management
 
-	start rabbit manage panel on http://localhost:15672
+	http://localhost:15672
 
-	Если не заработала эта установка, то использовать из официальной доки (пакет bithday)
+	------------------------------------------------------------
 
-	pip install pika
+	Если работает на чистом питоне, то pip install pika
 
 Команды
 

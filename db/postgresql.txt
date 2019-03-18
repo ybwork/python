@@ -817,14 +817,20 @@ VACUUM
 
 Docker
 
-		psql -U postgres
+	Создаем директории (mkdir):
 
-		docker run --name postgres_9.5 \
-		-v ~/work/docker/volumes/postgres_9.5/config:/etc/postgresql \
-		-v ~/work/docker/volumes/postgres_9.5/data:/var/lib/postgresql/data \
-		-v ~/work/docker/volumes/postgres_9.5/main:/usr/lib/postgresql \
-		-p 5432:5432 -e POSTGRES_PASSWORD=asdf1234 -d postgres:9.5
+		~/work/docker/volumes/postgres_9.5/config
 
+		~/work/docker/volumes/postgres_9.5/data
+
+	docker run \
+	--name postgres_9.5 \
+	-v ~/work/docker/volumes/postgres_9.5/config:/etc/postgresql \
+	-v ~/work/docker/volumes/postgres_9.5/data:/var/lib/postgresql/data \
+	-p 5432:5432 -e POSTGRES_PASSWORD=asdf1234 -d postgres:9.5
+
+
+	psql -U postgres - для входа в консоль
 
 
 

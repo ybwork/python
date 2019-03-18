@@ -42,7 +42,13 @@
 
 	postgresql
 
-		docker run \
+		Создаем директории на локальной машине от имени суперпользователя (sudo mkdir):
+
+			~/work/docker/volumes/postgres_9.5/config
+
+			~/work/docker/volumes/postgres_9.5/data
+
+		sudo docker run \
 		--name postgres_9.5 \
 		-v ~/work/docker/volumes/postgres_9.5/config:/etc/postgresql \
 		-v ~/work/docker/volumes/postgres_9.5/data:/var/lib/postgresql/data \
@@ -50,7 +56,13 @@
 
 	mysql
 
-		docker run \
+		Создаем директории (mkdir):
+
+			~/work/docker/volumes/mysql_5.7/config
+
+			~/work/docker/volumes/mysql_5.7/data
+
+		sudo docker run \
 		--name mysql_5.7 \
 		-v ~/work/docker/volumes/mysql_5.7/config:/etc/mysql/conf.d \
 		-v ~/work/docker/volumes/mysql_5.7/data:/var/lib/mysql \
