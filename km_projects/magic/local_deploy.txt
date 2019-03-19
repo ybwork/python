@@ -72,13 +72,13 @@
 
 Создаем в контейнерах нужные бд
 
-	postgresql
+	postgresql (создаем через терминал контейнера)
 
 		snr
 
 		korallmicro	
 
-	mysql
+	mysql (можно создать с помощью mysql workbench или с помощью терминала контейнера)
 
 		magic - база проекта
 

@@ -12,4 +12,14 @@
 
 Настройки
 
-	File -> Settings -> Project -> Project interpreter -> шестерёнка -> Show all -> плюс -> Existing enviroment -> путь к виртуальному окружению (/home/ilya/work/projects/magic-env/bin/python) 	
+	File -> Settings -> Project -> Project interpreter -> шестерёнка -> Show all -> плюс -> Existing enviroment -> путь к виртуальному окружению (/home/ilya/work/projects/magic-env/bin/python)
+
+Настройки темы
+
+	File -> Settings -> Editor -> General -> Change font size (Zoom)... - позволяет увеличивать/уменьшать размер шрифта с помощью ctrl + колесо мыши
+
+	Tools -> Material Theme -> Material Theme Options -> Material Theme Wizard - персональные настройки темы
+
+	File -> Settings -> Keymap - настройки горячих клавиш
+
+	File -> Settings -> Code style -> Hard wrap at - настройка ограничения на длину строки

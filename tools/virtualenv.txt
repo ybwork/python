@@ -12,23 +12,17 @@
 
 Что это
 
-	virtualenv - виртуальное окружение, которое позволяет для каждого проекта хранить зависимости в отдельных окружениях, а глобально в системе.
+	virtualenv - виртуальное окружение, которое позволяет для каждого проекта хранить зависимости в отдельных окружениях, а не глобально в системе.
 
 	Когда мы запускаем виртуальный сервер, оно умеет обрабатывать http запросы и запускать python приложение.
 
 Установка в ubuntu
 
-	sudo pip install virtualenv
+	Должен быть установлен питон.
 
-	sudo pip install virtualenvwrapper
+	pip3 install virtualenv
 
-	sudo nano ~/.bashrc
-
-	export WORKON_HOME=~/work/virtualenvs
-	VIRTUALENVWRAPPER_PYTHON='/usr/bin/python3'
-	source /usr/local/bin/virtualenvwrapper.sh
-
-	source ~/.bashrc
+	virtualenv --version
 
 Установка в	windows
 
@@ -42,40 +36,18 @@
 
 	pip install virtualenv
 
-	pip install virtualenvwrapper
-
-	export WORKON_HOME=~/.virtualenvs
-	VIRTUALENVWRAPPER_PYTHON='/usr/bin/python3'
-	source /usr/local/bin/virtualenvwrapper.sh
-
 Команды
 
 	virtualenv --version - выводит версию
 
-	virtualenv --python=/usr/bin/python2.7 name_venv - создаёт виртуальное окружение, флаг --python=... позволяет указать с какой версией питона будет работать окружение 
+	Переходим в директорию, где хотим создать окружение и - virtualenv name_venv
 
-	workon - показывает все виртуальные окружения
+	virtualenv --python=/usr/bin/python2.7 name_venv - создаёт виртуальное окружение, флаг --python=... позволяет указать с какой версией питона будет работать окружение
 
-	workon venv_name - выбирает и запускает виртуальное окружение (для того чтобы выбранное окружение привязалось к конкретному проекту, нужно перейти в директорию с проектом и выполнить эту команду)
+	. name_venv/bin/activate - запуск виртуального окружения
 
 	deactiavate - выход из выбранного виртуального окружения
 
-	rmvirtualenv venv_name - удаление виртуального окружения
-
 	which python3 - показывает где в систему питон
-
-	mkvirtualenv -p /usr/bin/python3 venv_name - создание виртуального окружения для python3
-
-	pip freeze list - показывает все установленные пакеты
-
-	ls ~/.virtualenvs/ - место, где хранятся все виртуальные окружение, обычно директории с точками скрыты если смотреть не через консоль
-
-	lsvirtualenv - показывает все существующие
-
-	mkvirtualenv name_env - создаёт виртуальное окружение
-
-	rmvirtualenv name_env - удаляет окружение
-
-	workon name_env - активирует окружение в той директории из которой произошёл вызов
 
 	deactivate - выключает окружение

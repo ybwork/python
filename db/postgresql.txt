@@ -727,6 +727,8 @@ VACUUM
 
 		CREATE ROLE korallmicro LOGIN; - создаёт пользователя/роль без пароля
 
+		DROP ROLE korallmicro; - удаляет роль
+
 		\du - выводит всех пользователей
 
 		ALTER USER ilya RENAME TO ilya; - изменяет имя пользователя
@@ -734,6 +736,8 @@ VACUUM
 		ALTER USER ilya PASSWORD 'asdf1234'; - изменяет пароль пользователя
 
 		CREATE DATABASE magic OWNER ilya; - создает базу
+
+		ALTER DATABASE korallmicro OWNER TO korallmicro;
 
 		\l - показывает все базы
 

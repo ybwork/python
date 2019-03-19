@@ -429,7 +429,7 @@ COPY
 
 	docker network connect my-bridge-network web - подключает контейнер web к сети my-bridge-network
 
-	docker exec -it db bash - заходим в терминал контейнера
+	docker exec -it container_name bash - заходим в терминал контейнера
 
 		ping web - проверяем доступность другого контейнера в сети
 
