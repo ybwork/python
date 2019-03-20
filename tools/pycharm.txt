@@ -23,3 +23,5 @@
 	File -> Settings -> Keymap - настройки горячих клавиш
 
 	File -> Settings -> Code style -> Hard wrap at - настройка ограничения на длину строки
+
+	File -> Settings -> Tools -> Web browsers -> Default browser -> set path to browser - настройка открытия проекта в браузере

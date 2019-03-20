@@ -1,0 +1,7 @@
+[2019-03-20 13:39:28,640: ERROR/MainProcess] Task sync_shop[d02de00a-7c27-4360-aca7-4b58be7b0dde] raised unexpected: IntegrityError(1062, "Duplicate entry '187404' for key 'catalog_products_code_5ad755f595c78602_uniq'")
+Traceback (most recent call last):
+
+чаще всего косяк с дублирующимся товаром в 1С (но нужно смотреть, что за синк)
+IntegrityError: (1062, "Duplicate entry '\xd0\x92\xd1\x81\xd0\xb5 \xd0\xb4\xd0\xbb\xd1\x8f \xd0\xbe\xd1\x84\xd0\xb8\xd1\x81\xd0\xb0/\xd0\x9e\xd1\x80\xd0\xb3\xd1\x82\xd0\xb5\xd1\x85\xd0\xbd\xd0\xb8\xd0\xba\xd0\xb0/\xd0\x9c\xd0\xb8\xd0\xbd\
+xd0\xb8 \xd0\x90\xd0\xa2\xd0\xa1' for key 'full_name'")
+косяк с группой товаров, примерно как предыдущий
