@@ -4,6 +4,10 @@
 
 	Смена шаблона у Вид/Подвид refs #16647
 
+    Проблема с обновлением слепков refs #18150
+
+    Баг: пользователь может привязывать к карточке товара вид-тип у которого нет шаблона, потом когда пользователь заходит и редактирует карточку глючит код внутри метода models/ProductCard/get_filter_values
+
 Общая инфа
 
 	В magic хранится дополнительная информация по товару, которая не должна храниться в 1С (в т.ч. карточки товаров)
@@ -86,113 +90,20 @@
 
     Тесты
 
-    	пока работают с дефолтной базой и приложениями:
+        Для работы тестов нужно закоментировать в модели Profile поля user и content_type.
 
-    		'admin_tools',
-		    'admin_tools.theming',
-		    'admin_tools.menu',
-		    'admin_tools.dashboard',
-		    'django.contrib.auth',
-		    'django.contrib.contenttypes',
-		    'django.contrib.sessions',
-		    'django.contrib.sites',
-		    'django.contrib.messages',
-		    'django.contrib.staticfiles',
-		    'django.contrib.humanize',
-		    'django.contrib.admin',
-		    'gunicorn',
-		    'catalog',
-		    'ones',
-		    'cards',
-		    'online_shopping',
+Проблема с обновлением слепков refs #18150
 
------------------------------------------------------------------
+    У некоторых карточек товара нет бренда.
 
-        kind = Kind.objects.create(
-            kind=u'Xnj',
-            type=u'Xnj',
-            worker=User.objects.get(username='admin')
-        )
-        AttributeOptions.objects.bulk_create([
-            AttributeOptions(
-                name=u'Тактовая частота процессора, МГц',
-                type='I'
-            ),
-            AttributeOptions(name=u'Кол-во ядер процессора', type='I'),
-            AttributeOptions(name=u'Название ядра процессора', type='S'),
-            AttributeOptions(name=u'Частота шины CPU, МГц', type='S')
-        ])
+    Бренды хранятся в отдельной таблице.
 
-        # после того, как заработают тесты поменять на .all()
-        attr_queryset = AttributeOptions.objects.order_by('-pk')[:4]
-        template_old = Template.objects.create()
-        template_entry_old = self.create_template(template=template_old)
-        self.add_attrs(
-            attr_list=attr_queryset[0:2],
-            template=template_old,
-            template_entry=template_entry_old
-        )
-        template_new = Template.objects.create()
-        template_entry_new = self.create_template(template=template_new)
-        self.add_attrs(
-            attr_list=attr_queryset[1:4],
-            template=template_new,
-            template_entry=template_entry_new
-        )
+    После того, как карточка товара проверена, создается слепок. Модель ProductCardDescription, сигнал update_description_and_previews_signal, таск update_description_via_change_card.
 
-        Property.objects.create(
-            kind=kind,
-            template=template_old
-        )
-        product_card = ProductCard.objects.create(
-            code=23,
-            is_ready=True,
-            is_checked=True,
-            is_actual=True,
-            kind=kind,
-        )
-        Attribute.objects.bulk_create([
-            Attribute(
-                value_text='100',
-                card=product_card,
-                options=attr_queryset[0]
-            ),
-            Attribute(
-                value_text='150',
-                card=product_card,
-                options=attr_queryset[1]
-            )
-        ])
+    Общая схема такая: обновляется карточка товара, отправляется сигнал, обработчик сигнала запускает задачу на создания слепка карточки товара.
 
-        product_card_list = ProductCard.objects.filter(
-            # kind__in=[kind.pk]
-            kind__in = ['1761', '1756']
-        )
-        attr_value_helper = AttrValueHelper()
-        attr_value_helper.transfer_attr_values(
-            template_old=template_old,
-            template_new=template_new,
-            product_card_list=product_card_list
-        )
-        # проверить, что удалился атрибут старого шаблона
-        # что сохранились атрибуты старого шаблона, которые совпадают
-        # что продукт стал не актуальным
+    Поле description модели ProductCardDescription - это общие характеристики товара на сайте korallmicro, это поле формата json и в нем есть бренд.
 
-    def create_template(self, template):
-        return TemplateEntry.objects.create(
-            template=template,
-            name='Основные характеристики',
-        )
+    Создал карточку товара, бренда у нее сначала нет. Через время бренд берется из 1с. Когда бренд подтянулся, зашел в карточку, выбрал "проверена" и нажал сохранить. После этого создался слепок и в нем есть бренд.
 
-    def add_attrs(self, attr_list, template, template_entry):
-        template_entry_list = []
-        for attr in attr_list:
-            template_entry_list.append(
-                TemplateEntry(
-                    template=template,
-                    name='',
-                    options=attr,
-                    parent=template_entry,
-                )
-            )
-        return TemplateEntry.objects.bulk_create(template_entry_list)
+    Скорее всего бренд не подтянулся из 1с, а кура нажала "проверена" и сохранила.
