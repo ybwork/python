@@ -97,6 +97,8 @@
 
 	response.context['cl'].queryset - доступ к списку сущности
 
+	self.kwargs - доступ к GET параметрам
+
 Запросы
 
 	Permission.objects.filter(codename__in=['add_invoice', 'view_invoice']) - фильтр по нескольким условиям
@@ -117,6 +119,8 @@
                 pass
 
     Attribute.objects.bulk_create([Attribute(name='one'), Attribute(name='two')]) - multiple создание объектов одним запросом, возвращает созданные объекты
+
+    ProductCard.objects.values_list('code', flat=True) - flat=True делает результат просто списком [1, 2, 3], а если без flat=True, то было бы так [(1), (2), (3)]
 
 Модели
 
