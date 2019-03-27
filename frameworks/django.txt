@@ -97,7 +97,9 @@
 
 	response.context['cl'].queryset - доступ к списку сущности
 
-	self.kwargs - доступ к GET параметрам
+	self.kwargs - доступ к GET параметрам, не работает в actions
+
+	request.get_full_path() - позовляет получить полный путь запроса, вместе с GET параметрами
 
 Запросы
 
