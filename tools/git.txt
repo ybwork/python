@@ -313,6 +313,39 @@ Commit
 
 	git remote rm name_repo - удаляет привязанный репозиторий
 
+	git diff - показывает полный список сделанных изменений если еще не было коммита 
+
+	git diff HEAD^ - показывает полный список сделанных изменений сравнивая последний коммит с предыдущим (за это отвечает ^, если ^^, то сравнивает последний с предыдущими двумя и т.д. Можно написать HEAD~3, чтобы не писаь много ^)
+
+	git rebase -i HEAD~3 - позволяет схлопнуть 3 коммита в один
+
+		Открывается терминал
+
+			Указываем какие коммиты удалить, а какие оставить
+
+				drop 46e1e67 Исправил скорость поиска по всем заявкам
+				drop b3f4ac0 Исправил скорость поиска по всем заявкам refs #18207
+				pick a7f3fb5 Исправил скорость поиска по всем заявкам refs #18207
+
+	Могут возникнуть ошибки. Если так, то исправляем их и:
+
+		git rebase --continue
+
+	Дальше делаем git push и скорее всего получаем ошибку
+
+		! [rejected]        master -> master (non-fast-forward)
+		error: failed to push some refs to 'git@gitlab0.km-union.ru:php/service.git'
+		hint: Updates were rejected because the tip of your current branch is behind
+		hint: its remote counterpart. Integrate the remote changes (e.g.
+		hint: 'git pull ...') before pushing again.
+		hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+
+	Эта обшика происходит, потому что у нас разные история гита, вызванная rebase.
+
+	Чтобы это исправить делаем:
+
+		git push --force
+
 Gitignore
 
     type nul > .gitignore (создали файл .gitignore в windows)
