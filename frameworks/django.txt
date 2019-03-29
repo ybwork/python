@@ -70,6 +70,18 @@
 
 	Помнить, что метод create_user возвращает хэшированный пароль и через него нельзя будет потом залогиниться. Поэтому можно сделать приватное св-во в методе setUp.
 
+	Когда делаем логин и потом последующий запрос помнить, что нужно делать через клиент self.client.login, self.client.post
+
+	Для тестирование кастомных actions в панели администратора используем:
+
+		self.client.post(
+            reverse('admin:cards_productcard_changelist'),
+            {
+                'action': 'mark_cards_as_checked', 
+                '_selected_action': ProductCard.objects.values_list('pk', flat=True)
+            }
+        )
+
 Юнит тесты команды
 
 	self.client.login()
