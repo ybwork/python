@@ -273,9 +273,11 @@ Commit
 
 	git commit --amend - добавляет существующие изменения в последний коммит и позволяет изменить сообщение коммита (если запушил, то не использовать)
 
+	git remote set-url origin git@gitlab0.km-union.ru:python/magic.git - задает url для origin репозитория
+
 	git reset --hard HEAD^ - удаляет последний коммит
 
-	git branch --set-upstream-to=mp/deal deal - связывает локальную ветку и веткой из репозитория (используется для пула после hard reset)
+	git branch --set-upstream-to=mp/deal deal - связывает локальную ветку с веткой из репозитория (используется для пула после hard reset)
 
 	git push --set-upstream origin all_offers - заливает в репозиторий новый код, который был сделан на новой локальной ветке и связывает эту ветку с веткой в удалённом репозитории
 
@@ -308,6 +310,8 @@ Commit
 	git branch -m new_name - переименовывает ветку
 
 	git branch -f - ...
+
+	git fetch --all --prune - позволяет удалить устаревшие ветки, которые лежат в слепке веток удаленного репозитория
 
 	git checkout --track origin/deal_start - позволяет вытащить ветку из удалённого репозитория, если привязано несколько
 
