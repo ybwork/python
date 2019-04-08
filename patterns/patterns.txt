@@ -391,6 +391,121 @@
 		    builder.produce_part_b()
 		    builder.produce_part_с()
 
+Прототип
+
+	Порождающий паттерн.
+
+	Позволяет копировать объекты, любой сложности без привязки к их конкретным классам.
+
+	Проблема
+
+		У вас есть объект, который нужно скопировать. Как это сделать? Нужно создать пустой объект такого же класса, а затем поочерёдно скопировать значения всех полей из старого объекта в новый. Но есть нюанс. Не каждый объект удастся скопировать таким образом, ведь часть его состояния может быть приватной, а значит — недоступной для остального кода программы. Есть и другая проблема. Копирующий код станет зависим от классов копируемых объектов. Ведь, чтобы перебрать все поля объекта, нужно привязаться к его классу. Из-за этого вы не сможете копировать объекты, зная только их интерфейсы, а не конкретные классы.
+
+	Решение
+
+		Паттерн Прототип поручает создание копий самим копируемым объектам. Он вводит общий интерфейс для всех объектов, поддерживающих клонирование. Обычно такой интерфейс имеет всего один метод clone. Объект, который копируют, называется прототипом. Клонирование совершается самим объектом-прототипом, что позволяет ему скопировать значения всех полей, даже приватных.
+
+	Применимость
+
+		Когда объекты программы содержат сотни полей и тысячи возможных конфигураций, прототипы могут служить своеобразной альтернативой созданию подклассов.
+
+		Когда ваш код не должен зависеть от классов копируемых объектов.
+
+		Таким образом, вместо порождения объектов из подклассов, вы будете копировать существующие объекты-прототипы, в которых уже настроено внутреннее состояние. Это позволит избежать взрывного роста количества классов в программе и уменьшить её сложность.
+
+	Пример на python
+
+		Паттерн Прототип реализован в базовой библиотеке Python посредством интерфейса Cloneable.
+
+		class Prototype:
+		    """
+		    Пример класса, имеющего возможность клонирования.
+		    """
+
+		    def __init__(self):
+		        self._primitive = None
+		        self._component = None
+		        self._circular_reference = None
+
+		    @property
+		    def primitive(self):
+		        return self._primitive
+
+		    @primitive.setter
+		    def primitive(self):
+		        self._primitive = value
+
+		    @property
+		    def component(self):
+		        return self._component
+
+		    @component.setter
+		    def component(self, value):
+		        self._component = value
+
+		    @property
+		    def circular_reference(self):
+		        return self._circular_reference
+
+		    @circular_reference.setter
+		    def circular_reference(self, value):
+		        self._circular_reference = value
+
+		    def clone(self):
+		        self.component = deepcopy(self.component)
+
+		        # Клонирование объекта, который имеет вложенный объект с обратной
+		        # ссылкой, требует специального подхода. После завершения клонирования
+		        # вложенный объект должен указывать на клонированный объект, а не на
+		        # исходный объект.
+		        self.circular_reference = deepcopy(self.circular_reference)
+		        self.circular_reference.prototype = self
+		        return deepcopy(self)
+
+
+		class ComponentWithBackReference:
+		    def __init__(self, prototype: Prototype):
+		        self._prototype = prototype
+
+		    @property
+		    def prototype(self) -> Prototype:
+		        return self._prototype
+
+		    @prototype.setter
+		    def prototype(self, value: Prototype) -> None:
+		        self._prototype = value
+
+
+		if __name__ == "__main__":
+		    # Клиентский код.
+		    p1 = Prototype()
+		    p1.primitive = 245
+		    p1.component = datetime.now()
+		    p1.circular_reference = ComponentWithBackReference(p1)
+
+		    p2 = p1.clone()
+
+		    if p1.primitive is p2.primitive:
+		        print("Primitive field values have been carried over to a clone. Yay!")
+		    else:
+		        print("Primitive field values have not been copied. Booo!")
+
+		    if p1.component is p2.component:
+		        print("Simple component has not been cloned. Booo!")
+		    else:
+		        print("Simple component has been cloned. Yay!")
+
+		    if p1.circular_reference is p2.circular_reference:
+		        print("Component with back reference has not been cloned. Booo!")
+		    else:
+		        print("Component with back reference has been cloned. Yay!")
+
+		    if p1.circular_reference.prototype is p2.circular_reference.prototype:
+		        print("Component with back reference is linked to original object. Booo!", end="")
+		    else:
+		        print("Component with back reference is linked to the clone. Yay!", end="")
+
+
 Одиночка
 
 	Порождающий паттерн.
