@@ -10,11 +10,31 @@
 
 	Порождающие
 
-	Фабричный метод
+		Фабричный метод
 
-	Абстрактная фабрика
+		Абстрактная фабрика
 
-	Одиночка
+		Строитель
+
+		Прототип
+
+		Одиночка
+
+	Структурные
+
+		Адаптер
+
+		Мост
+
+		Компоновщик
+
+		Декоратор
+
+		Фасад
+
+		Легковес
+
+		Заместитель
 
 Что это
 
@@ -417,94 +437,38 @@
 
 		Паттерн Прототип реализован в базовой библиотеке Python посредством интерфейса Cloneable.
 
+		import copy
+
 		class Prototype:
-		    """
-		    Пример класса, имеющего возможность клонирования.
-		    """
-
 		    def __init__(self):
-		        self._primitive = None
-		        self._component = None
-		        self._circular_reference = None
+		        self._objects = {}
 
-		    @property
-		    def primitive(self):
-		        return self._primitive
+		    def register_object(self, name, obj):
+		        self._objects[name] = obj
 
-		    @primitive.setter
-		    def primitive(self):
-		        self._primitive = value
+		    def clone(self, name, **attr):
+		        obj = copy.deepcopy(self._objects.get(name))
+		        obj.__dict__.update(attr)
+		        return obj
 
-		    @property
-		    def component(self):
-		        return self._component
-
-		    @component.setter
-		    def component(self, value):
-		        self._component = value
-
-		    @property
-		    def circular_reference(self):
-		        return self._circular_reference
-
-		    @circular_reference.setter
-		    def circular_reference(self, value):
-		        self._circular_reference = value
-
-		    def clone(self):
-		        self.component = deepcopy(self.component)
-
-		        # Клонирование объекта, который имеет вложенный объект с обратной
-		        # ссылкой, требует специального подхода. После завершения клонирования
-		        # вложенный объект должен указывать на клонированный объект, а не на
-		        # исходный объект.
-		        self.circular_reference = deepcopy(self.circular_reference)
-		        self.circular_reference.prototype = self
-		        return deepcopy(self)
+		class A:
+		    def __init__(self):
+		        self.x = 3
+		        self.y = 8
+		        self.z = 15
+		        self.garbage = [38, 11, 19]
 
 
-		class ComponentWithBackReference:
-		    def __init__(self, prototype: Prototype):
-		        self._prototype = prototype
-
-		    @property
-		    def prototype(self) -> Prototype:
-		        return self._prototype
-
-		    @prototype.setter
-		    def prototype(self, value: Prototype) -> None:
-		        self._prototype = value
+		def main():
+		    a = A()
+		    prototype = Prototype()
+		    prototype.register_object('object', a)
+		    b = prototype.clone('object')
+		    c = prototype.clone('object', x=1, y=2, garbage=[88, 1])
 
 
-		if __name__ == "__main__":
-		    # Клиентский код.
-		    p1 = Prototype()
-		    p1.primitive = 245
-		    p1.component = datetime.now()
-		    p1.circular_reference = ComponentWithBackReference(p1)
-
-		    p2 = p1.clone()
-
-		    if p1.primitive is p2.primitive:
-		        print("Primitive field values have been carried over to a clone. Yay!")
-		    else:
-		        print("Primitive field values have not been copied. Booo!")
-
-		    if p1.component is p2.component:
-		        print("Simple component has not been cloned. Booo!")
-		    else:
-		        print("Simple component has been cloned. Yay!")
-
-		    if p1.circular_reference is p2.circular_reference:
-		        print("Component with back reference has not been cloned. Booo!")
-		    else:
-		        print("Component with back reference has been cloned. Yay!")
-
-		    if p1.circular_reference.prototype is p2.circular_reference.prototype:
-		        print("Component with back reference is linked to original object. Booo!", end="")
-		    else:
-		        print("Component with back reference is linked to the clone. Yay!", end="")
-
+		if __name__ == '__main__':
+		    main()
 
 Одиночка
 
@@ -542,5 +506,67 @@
 
 		print(App.get_instance(), App.get_instance())
 
+Структурные
+	
+	Показывают различные способы построения связей между объектами.
 
+	Список: адаптер, мост, компоновщик, декоратор, фасад, легковес, заместитель.
 
+Адаптер
+
+	Структурный паттерн.
+
+	Позволяет объектам с несовместимыми интерфейсами работать вместе.
+
+	Проблема
+
+		Представьте, что вы делаете приложение для торговли на бирже. Ваше приложение скачивает биржевые котировки из нескольких источников в XML, а затем рисует красивые графики. В какой-то момент вы решаете улучшить приложение, применив стороннюю библиотеку аналитики. Но вот беда - библиотека поддерживает только формат данных JSON, несовместимый с вашим приложением. Вы смогли бы переписать библиотеку, чтобы та поддерживала формат XML. Но, во-первых, это может нарушить работу существующего кода, который уже зависит от библиотеки. А во-вторых, у вас может просто не быть доступа к её исходному коду.
+
+	Решение
+
+		Вы можете создать адаптер. Это объект-переводчик, который трансформирует интерфейс или данные одного объекта в такой вид, чтобы он стал понятен другому объекту. Например, вы можете обернуть объект, работающий в метрах, адаптером, который бы конвертировал данные в футы.
+
+		Адаптеры могут не только переводить данные из одного формата в другой, но и помогать объектам с разными интерфейсами работать сообща. Адаптер имеет интерфейс, который совместим с одним из объектов. Поэтому этот объект может свободно вызывать методы адаптера. Адаптер получает эти вызовы и перенаправляет их второму объекту, но уже в том формате и последовательности, которые понятны второму объекту.
+
+		Иногда возможно создать даже двухсторонний адаптер, который работал бы в обе стороны.
+
+		Когда вы в первый раз летите за границу, вас может ждать сюрприз при попытке зарядить ноутбук. Стандарты розеток в разных странах отличаются. Ваша европейская зарядка будет бесполезна в США без специального адаптера, позволяющего подключиться к розетке другого типа.
+
+	Применимость
+
+		Когда вы хотите использовать сторонний класс, но его интерфейс не соответствует остальному коду приложения.
+
+		Когда вам нужно использовать несколько существующих подклассов, но в них не хватает какой-то общей функциональности, причём расширить суперкласс вы не можете.
+
+	Пример на python
+
+		class GameConsole:
+		    def create_game_picture(self):
+		        return 'picture from console'
+
+		class Antenna:
+		    def create_wave_picture(self):
+		        return 'picture from wave'
+
+		class SourceGameConsole(GameConsole):
+		    def get_picture(self):
+		        return self.create_game_picture()
+
+		class SourceAntenna(Antenna):
+		    def get_picture(self):
+		        return self.create_wave_picture()
+
+		class TV:
+			"""Это класс адаптер"""
+		    def __init__(self, source):
+		        self.source = source
+
+		    def show_picture(self):
+		        return self.source.get_picture()
+
+		g = SourceGameConsole()
+		a = SourceAntenna()
+		game_tv = TV(g)
+		cabel_tv = TV(a)
+		print game_tv.show_picture()
+		print cabel_tv.show_picture()

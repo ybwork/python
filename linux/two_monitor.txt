@@ -1,0 +1,5 @@
+Ubuntu
+
+	Settings -> Devices -> Displays -> Join Displays
+
+	Scale 100% -> Apply
