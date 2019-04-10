@@ -26,6 +26,10 @@
 
 Команды
 
+	sudo apt list --installed - выводит список установленных пакетов
+
+	ctrl + shift + f - открывает окно для поиска по терминалу
+
 	sudo apt-get update - получить обновлённые списки пакетов
 
 	sudo apt-get install package_name if_need_version - установка нового пакета

@@ -1,0 +1,64 @@
+Получение проекта
+
+	Берем код проекта с gitlab - git clone project_link
+
+Открываем проект в pycharm
+
+Окружение и зависимости
+
+	автоматическое создание (пока нет)
+
+		chmod +x local_deploy.sh
+
+		./local_deploy.sh
+
+	ручное создание
+
+		python create_bootstrap.py
+
+		должен появиться bootstrap.py
+
+		python bootstrap.py
+
+		должно создасться виртуальное окружение dealer_price-env
+
+		должна появиться директория bin
+
+		bin/pip install -r requirements.txt
+
+			вывалит ошибку и вопрос "Could not find function xmlCheckVersion in library libxml2. Is libxml2 installed?"
+
+			Решается так: sudo apt-get install libxml2-dev libxslt-dev python-dev
+
+			После этого еще раз запускаем bin/pip install -r requirements.txt
+
+		Переходим в имя_проекта/conf, открываем файл settings_local.py.template, копируем все
+
+		В имя_проекта/conf созаем файл settings_local.py и вставляем все скопированное из settings_local.py.template
+
+Rabbit
+
+	Должен быть установлен rabbitmq.
+
+	Удостовериться, что settings_local.py имеет:
+
+		BROKER_URL = [
+		    # Важно, чтобы на локальной машине было подключение к локальному rabbit-у,
+		    # чтобы не отправить задачи в боевой
+		    "amqp://guest:guest@localhost:5672/dp"
+		]
+
+		BROKER_TARGET_URL = [
+		    # Важно, чтобы на dev был localhost
+		    "amqp://guest:guest@localhost:5672/broker"
+		]
+
+		guest:guest - это логин и пароль от rabbit
+
+		/magic и /broker - это имена виртуальных хостов rabbit-а, которые должны быть созданы:
+
+			через web морду идем в Admin -> Virtual Hosts -> Add virtual host
+
+	Все существующие очереди можно посмотреть в settings.py -> CELERY_QUEUES
+
+Redis
