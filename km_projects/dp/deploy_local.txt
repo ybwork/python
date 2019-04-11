@@ -36,6 +36,46 @@
 
 		В имя_проекта/conf созаем файл settings_local.py и вставляем все скопированное из settings_local.py.template
 
+Устанавливаем нужные версии субд в docker контейнерах
+
+	Должен быть установлен docker server
+
+	postgresql
+
+		Создаем директории на локальной машине от имени суперпользователя (sudo mkdir):
+
+			~/work/docker/volumes/postgres_9.5/config
+
+			~/work/docker/volumes/postgres_9.5/data
+
+		sudo docker run \
+		--name postgres_9.5 \
+		-v ~/work/docker/volumes/postgres_9.5/config:/etc/postgresql \
+		-v ~/work/docker/volumes/postgres_9.5/data:/var/lib/postgresql/data \
+		-p 5432:5432 -e POSTGRES_PASSWORD=asdf1234 -d postgres:9.5
+
+	mysql
+
+		Создаем директории (mkdir):
+
+			~/work/docker/volumes/mysql_5.7/config
+
+			~/work/docker/volumes/mysql_5.7/data
+
+		sudo docker run \
+		--name mysql_5.7 \
+		-v ~/work/docker/volumes/mysql_5.7/config:/etc/mysql/conf.d \
+		-v ~/work/docker/volumes/mysql_5.7/data:/var/lib/mysql \
+		-p 3306:3306 \
+		-e MYSQL_ROOT_PASSWORD=asdf1234 \
+		-d mysql:5.7
+
+	Redis
+
+		Должен быть установлен radis.
+
+		sudo docker run --name redis -p 6379:6379 -d redis
+
 Rabbit
 
 	Должен быть установлен rabbitmq.
@@ -60,5 +100,3 @@ Rabbit
 			через web морду идем в Admin -> Virtual Hosts -> Add virtual host
 
 	Все существующие очереди можно посмотреть в settings.py -> CELERY_QUEUES
-
-Redis

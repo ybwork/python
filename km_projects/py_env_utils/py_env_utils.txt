@@ -1,0 +1,21 @@
+Можно установить наши пакеты от которых зависит проекты в режиме разработки.
+
+Для этого нужно:
+
+	git clone git@gitlab0.km-union.ru:abakarov_ag/py-env-utils.git
+
+	cd py-env-utils
+
+	sudo python setup.py install
+
+	рядом с проектом должна появиться директория magic_packages
+
+	команды:
+
+		py_env_utils --apply-frontend --verbose --gulp-mode=gulp-simple
+
+		py_env_utils --checkout-packages --packages=dev --verbose
+
+		py_env_utils --remove-pycs --packages='dev' --verbose
+
+		py_env_utils --install-packages --packages=all
