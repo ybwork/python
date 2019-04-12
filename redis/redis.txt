@@ -1,0 +1,29 @@
+Оглавление
+
+	Что это
+
+	Установка
+
+Что это
+
+	...
+
+Установка
+
+	sudo apt-get update
+
+	sudo apt-get install redis-server
+
+	sudo nano /etc/redis/redis.conf
+
+		ищем supervised и ставим так - supervised systemd
+
+	sudo systemctl enable redis-server.service
+
+	sudo systemctl status redis
+
+		Active: active
+
+	redis-cli ping
+
+		pong

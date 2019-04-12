@@ -18,7 +18,11 @@
 
 	pip freeze > requirements.txt - записывает в файл имена всех установленных пакетов
 
+	pip freeze | xargs pip uninstall -y - удаляет все установленные пакеты
+
 	pip install -r requirements.txt - читает из файла имена пакетов и устанавливает их
+
+	pip install -U -r requirements.txt - читает из файла имена пакетов и устанавливает их, обновляя до нужных версий (-U)
 
 Нюансы
 
