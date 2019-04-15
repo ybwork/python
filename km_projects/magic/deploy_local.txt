@@ -96,6 +96,12 @@
 
 		sudo apt-get install python-mysqldb
 
+		sudo apt-get install libmysqlclient-dev
+
+	В env
+
+		pip install mysqlclient
+
 	Переходим в /magic/modules/configurator/admin.py и комментируем код на строках (152 - 157 включительно), потому что этот код вызывает ошибку
 
 	Находясь в корневой директории с проектом в консоль bin/manage migrate

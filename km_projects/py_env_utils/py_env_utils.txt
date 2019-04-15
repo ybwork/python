@@ -22,6 +22,8 @@
 
 Команды
 
+	Выполнять в корневой директории проекта
+
 	py_env_utils --install-packages --packages=all - подтягивает пакеты (рядом с проектом должна появиться директория project_name_packages)
 
 	py_env_utils --apply-frontend --verbose --gulp-mode=gulp-simple

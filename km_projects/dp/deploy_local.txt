@@ -76,6 +76,58 @@
 
 		sudo docker run --name redis -p 6379:6379 -d redis
 
+Дамп бд
+
+	Mysql
+
+		Лучше делать через mysql workbench
+
+	Postgresql
+
+		При заливки дампов может быть ошибка:
+
+			pg_restore: [archiver (db)] could not execute query: ERROR:  role "dealer_price" does not exist
+
+		Решение: 
+
+			создаем роль dealer_price и заливаем заново
+
+		Удостовериться, что в базе magic (mysql) есть таблица django_site со значениями (1, example.com, example.com)
+
+Для работы с mysql
+
+	sudo apt-get update
+
+	sudo apt-get install python-mysqldb
+
+	sudo apt-get install libmysqlclient-dev
+
+	В env
+
+		pip install mysqlclient
+
+Запуск
+
+	Создали суперпользователя
+
+		bin/manage createsuperuser
+
+	Открыли http://0.0.0.0:8000
+
+	Он сделал редирект на http://0.0.0.0:8000/no_site/
+
+	Вместо no_site ввели dpa нажали enter
+
+	В интерфейсе админа выбрали "Users"
+
+	Через поиск нашли себя
+
+	Нажали на имя и зашли во внутрь
+
+	Нашли в самом низу поле "Связь с другими дилерами" и переместили всех диллеров слева в право
+
+	Нажали сохранить
+
 Rabbit
 
 	Должен быть установлен rabbitmq.
