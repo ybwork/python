@@ -9,82 +9,51 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    ('Ilya', 'kaduk_ia@km-union.ru'),
 )
 
 MANAGERS = ADMINS
 
-LOCAL_DATABASES = {}
-
-DATABASES = {
+LOCAL_DATABASES = {
+    # читает и пишет
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'dealer_price',
-        'PASSWORD': 'dealer_price',
-        'USER': 'dealer_price',
-        'HOST': 'dealer-price-db.km-union.ru'
+        'USER': 'postgres',
+        'PASSWORD': 'asdf1234',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     },
+    # читает и пишет
     'unique_price': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'HOST': 'dealer-price-db.km-union.ru',
         'NAME': 'uniq_price',
-        'USER': 'dealer_price',
-        'PASSWORD': 'dealer_price',
+        'USER': 'postgres',
+        'PASSWORD': 'asdf1234',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     },
+    # читает и пишет
     'sales_base_models': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'HOST': '192.168.7.9',
-        'PORT': '5432',
         'NAME': 'korallmicro',
-        'PASSWORD': 'korallmicro',
-        'USER': 'korallmicro',
+        'USER': 'postgres',
+        'PASSWORD': 'asdf1234',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     },
+    # читает и пишет
     'events': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'HOST': '192.168.7.9',
-        'PORT': '5432',
         'NAME': 'order',
-        'PASSWORD': 'korallmicro',
-        'USER': 'korallmicro',
-    },
-    'magic': {
-        'ENGINE': 'django.db.backends.mysql',
-        'HOST': 'new-mysql.km-union.ru',
-        'NAME': 'magic',
-        'USER': 'magic',
-        'PASSWORD': 'megamagic',
-    },
-    'one_c_raw': {
-        'ENGINE': 'django.db.backends.mysql',
-        'HOST': 'new-mysql.km-union.ru',
-        'NAME': '1C_8_RAW',
-        'USER': 'ones',
-        'PASSWORD': 'oneskm',
-    },
-    'kmclient': {
-        'ENGINE': 'django.db.backends.mysql',
-        'HOST': 'km-client-db.km-union.ru',
-        'NAME': 'kmclient8',
-        'USER': 'kmclient8',
-        'PASSWORD': 'bold4fx',
-    },
-    'kmclient8local': {
-        'ENGINE': 'django.db.backends.mysql',
-        'HOST': 'new-mysql.km-union.ru',
-        'NAME': 'kmclient_web_data',
-        'USER': 'kmclient_web',
-        'PASSWORD': '4S)Fkzv]f<)6N0q;',
-    },
-    'linked': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'HOST': '192.168.7.74',
-        'NAME': 'grabber_v3',
-        'USER': 'grabbers',
-        'PASSWORD': 'grabbers',
+        'USER': 'postgres',
+        'PASSWORD': 'asdf1234',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     },
 }
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 SECRET_KEY = '(h7lvlk9p@qd$#+-srxyias9+cw3tt=^x_opehc+7ck5m!g0b@'
 
@@ -287,14 +256,10 @@ ONES_ERROR_NOTIFICATION_GROUP = ['lopatkin_de@km-union.ru']
 
 # url основа которого будет браться для формирования ссылки
 # для публичного доступа
-PUBLIC_URL = ''
+PUBLIC_URL = 'http://dealers-arm.km-union.ru'
 
 # Кого уведомлять о некорректных связках каталога и групп money care
 MANAGER_MONEY_CARE = []
-
-# Настройки сбора статистики на проекте
-STATSY_VIEW_PERMISSION = 'statsy.stats_view'
-STATSY_CACHE_NAME = 'statsy'
 
 LOCAL_CELERYBEAT_SCHEDULE = {
     'sync_specific_gravities': {

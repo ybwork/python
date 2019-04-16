@@ -28,7 +28,9 @@
 
 	Миграции
 
-	Миграции тестирование работы в бою	
+	Миграции тестирование работы в бою
+
+	Настройки базы
 
 	Нюансы
 
@@ -81,6 +83,24 @@
                 '_selected_action': ProductCard.objects.values_list('pk', flat=True)
             }
         )
+
+    Если используем много баз данных, а для тестов должна создаваться одна, то можно при выполнении тестов переопределить DATABASES:
+
+		if 'test' in sys.argv:
+		    DATABASES = {
+		        'default': {
+		            'ENGINE': 'django.db.backends.mysql',
+		            'NAME': 'magic',
+		            'USER': 'root',
+		            'PASSWORD': 'asdf1234',
+		            'HOST': '127.0.0.1',
+		            'PORT': '3306',
+		            'OPTIONS': {
+		            	'charset': 'utf8'
+		                'init_command': 'SET default_storage_engine=INNODB',
+		            }
+		        },
+		    }
 
 Юнит тесты команды
 
@@ -207,6 +227,20 @@ The contenttypes framework
 	Выполняем ./manage.py migrate
 
 	Должно успешно создасться новое поле в бд.
+
+Настройки базы
+
+	Установка кодировки и подсистемы для mysql 
+
+		DATABASES = {
+		    'default': {
+		    	...
+		        'OPTIONS': {
+		            'charset': 'utf8',
+		            'init_command': 'SET default_storage_engine=INNODB',
+		        }
+		    },
+		}
 	
 Нюансы
 
