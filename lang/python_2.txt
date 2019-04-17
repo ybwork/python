@@ -18,3 +18,7 @@ Super
 	class C(B):
 	    def method(self, arg):
 	        super(C, self).method(arg)
+
+Списки
+
+	del index_list[:] - метода clear нет, поэтому так можно отчистить список
