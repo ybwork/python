@@ -34,6 +34,8 @@
 
 	Валидаторы
 
+	Импорт файла settings
+
 	Нюансы
 
 Тестирование
@@ -108,6 +110,15 @@
 
 	При работе с тестовым клиентом если создаем суперпользователя, то лучше создавать его, как is_staff=True и is_superuser=True.
 
+	При тестировании исключений один из варинтов такой:
+
+		with self.assertRaises(ValidationError):
+			# Если внутри этого метода будет выкинуто исключение ValidationError, то тест прошел
+			self.helper.validate_product_card_image_indexes(index_list=[0, 1, 1])
+
+	При работе с методом self.assertEqual(), первый аргумент это метод, который тестируем, а второй это значение, которое он должен вернуть
+
+
 Юнит тесты команды
 
 	self.client.login()
@@ -115,6 +126,8 @@
 	self.assertEqual()
 
 	self.assertQuerysetEqual()
+
+	sefl.assertRaises(NameError)
 
 	response = self.client.post(reverse('admin:user_invoice_add'), {'num': 'x23md'}) - делает пост запрос на нужный урл с нужными параметрами
 
@@ -253,6 +266,15 @@ The contenttypes framework
 	Это функции для валидации значений, которые вешаются на поля модели.
 
 	Обычно храняться в приложении в файле validators.py
+
+Импорт файла settings
+
+	Правильно так:
+
+		from django.conf import settings
+
+		if settings.DEBUG:
+			pass
 	
 Нюансы
 
