@@ -126,6 +126,8 @@
 
 	 tar -xvf имя_архива.tar.gz - извлекает файл из архива
 
+	cp ~/Pictures/3.png ~/Pictures/4.png ~/Downloads/imgs/ - копирует что-либо из одной директории в другую, ~/Pictures/3.png - это что копируется, ~/Downloads/imgs/ - это куда копируется
+
 Где, что находится
 
 	etc - 
