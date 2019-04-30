@@ -445,94 +445,129 @@
 
 	Пример на python
 
-		Стоп
+		from __future__ import annotations
+		from abc import ABC, abstractmethod, abstractproperty
+		from typing import Any
 
-		class Builder:
+
+		class Builder(ABC):
 		    """
-		    Интерфейс Строителя объявляет создающие методы для различных частей объекта.
+		    Интерфейс строителя, объявляет создающие методы.
 		    """
 
 		    @abstractproperty
-		    def product(self):
+		    def product(self) -> None:
 		        pass
 
 		    @abstractmethod
-		    def produce_part_a(self):
+		    def produce_part_a(self) -> None:
 		        pass
 
 		    @abstractmethod
-		    def produce_part_b(self):
+		    def produce_part_b(self) -> None:
 		        pass
 
 		    @abstractmethod
-		    def produce_part_c(self):
+		    def produce_part_c(self) -> None:
 		        pass
 
 
 		class ConcreteBuilder1(Builder):
 		    """
-		    Классы Конкретного Строителя следуют интерфейсу Строителя и предоставляют
-		    конкретные реализации шагов построения.
+		    Класс конкретного строителя. Предоставляют конкретные реализации шагов построения. 
 		    """
 
-		    def __init__(self):
+		    def __init__(self) -> None:
 		        """
 		        Новый экземпляр строителя должен содержать пустой объект продукта,
 		        который используется в дальнейшей сборке.
 		        """
 		        self.reset()
 
-
-		    def reset(self):
-		    	self._product = Product1()
-		    
+		    def reset(self) -> None:
+		        self._product = Product1()
 
 		    @property
-		    def product(self):
-		        """
-		        Конкретные Строители предоставляют свои собственные методы
-		        получения результатов. Это связано с тем, что различные типы строителей
-		        могут создавать совершенно разные продукты.
-
-		        После возвращения конечного результата клиенту, экземпляр
-		        строителя должен быть готов к началу производства следующего продукта.
-		        Поэтому обычной практикой является вызов метода сброса в конце тела
-		        метода.
-		        """
+		    def product(self) -> Product1:
 		        product = self._product
 		        self.reset()
 		        return product
 
-		    def produce_part_a(self):
+		    def produce_part_a(self) -> None:
 		        self._product.add("PartA1")
 
-		    def produce_part_b(self):
+		    def produce_part_b(self) -> None:
 		        self._product.add("PartB1")
 
-		    def produce_part_c(self):
+		    def produce_part_c(self) -> None:
 		        self._product.add("PartC1")
 
 
 		class Product1():
-		    def __init__(self):
+		    def __init__(self) -> None:
 		        self.parts = []
 
-		    def add(self):
+		    def add(self, part: Any) -> None:
 		        self.parts.append(part)
 
-		    def list_parts(self):
-		        pass
+		    def list_parts(self) -> None:
+		        print('list_parts')
+
+
+		class Director:
+		    """
+		    Директор отвечает только за выполнение шагов построения в определённой
+		    последовательности. Это полезно при производстве продуктов в определённом
+		    порядке или особой конфигурации. Класс директор необязателен,
+		    так как клиент может напрямую управлять строителями.
+		    """
+
+		    def __init__(self) -> None:
+		        self._builder = None
+
+		    @property
+		    def builder(self) -> Builder:
+		        return self._builder
+
+		    @builder.setter
+		    def builder(self, builder: Builder) -> None:
+		        self._builder = builder
+
+		    """
+		    Директор может строить несколько вариаций продукта, используя одинаковые
+		    шаги построения.
+		    """
+
+		    def build_minimal_viable_product(self) -> None:
+		        self.builder.produce_part_a()
+
+		    def build_full_featured_product(self) -> None:
+		        self.builder.produce_part_a()
+		        self.builder.produce_part_b()
+		        self.builder.produce_part_c()
 
 
 		if __name__ == "__main__":
 		    """
-		    Клиентский код создаёт объект-строитель и инициирует процесс построения.
+		    Клиентский код создаёт объект-строитель, передаёт его директору, а затем
+		    инициирует процесс построения. Конечный результат извлекается из
+		    объекта-строителя.
 		    """
 
+		    director = Director()
 		    builder = ConcreteBuilder1()
+		    director.builder = builder
+
+		    director.build_minimal_viable_product()
+		    builder.product.list_parts()
+
+		    director.build_full_featured_product()
+		    builder.product.list_parts()
+
+		    # Помните, что паттерн Строитель можно использовать без класса Директор.
 		    builder.produce_part_a()
 		    builder.produce_part_b()
-		    builder.produce_part_с()
+		    builder.product.list_parts()
 
 Прототип
 
@@ -663,36 +698,56 @@
 
 	Пример на python
 
-		class GameConsole:
-		    def create_game_picture(self):
-		        return 'picture from console'
+		class Target():
+		    """
+		    Целевой класс объявляет интерфейс, с которым может работать клиентский код.
+		    """
 
-		class Antenna:
-		    def create_wave_picture(self):
-		        return 'picture from wave'
+		    def request(self) -> str:
+		        return "Target: The default target's behavior."
 
-		class SourceGameConsole(GameConsole):
-		    def get_picture(self):
-		        return self.create_game_picture()
 
-		class SourceAntenna(Antenna):
-		    def get_picture(self):
-		        return self.create_wave_picture()
+		class Adaptee:
+		    """
+		    Адаптируемый класс содержит некоторое полезное поведение, но его интерфейс
+		    несовместим с существующим клиентским кодом. Адаптируемый класс нуждается в
+		    некоторой доработке, прежде чем клиентский код сможет его использовать.
+		    """
 
-		class TV:
-			"""Это класс адаптер"""
-		    def __init__(self, source):
-		        self.source = source
+		    def specific_request(self) -> str:
+		        return ".eetpadA eht fo roivaheb laicepS"
 
-		    def show_picture(self):
-		        return self.source.get_picture()
 
-		g = SourceGameConsole()
-		a = SourceAntenna()
-		game_tv = TV(g)
-		cabel_tv = TV(a)
-		print game_tv.show_picture()
-		print cabel_tv.show_picture()
+		class Adapter(Target):
+		    """
+		    Адаптер делает интерфейс Адаптируемого класса совместимым с целевым
+		    интерфейсом.
+		    """
+
+		    def __init__(self, adaptee: Adaptee) -> None:
+		        self.adaptee = adaptee
+
+		    def request(self) -> str:
+		        return self.adaptee.specific_request()
+
+
+		def client_code(target: Target) -> None:
+		    """
+		    Клиентский код поддерживает все классы, использующие интерфейс Target.
+		    """
+
+		    target.request()
+
+
+		if __name__ == "__main__":
+		    target = Target()
+		    client_code(target)
+
+		    adaptee = Adaptee()
+		    adaptee.specific_request()
+
+		    adapter = Adapter(adaptee)
+		    client_code(adapter)
 
 Мост
 
@@ -721,6 +776,8 @@
 		Паттерн Мост особенно полезен когда вам приходится делать кросс-платформенные приложения, поддерживать несколько типов баз данных или работать с разными поставщиками похожего API.
 
 	Пример на python
+
+		Стоп
 
 		class Abstraction:
 		    """
