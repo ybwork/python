@@ -1597,86 +1597,95 @@
 
 	Пример на python
 
-		class Handler:
-		    """Интерфейс Обработчика объявляет метод построения цепочки обработчиков.
+		from __future__ import annotations
+		from abc import ABC, abstractmethod
+		from typing import Any, Optional
+
+
+		class Handler(ABC):
+		    """
+		    Интерфейс Обработчика объявляет метод построения цепочки обработчиков.
 
 		    Он также объявляет метод для выполнения запроса.
-
 		    """
 
 		    @abstractmethod
-		    def set_next(self, handler):
+		    def set_next(self, handler: Handler) -> Handler:
 		        pass
 
 		    @abstractmethod
-		    def handle(self, request):
+		    def handle(self, request) -> Optional[str]:
 		        pass
 
 
 		class AbstractHandler(Handler):
-		    """Поведение цепочки по умолчанию может быть реализовано 
-		    внутри базового класса обработчика.
-
+		    """
+		    Поведение цепочки по умолчанию может быть реализовано внутри базового класса
+		    обработчика.
 		    """
 
 		    _next_handler: Handler = None
 
-		    def set_next(self, handler):
+		    def set_next(self, handler: Handler) -> Handler:
 		        self._next_handler = handler
+
 		        # Возврат обработчика отсюда позволит связать обработчики простым
 		        # способом, вот так:
 		        # monkey.set_next(squirrel).set_next(dog)
 		        return handler
 
 		    @abstractmethod
-		    def handle(self, request):
+		    def handle(self, request: Any) -> str:
 		        if self._next_handler:
 		            return self._next_handler.handle(request)
 
 		        return None
 
 
+		"""
+		Все Конкретные Обработчики либо обрабатывают запрос, либо передают его
+		следующему обработчику в цепочке.
+		"""
+
+
 		class MonkeyHandler(AbstractHandler):
-		    def handle(self, request):
-		        if request == 'Banana':
-		        	# обработка запроса
-		            pass
+		    def handle(self, request: Any) -> str:
+		        if request == "Banana":
+		            return request
 		        else:
 		            return super().handle(request)
 
 
 		class SquirrelHandler(AbstractHandler):
-		    def handle(self, request):
-		        if request == 'Nut':
-		        	# обработка запроса
-		            pass
+		    def handle(self, request: Any) -> str:
+		        if request == "Nut":
+		            return request
 		        else:
 		            return super().handle(request)
 
 
 		class DogHandler(AbstractHandler):
-		    def handle(self, request):
-		        if request == 'MeatBall':
-		        	# обработка запроса
-		            pass
+		    def handle(self, request: Any) -> str:
+		        if request == "MeatBall":
+		            return request
 		        else:
 		            return super().handle(request)
 
 
-		def client_code(handler):
-		    """Обычно клиентский код приспособлен для работы с единственным обработчиком. 
+		def client_code(handler: Handler) -> None:
+		    """
+		    Обычно клиентский код приспособлен для работы с единственным обработчиком. 
 
 		    В большинстве случаев клиенту даже неизвестно, что этот обработчик является
 		    частью цепочки.
-
 		    """
 
-		    for food in ['Nut', 'Banana', 'Cup of coffee']:
+		    for food in ["Nut", "Banana", "Cup of coffee"]:
 		        result = handler.handle(food)
 		        if result:
-		            pass
+		            print(result)
 		        else:
-		            pass
+		            print(food)
 
 
 		if __name__ == "__main__":
@@ -1686,10 +1695,9 @@
 
 		    monkey.set_next(squirrel).set_next(dog)
 
-		    # При этом клиент должен иметь возможность отправлять запрос любому обработчику, а не
+		    # Клиент должен иметь возможность отправлять запрос любому обработчику, а не
 		    # только первому в цепочке.
 		    client_code(monkey)
-
 		    client_code(squirrel)
 
 Команда
@@ -1718,69 +1726,93 @@
 
 	Пример на python
 
-		class Command:
-		    """Интерфейс Команды объявляет метод для выполнения команд."""
+		from __future__ import annotations
+		from abc import ABC, abstractmethod
+
+
+		class Command(ABC):
+		    """
+		    Интерфейс Команды объявляет метод для выполнения команд.
+		    """
 
 		    @abstractmethod
-		    def execute(self):
+		    def execute(self) -> None:
 		        pass
 
 
-		class ComplexCommand(Command):
-		    """Команда, которая делегируют более сложные операции другим
-		    объектам, называемым получателями.
-
+		class SimpleCommand(Command):
+		    """
+		    Некоторые команды способны выполнять простые операции самостоятельно.
 		    """
 
-		    def __init__(self, receiver, a, b):
+		    def __init__(self, payload: str) -> None:
+		        self._payload = payload
+
+		    def execute(self) -> None:
+		        print(self._payload)
+
+
+		class ComplexCommand(Command):
+		    """
+		    Но есть и команды, которые делегируют более сложные операции другим
+		    объектам, называемым «получателями».
+		    """
+
+		    def __init__(self, receiver: Receiver, a: str, b: str) -> None:
+		        """
+		        Сложные команды могут принимать один или несколько объектов-получателей
+		        вместе с любыми данными о контексте через конструктор.
+		        """
+
 		        self._receiver = receiver
 		        self._a = a
 		        self._b = b
 
-		    def execute(self):
-		        """Команды могут делегировать выполнение любым методам получателя."""
+		    def execute(self) -> None:
+		        """
+		        Команды могут делегировать выполнение любым методам получателя.
+		        """
 
 		        self._receiver.do_something(self._a)
 		        self._receiver.do_something_else(self._b)
 
 
 		class Receiver:
-		    """Классы Получателей содержат некую важную бизнес-логику. Они умеют выполнять
-		    все виды операций, связанных с выполнением запроса. 
-
-		    Фактически, любой класс может выступать Получателем.
-
+		    """
+		    Классы Получателей содержат некую важную бизнес-логику. Они умеют выполнять
+		    все виды операций, связанных с выполнением запроса.
 		    """
 
-		    def do_something(self, a):
-		        pass
+		    def do_something(self, a: str) -> None:
+		        print(a)
 
-		    def do_something_else(self, b):
-		        pass
+		    def do_something_else(self, b: str) -> None:
+		        print(b)
 
 
 		class Invoker:
-		    """Отправитель связан с одной или несколькими командами. Он отправляет запрос
+		    """
+		    Отправитель связан с одной или несколькими командами. Он отправляет запрос
 		    команде.
-
 		    """
 
 		    _on_start = None
 		    _on_finish = None
 
-		    """Инициализация команд."""
+		    """
+		    Инициализация команд.
+		    """
 
-		    def set_on_start(self, command):
+		    def set_on_start(self, command: Command):
 		        self._on_start = command
 
-		    def set_on_finish(self, command):
+		    def set_on_finish(self, command: Command):
 		        self._on_finish = command
 
-		    def do_something_important(self):
-		        """Отправитель не зависит от классов конкретных команд и получателей.
-
+		    def do_something_important(self) -> None:
+		        """
+		        Отправитель не зависит от классов конкретных команд и получателей.
 		        Отправитель передаёт запрос получателю косвенно, выполняя команду.
-
 		        """
 
 		        if isinstance(self._on_start, Command):
@@ -1791,18 +1823,16 @@
 
 
 		if __name__ == "__main__":
-		    """Клиентский код может параметризовать отправителя любыми командами."""
+		    """
+		    Клиентский код может параметризовать отправителя любыми командами.
+		    """
 
 		    invoker = Invoker()
-
+		    invoker.set_on_start(SimpleCommand("Say Hi!"))
+		    
 		    receiver = Receiver()
-
-		    invoker.set_on_start(
-		    	comand=ComplexCommand(
-		    		receiver=receiver, 
-		    		a='Send email, 
-		    		b='Save report'
-		    	)
+		    invoker.set_on_finish(
+		        ComplexCommand(receiver, "Send email", "Save report")
 		    )
 		    invoker.do_something_important()
 
@@ -1842,28 +1872,45 @@
 
 	Пример на python
 
+		from __future__ import annotations
 		from collections.abc import Iterable, Iterator
+		from typing import Any, List
+
+
+		"""
+		Для создания итератора в Python есть два абстрактных класса из встроенного
+		модуля collections - Iterable, Iterator. Нужно реализовать метод __iter__() в
+		итерируемом объекте (списке), а метод __next__() в итераторе.
+		"""
+
 
 		class AlphabeticalOrderIterator(Iterator):
-		    """Конкретные Итераторы реализуют различные алгоритмы обхода."""
+		    """
+		    Конкретные Итераторы реализуют различные алгоритмы обхода. Эти классы
+		    постоянно хранят текущее положение обхода.
+		    """
 
-		    # Атрибут _position хранит текущее положение обхода
-		    _position = None
+		    """
+		    Атрибут _position хранит текущее положение обхода. У итератора может быть
+		    множество других полей для хранения состояния итерации, особенно когда он
+		    должен работать с определённым типом коллекции.
+		    """
+		    _position: int = None
 
-		    # Этот атрибут указывает направление обхода
-		    _reverse = False
+		    """Этот атрибут указывает направление обхода."""
+		    _reverse: bool = False
 
-		    def __init__(self, collection, reverse=False):
+		    def __init__(self, collection: WordsCollection, reverse: bool = False) -> None:
 		        self._collection = collection
 		        self._reverse = reverse
 		        self._position = -1 if reverse else 0
 
 		    def __next__(self):
-		        """Должен вернуть следующий элемент в последовательности. При достижении конца 
-		        коллекции и в последующих вызовах должно вызываться исключение StopIteration.
-
 		        """
-
+		        Метод __next __() должен вернуть следующий элемент в последовательности.
+		        При достижении конца коллекции и в последующих вызовах должно вызываться
+		        исключение StopIteration.
+		        """
 		        try:
 		            value = self._collection[self._position]
 		            self._position += -1 if self._reverse else 1
@@ -1874,23 +1921,22 @@
 
 
 		class WordsCollection(Iterable):
-		    """Конкретные Коллекции предоставляют один или несколько методов для получения
+		    """
+		    Конкретные Коллекции предоставляют один или несколько методов для получения
 		    новых экземпляров итератора, совместимых с классом коллекции.
-
 		    """
 
-		    def __init__(self, collection=[]):
+		    def __init__(self, collection: List[Any] = []) -> None:
 		        self._collection = collection
 
-		    def __iter__(self):
-		        """Возвращает объект итератора, по умолчанию мы возвращаем
-		        итератор с сортировкой по возрастанию.
-
+		    def __iter__(self) -> AlphabeticalOrderIterator:
 		        """
-
+		        Метод __iter__() возвращает объект итератора, по умолчанию мы возвращаем
+		        итератор с сортировкой по возрастанию.
+		        """
 		        return AlphabeticalOrderIterator(self._collection)
 
-		    def get_reverse_iterator(self):
+		    def get_reverse_iterator(self) -> AlphabeticalOrderIterator:
 		        return AlphabeticalOrderIterator(self._collection, True)
 
 		    def add_item(self, item: Any):
@@ -1899,10 +1945,12 @@
 
 		if __name__ == "__main__":
 		    collection = WordsCollection()
+		    collection.add_item("First")
+		    collection.add_item("Second")
+		    collection.add_item("Third")
 
-		    collection.add_item('First')
-		    collection.add_item('Second')
-		    collection.add_item('Third')
+		    print("\n".join(collection))
+		    print("\n".join(collection.get_reverse_iterator()))
 
 Посредник
 
@@ -1936,81 +1984,81 @@
 
 	Пример на python
 
-		class Mediator:
-		    """Интерфейс Посредника предоставляет метод, используемый компонентами для
-		    уведомления посредника о различных событиях. 
+		from __future__ import annotations
+		from abc import ABC
 
-		    Посредник может реагировать на ти события и передавать исполнение 
-		    другим компонентам.
 
+		class Mediator(ABC):
+		    """
+		    Интерфейс Посредника предоставляет метод, используемый компонентами для
+		    уведомления посредника о различных событиях. Посредник может реагировать на
+		    эти события и передавать исполнение другим компонентам.
 		    """
 
-		    def notify(self, sender, event):
+		    def notify(self, sender: object, event: str) -> None:
 		        pass
 
 
 		class ConcreteMediator(Mediator):
-		    def __init__(self, component1, component2):
+		    def __init__(self, component1: Component1, component2: Component2) -> None:
 		        self._component1 = component1
 		        self._component1.mediator = self
 		        self._component2 = component2
 		        self._component2.mediator = self
 
-		    def notify(self, sender, event):
-		        if event == 'A':
+		    def notify(self, sender: object, event: str) -> None:
+		        if event == "A":
 		            self._component2.do_c()
-		        elif event == 'D':
+		        elif event == "D":
 		            self._component1.do_b()
 		            self._component2.do_c()
 
 
 		class BaseComponent:
-		    """Базовый Компонент обеспечивает базовую функциональность хранения 
-		    экземпляра посредника внутри объектов компонентов.
-
+		    """
+		    Базовый Компонент обеспечивает базовую функциональность хранения экземпляра
+		    посредника внутри объектов компонентов.
 		    """
 
-		    def __init__(self, mediator=None):
+		    def __init__(self, mediator: Mediator = None) -> None:
 		        self._mediator = mediator
 
 		    @property
-		    def mediator(self):
+		    def mediator(self) -> Mediator:
 		        return self._mediator
 
 		    @mediator.setter
-		    def mediator(self, mediator):
+		    def mediator(self, mediator: Mediator) -> None:
 		        self._mediator = mediator
 
 
-		"""Конкретные Компоненты реализуют различную функциональность. Они не зависят
-		от других компонентов. 
-
-		Они также не зависят от каких-либо конкретных классов посредников.
-
+		"""
+		Конкретные Компоненты реализуют различную функциональность. Они не зависят от
+		других компонентов. Они также не зависят от каких-либо конкретных классов
+		посредников.
 		"""
 
 
 		class Component1(BaseComponent):
-		    def do_a(self):
-		        self.mediator.notify(self, 'A')
+		    def do_a(self) -> None:
+		        self.mediator.notify(self, "A")
 
-		    def do_b(self):
-		        self.mediator.notify(self, 'B')
+		    def do_b(self) -> None:
+		        self.mediator.notify(self, "B")
 
 
 		class Component2(BaseComponent):
-		    def do_c(self):
-		        self.mediator.notify(self, 'C')
+		    def do_c(self) -> None:
+		        self.mediator.notify(self, "C")
 
-		    def do_d(self):
-		        self.mediator.notify(self, 'D')
+		    def do_d(self) -> None:
+		        self.mediator.notify(self, "D")
 
 
 		if __name__ == "__main__":
-		    # Клиентский код (то есть его не обязательно вызывать именно так)
 		    c1 = Component1()
 		    c2 = Component2()
-
+		    
 		    mediator = ConcreteMediator(c1, c2)
 
 		    c1.do_a()
@@ -2054,113 +2102,118 @@
 
 	Пример на python
 
-		class Originator:
-		    """Создатель содержит некоторое важное состояние, которое может 
-		    со временем меняться. 
+		from __future__ import annotations
+		from abc import ABC, abstractmethod
+		from datetime import datetime
+		from random import sample
+		from string import ascii_letters, digits
 
-		    Он также объявляет метод сохранения состояния внутри снимка и
+
+		class Originator():
+		    """
+		    Создатель содержит некоторое важное состояние, которое может со временем
+		    меняться. Он также объявляет метод сохранения состояния внутри снимка и
 		    метод восстановления состояния из него.
-
 		    """
 
-		    # Для удобства состояние создателя хранится внутри одной переменной
 		    _state = None
 
-		    def __init__(self, state):
+		    """Для удобства состояние создателя хранится внутри одной переменной."""
+
+		    def __init__(self, state: str) -> None:
 		        self._state = state
+		        print(self._state)
 
-		    def do_something(self):
-		        """Бизнес-логика Создателя может повлиять на его внутреннее состояние.
-
+		    def do_something(self) -> None:
+		        """
+		        Бизнес-логика Создателя может повлиять на его внутреннее состояние.
 		        Поэтому клиент должен выполнить резервное копирование состояния с
 		        помощью метода save перед запуском методов бизнес-логики.
-
 		        """
 
 		        self._state = self._generate_random_string(30)
+		        print(self._state)
 
-		    def _generate_random_string(self, length=10):
+		    def _generate_random_string(self, length: int = 10) -> None:
 		        return "".join(sample(ascii_letters, length))
 
-		    def save(self):
+		    def save(self) -> Memento:
 		        """Сохраняет текущее состояние внутри снимка."""
 
 		        return ConcreteMemento(self._state)
 
-		    def restore(self, memento):
+		    def restore(self, memento: Memento) -> None:
 		        """Восстанавливает состояние Создателя из объекта снимка."""
 
 		        self._state = memento.get_state()
+		        print(self._state)
 
 
-		class Memento:
-		    """Интерфейс Снимка предоставляет способ извлечения метаданных снимка, 
-		    таких как дата создания или название. 
-
-		    Однако он не раскрывает состояние Создателя.
-
+		class Memento(ABC):
+		    """
+		    Интерфейс Снимка предоставляет способ извлечения метаданных снимка, таких
+		    как дата создания или название. Однако он не раскрывает состояние Создателя.
 		    """
 
 		    @abstractmethod
-		    def get_name(self):
+		    def get_name(self) -> str:
 		        pass
 
 		    @abstractmethod
-		    def get_date(self):
+		    def get_date(self) -> str:
 		        pass
 
 
 		class ConcreteMemento(Memento):
-		    def __init__(self, state):
+		    def __init__(self, state: str) -> None:
 		        self._state = state
 		        self._date = str(datetime.now())[:19]
 
-		    def get_state(self):
+		    def get_state(self) -> str:
 		        """Создатель использует этот метод, когда восстанавливает своё состояние."""
 		        return self._state
 
-		    def get_name(self):
-		        """Остальные методы используются Опекуном для отображения метаданных."""
+		    def get_name(self) -> str:
+		        return self._date} / self._state[0:9]
 
-		        return 'name'
-
-		    def get_date(self):
+		    def get_date(self) -> str:
 		        return self._date
 
 
-		class Caretaker:
-		    """Опекун не зависит от класса Конкретного Снимка. Таким образом, он не имеет
-		    доступа к состоянию создателя, хранящемуся внутри снимка. 
-
-		    Он работает со всеми снимками через базовый интерфейс Снимка.
-
+		class Caretaker():
+		    """
+		    Опекун не зависит от класса Конкретного Снимка. Таким образом, он не имеет
+		    доступа к состоянию создателя, хранящемуся внутри снимка. Он работает со
+		    всеми снимками через базовый интерфейс Снимка.
 		    """
 
-		    def __init__(self, originator):
+		    def __init__(self, originator: Originator) -> None:
 		        self._mementos = []
 		        self._originator = originator
 
-		    def backup(self):
+		    def backup(self) -> None:
 		        self._mementos.append(self._originator.save())
 
-		    def undo(self):
+		    def undo(self) -> None:
 		        if not len(self._mementos):
 		            return
 
 		        memento = self._mementos.pop()
+
+		        print(memento.get_name())
 
 		        try:
 		            self._originator.restore(memento)
 		        except Exception:
 		            self.undo()
 
-		    def show_history(self):
+		    def show_history(self) -> None:
 		        for memento in self._mementos:
 		            print(memento.get_name())
 
 
 		if __name__ == "__main__":
-		    originator = Originator('Super-duper-super-puper-super')
+		    originator = Originator("Super-duper-super-puper-super.")
 		    caretaker = Caretaker(originator)
 
 		    caretaker.backup()
@@ -2172,10 +2225,10 @@
 		    caretaker.backup()
 		    originator.do_something()
 
+		    print()
 		    caretaker.show_history()
 
 		    caretaker.undo()
-
 		    caretaker.undo()
 
 Наблюдатель
@@ -2214,99 +2267,108 @@
 
 	Пример на python
 
-		class Subject:
-		    """Интферфейс издателя объявляет набор методов для 
-		    управлениями подпискичами.
+		from __future__ import annotations
+		from abc import ABC, abstractmethod
+		from random import randrange
+		from typing import List
 
+
+		class Subject(ABC):
+		    """
+		    Интферфейс издателя объявляет набор методов для управлениями подпискичами.
 		    """
 
 		    @abstractmethod
-		    def attach(self, observer):
+		    def attach(self, observer: Observer) -> None:
 		        """Присоединяет наблюдателя к издателю."""
 		        pass
 
 		    @abstractmethod
-		    def detach(self, observer) :
+		    def detach(self, observer: Observer) -> None:
 		        """Отсоединяет наблюдателя от издателя."""
 		        pass
 
 		    @abstractmethod
-		    def notify(self):
+		    def notify(self) -> None:
 		        """Уведомляет всех наблюдателей о событии."""
 		        pass
 
 
 		class ConcreteSubject(Subject):
-		    """Издатель владеет некоторым важным состоянием и оповещает 
+		    """
+		    Издатель владеет некоторым важным состоянием и оповещает 
 		    наблюдателей о его изменениях.
-
 		    """
 
-		    # Для удобства в этой переменной хранится состояние Издателя, 
-		    # необходимое всем подписчикам
-		    _state = None
+		    """
+		    Для удобства в этой переменной хранится состояние Издателя, необходимое всем
+		    подписчикам.
+		    """
+		    _state: int = None
 
-		    # Список подписчиков. В реальной жизни список подписчиков может
-		    # храниться в более подробном виде
+		    """
+		    Список подписчиков. В реальной жизни список подписчиков может храниться в
+		    более подробном виде (классифицируется по типу события и т.д.)
+		    """
 		    _observers: List[Observer] = []
 
-		    def attach(self, observer):
+		    def attach(self, observer: Observer) -> None:
 		        self._observers.append(observer)
 
-		    def detach(self, observer):
+		    def detach(self, observer: Observer) -> None:
 		        self._observers.remove(observer)
 
+		    """
+		    Методы управления подпиской.
+		    """
 
-			# Методы управления подпиской
-
-
-		    def notify(self):
+		    def notify(self) -> None:
 		        """Запуск обновления в каждом подписчике."""
 
 		        for observer in self._observers:
 		            observer.update(self)
 
-		    def some_business_logic(self):
-		        """Обычно логика подписки - только часть того, что делает Издатель.
-
+		    def some_business_logic(self) -> None:
+		        """
+		        Обычно логика подписки - только часть того, что делает Издатель.
 		        Издатели часто содержат некоторую важную бизнес-логику, которая
-		        запускает метод уведомления всякий раз, когда должно произойти 
-		        что-то важное (или после этого).
-
+		        запускает метод уведомления всякий раз, когда должно произойти что-то
+		        важное (или после этого).
 		        """
 
 		        self._state = randrange(0, 10)
+		        print(self._state)
 		        self.notify()
 
 
-		class Observer:
-		    """Интерфейс Наблюдателя объявляет метод уведомления, который издатели
+		class Observer(ABC):
+		    """
+		    Интерфейс Наблюдателя объявляет метод уведомления, который издатели
 		    используют для оповещения своих подписчиков.
-
 		    """
 
 		    @abstractmethod
-		    def update(self, subject):
+		    def update(self, subject: Subject) -> None:
 		        """Получить обновление от субъекта."""
 		        pass
 
 
-		"""Конкретные Наблюдатели реагируют на обновления, выпущенные Издателем, 
-		к которому они прикреплены.
-
+		"""
+		Конкретные Наблюдатели реагируют на обновления, выпущенные Издателем, к которому
+		они прикреплены.
 		"""
 
 
 		class ConcreteObserverA(Observer):
-		    def update(self, subject):
+		    def update(self, subject: Subject) -> None:
 		        if subject._state < 3:
-		            print('ConcreteObserverA')
+		            print("ConcreteObserverA")
 
 
 		class ConcreteObserverB(Observer):
-		    def update(self, subject):
+		    def update(self, subject: Subject) -> None:
 		        if subject._state == 0 or subject._state >= 2:
-		            print('ConcreteObserverB')
+		            print("ConcreteObserverB")
 
 
 		if __name__ == "__main__":
@@ -2361,22 +2423,33 @@
 
 	Пример на python
 
-		class Context:
-		    """Контекст определяет интерфейс, представляющий интерес для клиентов."""
+		from __future__ import annotations
+		from abc import ABC, abstractmethod
+
+
+		class Context(ABC):
+		    """
+		    Контекст определяет интерфейс, представляющий интерес для клиентов. Он также
+		    хранит ссылку на экземпляр подкласса Состояния, который отображает текущее
+		    состояние Контекста.
+		    """
 
 		    # Ссылка на текущее состояние Контекста
 		    _state = None
 
-		    def __init__(self, state):
+		    def __init__(self, state: State) -> None:
 		        self.transition_to(state)
 
-		    def transition_to(self, state):
+		    def transition_to(self, state: State):
 		        """Контекст позволяет изменять объект Состояния во время выполнения."""
 
+		        print(type(state).__name__)
 		        self._state = state
 		        self._state.context = self
 
-		    """Контекст делегирует часть своего поведения текущему объекту Состояния."""
+		    """
+		    Контекст делегирует часть своего поведения текущему объекту Состояния.
+		    """
 
 		    def request1(self):
 		        self._state.handle1()
@@ -2385,55 +2458,54 @@
 		        self._state.handle2()
 
 
-		class State:
-		    """Базовый класс Состояния объявляет методы, которые должны реализовать все
+		class State(ABC):
+		    """
+		    Базовый класс Состояния объявляет методы, которые должны реализовать все
 		    Конкретные Состояния, а также предоставляет обратную ссылку на объект
-		    Контекст, связанный с Состоянием.
-
+		    Контекст, связанный с Состоянием. Эта обратная ссылка может использоваться
+		    Состояниями для передачи Контекста другому Состоянию.
 		    """
 
 		    @property
-		    def context(self):
+		    def context(self) -> Context:
 		        return self._context
 
 		    @context.setter
-		    def context(self, context):
+		    def context(self, context: Context) -> None:
 		        self._context = context
 
 		    @abstractmethod
-		    def handle1(self):
+		    def handle1(self) -> None:
 		        pass
 
 		    @abstractmethod
-		    def handle2(self):
+		    def handle2(self) -> None:
 		        pass
 
 
-		"""Конкретные Состояния реализуют различные модели поведения, связанные с
+		"""
+		Конкретные Состояния реализуют различные модели поведения, связанные с
 		состоянием Контекста.
-
 		"""
 
 
 		class ConcreteStateA(State):
-		    def handle1(self):
+		    def handle1(self) -> None:
 		        self.context.transition_to(ConcreteStateB())
 
-		    def handle2(self):
-		    	pass
+		    def handle2(self) -> None:
+		        print("ConcreteStateA")
 
 
 		class ConcreteStateB(State):
-		    def handle1(self):
-		    	pass
+		    def handle1(self) -> None:
+		        print("ConcreteStateB")
 
-		    def handle2(self):
+		    def handle2(self) -> None:
 		        self.context.transition_to(ConcreteStateA())
 
 
 		if __name__ == "__main__":
-		    # Клиентский код.
-
 		    context = Context(ConcreteStateA())
 		    context.request1()
 		    context.request2()

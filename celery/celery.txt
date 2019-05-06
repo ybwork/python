@@ -224,6 +224,8 @@ Routing
 
 	bin/celery call -A app_celery send_report_korallmicro
 
+	-A app_celery worker -l info -Q default,system,description,image_prepare --purge - запускает воркер (efault,system,description,image_prepare это список очередей, который можно посмотреть в settings, --purge очищает очереди перед каждым новым запуском воркера (не для прода))
+
 Нюансы
 
 	Результаты выполнения задачи по умолчанию выключенны. Для включения использовать:

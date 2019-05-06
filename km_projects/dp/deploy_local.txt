@@ -152,3 +152,9 @@ Rabbit
 			через web морду идем в Admin -> Virtual Hosts -> Add virtual host
 
 	Все существующие очереди можно посмотреть в settings.py -> CELERY_QUEUES
+
+Celery
+
+    Для запуска пишем в консоль: 
+	
+		celery -A app_celery worker -l info -Q default,sync,upload,events,dealers_sync,notification,online_store,km_client,main_domain_prices_sync,ones_actions,km_client_buffer --purge
