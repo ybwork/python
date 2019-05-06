@@ -777,55 +777,59 @@
 
 	Пример на python
 
-		Стоп
+		from __future__ import annotations
+		from abc import ABC, abstractmethod
+
 
 		class Abstraction:
-		    """
-		    Абстракция устанавливает интерфейс для «управляющей» части двух иерархий
-		    классов. Она содержит ссылку на объект реализации и делегирует
-		    ему всю настоящую работу.
-		    """
-
-		    def __init__(self, implementation):
+		    def __init__(self, implementation: Implementation) -> None:
 		        self.implementation = implementation
 
-		    def operation(self):
+		    def operation(self) -> str:
 		        return self.implementation.operation_implementation()
 
 
-		class Implementation:
+		class ExtendedAbstraction(Abstraction):
 		    """
-		    Реализация устанавливает интерфейс для всех классов реализации.
+		    Можно расширить Абстракцию без изменения классов Реализации.
+		    """
+
+		    def operation(self) -> str:
+		        return self.implementation.operation_implementation()
+
+
+		class Implementation(ABC):
+		    """
+		    Реализация устанавливает интерфейс для всех классов реализации. Он не должен соответствовать интерфейсу Абстракции.
 		    """
 
 		    @abstractmethod
-		    def operation_implementation(self):
+		    def operation_implementation(self) -> str:
 		        pass
 
 
 		"""
 		Каждая Конкретная Реализация соответствует определённой платформе и реализует
-		интерфейс Реализации с использованием API этой платформы.
+		интерфейс Реализации.
 		"""
 
 
 		class ConcreteImplementationA(Implementation):
-		    def operation_implementation(self):
-		        pass
+		    def operation_implementation(self) -> str:
+		        return "ConcreteImplementationA"
 
 
 		class ConcreteImplementationB(Implementation):
-		    def operation_implementation(self):
-		        pass
+		    def operation_implementation(self) -> str:
+		        return "ConcreteImplementationB"
 
 
-		def client_code(abstraction):
+		def client_code(abstraction: Abstraction) -> None:
 		    """
-		    Клиентский код должен зависеть только от класса Абстракции. 
-		    Таким образом, клиентский код может поддерживать любую
-		    комбинацию абстракции и реализации.
+		    Клиентский код должен зависеть только от класса Абстракции. Таким образом, клиентский код может поддерживать любую комбинацию абстракции и реализации.
 		    """
-			return abstraction.operation()
+
+		    print(abstraction.operation())
 
 
 		if __name__ == "__main__":
@@ -838,12 +842,11 @@
 		    abstraction = Abstraction(implementation)
 		    client_code(abstraction)
 
-
 		    implementation = ConcreteImplementationB()
 		    abstraction = ExtendedAbstraction(implementation)
 		    client_code(abstraction)
 
-Компоновщик
+Компоновщик, Дерево, Composite
 
 	Структурный паттерн.
 
@@ -943,7 +946,150 @@
 
 		    squad_big.show_name()
 
-Декоратор
+		------------------------------------
+
+		from __future__ import annotations
+		from abc import ABC, abstractmethod
+		from typing import List
+
+
+		class Component(ABC):
+		    """
+		    Базовый класс Компонент объявляет общие операции как для простых, так и для сложных объектов структуры.
+		    """
+
+		    @property
+		    def parent(self) -> Component:
+		        return self._parent
+
+		    @parent.setter
+		    def parent(self, parent: Component):
+		        """
+		        При необходимости базовый Компонент может объявить интерфейс для
+		        установки и получения родителя компонента в древовидной структуре.
+		        """
+
+		        self._parent = parent
+
+		    """
+		    В некоторых случаях целесообразно определить операции управления потомками
+		    прямо в базовом классе Компонент. Таким образом, вам не нужно будет
+		    предоставлять конкретные классы компонентов клиентскому коду, даже во время сборки дерева объектов.
+		    """
+
+		    def add(self, component: Component) -> None:
+		        pass
+
+		    def remove(self, component: Component) -> None:
+		        pass
+
+		    def is_composite(self) -> bool:
+		        """
+		        Вы можете предоставить метод, который позволит клиентскому коду понять, может ли компонент иметь вложенные объекты.
+		        """
+
+		        return False
+
+		    @abstractmethod
+		    def operation(self) -> str:
+		        """
+		        Базовый Компонент может сам реализовать некоторое поведение по умолчанию или поручить это конкретным классам, объявив метод, содержащий поведение абстрактным.
+		        """
+
+		        pass
+
+
+		class Leaf(Component):
+		    """
+		    Класс Лист представляет собой конечные объекты. Лист не может
+		    иметь вложенных компонентов.
+
+		    Обычно объекты Листьев выполняют фактическую работу, тогда как объекты
+		    Контейнера лишь делегируют работу своим подкомпонентам.
+		    """
+
+		    def operation(self) -> str:
+		        return "Leaf"
+
+
+		class Composite(Component):
+		    """
+		    Класс Контейнер содержит сложные компоненты, которые могут иметь вложенные
+		    компоненты. 
+
+		    Обычно объекты Контейнеры делегируют фактическую работу своим
+		    детям, а затем «суммируют» результат.
+		    """
+
+		    def __init__(self) -> None:
+		        self._children: List[Component] = []
+
+		    """
+		    Объект контейнера может как добавлять компоненты в свой список вложенных
+		    компонентов, так и удалять их.
+		    """
+
+		    def add(self, component: Component) -> None:
+		        self._children.append(component)
+		        component.parent = self
+
+		    def remove(self, component: Component) -> None:
+		        self._children.remove(component)
+		        component.parent = None
+
+		    def is_composite(self) -> bool:
+		        return True
+
+		    def operation(self) -> str:
+		        """
+		        Контейнер выполняет свою основную логику особым образом. Он проходит
+		        рекурсивно через всех своих детей, собирая и суммируя их результаты.
+		        """
+
+		        results = []
+		        for child in self._children:
+		            results.append(child.operation())
+		        return '+'.join(results)
+
+
+		def client_code(component: Component) -> None:
+		    """
+		    Клиентский код работает со всеми компонентами через базовый интерфейс.
+		    """
+
+		    print(component.operation())
+
+
+		def client_code2(component1: Component, component2: Component) -> None:
+		    if component1.is_composite():
+		        component1.add(component2)
+
+		    print(component1.operation())
+
+
+		if __name__ == "__main__":
+		    # Таким образом, клиентский код может поддерживать простые
+		    # компоненты-листья...
+		    simple = Leaf()
+		    client_code(simple)
+
+		    # ...а также сложные контейнеры.
+		    tree = Composite()
+
+		    branch1 = Composite()
+		    branch1.add(Leaf())
+		    branch1.add(Leaf())
+
+		    branch2 = Composite()
+		    branch2.add(Leaf())
+
+		    tree.add(branch1)
+		    tree.add(branch2)
+
+		    client_code(tree)
+		    client_code2(tree, simple)
+
+Декоратор, Обёртка, Decorator
 
 	Структурный паттерн.
 
@@ -969,68 +1115,93 @@
 
 	Пример на python
 
-		class Component:
+		class Component():
 		    """
 		    Базовый интерфейс Компонента определяет поведение, которое изменяется
 		    декораторами.
 		    """
 
-		    def operation(self):
+		    def operation(self) -> str:
 		        pass
 
 
 		class ConcreteComponent(Component):
-		    """Конкретные Компоненты предоставляют 
-		    реализации поведения.
+		    """
+		    Конкретные Компоненты предоставляют реализации поведения по умолчанию.
 		    """
 
-		    def operation(self):
-		        return 1
+		    def operation(self) -> str:
+		        return "ConcreteComponent"
 
 
 		class Decorator(Component):
-		    """Базовый класс Декоратора следует тому же интерфейсу, 
-		    что и другиекомпоненты.
+		    """
+		    Базовый класс Декоратора следует тому же интерфейсу, что и другие
+		    компоненты. 
+
+		    Основная цель этого класса - определить интерфейс обёртки для
+		    всех конкретных декораторов. 
+
+		    Реализация кода обёртки по умолчанию может включать в себя поле для хранения завёрнутого компонента и средства его инициализации.
 		    """
 
-		    def __init__(self, component):
+		    _component: Component = None
+
+		    def __init__(self, component: Component) -> None:
 		        self._component = component
 
 		    @property
-		    def component(self):
-		        """Декоратор делегирует всю работу обёрнутому компоненту."""
+		    def component(self) -> str:
+		        """
+		        Декоратор делегирует всю работу обёрнутому компоненту.
+		        """
 
 		        return self._component
 
-		    def operation(self):
+		    def operation(self) -> str:
 		        self._component.operation()
 
 
 		class ConcreteDecoratorA(Decorator):
-		    """Конкретные Декораторы вызывают обёрнутый объект
-		    и изменяют его результат.
+		    """
+		    Конкретные Декораторы вызывают обёрнутый объект и изменяют его результат
+		    некоторым образом.
 		    """
 
 		    def operation(self):
-		        return self.component.operation() + 1
+		        """
+		        Декораторы могут вызывать родительскую реализацию операции, вместо того, чтобы вызвать обёрнутый объект напрямую. 
+
+		        Такой подход упрощает расширение классов декораторов.
+		        """
+
+		        return self.component.operation()
 
 
 		class ConcreteDecoratorB(Decorator):
-		    """
-		    Декораторы могут выполнять своё поведение до или после вызова обёрнутого
-		    объекта.
-		    """
+		    def operation(self) -> str:
+		        return self.component.operation()
 
-		    def operation(self):
-		        return self.component.operation() + 8
+
+		def client_code(component: Component) -> None:
+		    component.operation()
 
 
 		if __name__ == "__main__":
-		    component = ConcreteComponent()
-		    decorator1 = ConcreteDecoratorA(component)
-		    decorator2 = ConcreteDecoratorB(decorator1)
+		    # Таким образом, клиентский код может поддерживать как простые компоненты...
+		    simple = ConcreteComponent()
+		    client_code(simple)
 
-Фасад
+
+		    # ...так и декорированные.
+		    #
+		    # Обратите внимание, что декораторы могут обёртывать не только простые
+		    # компоненты, но и другие декораторы.
+		    decorator1 = ConcreteDecoratorA(simple)
+		    decorator2 = ConcreteDecoratorB(decorator1)
+		    client_code(decorator2)
+
+Фасад, Facade
 
 	Структурный паттерн.
 
@@ -1056,64 +1227,75 @@
 
 	Пример на python
 
-		class Facade:
-		    """Класс Фасада предоставляет простой интерфейс для сложной логики одной
-		    или нескольких подсистем.
+		from __future__ import annotations
 
+
+		class Facade:
+		    """
+		    Класс Фасада предоставляет простой интерфейс для сложной логики одной или
+		    нескольких подсистем. 
+
+		    Фасад делегирует запросы клиентов соответствующим объектам внутри подсистемы.
 		    """
 
-		    def __init__(self, subsystem1, subsystem2):
-		        """В зависимости от потребностей вашего приложения вы можете предоставить
+		    def __init__(self, subsystem1: Subsystem1, subsystem2: Subsystem2) -> None:
+		        """
+		        В зависимости от потребностей вашего приложения вы можете предоставить
 		        Фасаду существующие объекты подсистемы или заставить Фасад создать их
 		        самостоятельно.
 
+		        Некоторые фасады могут работать с разными подсистемами одновременно.
 		        """
 
 		        self._subsystem1 = subsystem1 or Subsystem1()
 		        self._subsystem2 = subsystem2 or Subsystem2()
 
-		    def operation(self):
-		        """Методы Фасада удобны для быстрого доступа к сложной функциональности
+		    def operation(self) -> str:
+		        """
+		        Методы Фасада удобны для быстрого доступа к сложной функциональности
 		        подсистем. Однако клиенты получают только часть возможностей подсистемы.
-
 		        """
 
-		        self._subsystem1.operation1()
-		        self._subsystem2.operation1()
+		        results = []
+		        results.append(self._subsystem1.operation1())
+		        results.append(self._subsystem2.operation1())
+		        results.append(self._subsystem1.operation_n())
+		        results.append(self._subsystem2.operation_z())
 
-		        self._subsystem1.operation_n()
-		        self._subsystem2.operation_z()
+		        return "\n".join(results)
 
 
 		class Subsystem1:
-		    """Подсистема может принимать запросы либо от фасада, 
-		    либо от клиента напрямую.
-
+		    """
+		    Подсистема может принимать запросы либо от фасада, либо от клиента напрямую.
+		    В любом случае, для Подсистемы Фасад – это ещё один клиент, и он не является
+		    частью Подсистемы.
 		    """
 
-		    def operation1(self):
-		        return 'operation1'
+		    def operation1(self) -> str:
+		        return "Subsystem1"
 
-		    def operation_n(self):
-		        return 'operation_n'
+		    def operation_n(self) -> str:
+		        return "Subsystem1"
 
 
 		class Subsystem2:
+		    def operation1(self) -> str:
+		        return "Subsystem2"
+
+		    def operation_z(self) -> str:
+		        return "Subsystem2: Fire!"
 
 
-		    def operation1(self):
-		        return 'operation1'
+		def client_code(facade: Facade) -> None:
+		    """
+		    Клиентский код работает со сложными подсистемами через простой интерфейс,
+		    предоставляемый Фасадом. 
 
-		    def operation_z(self):
-		        return 'operation_z'
-
-
-		def client_code(facade):
-		    """Клиентский код работает со сложными подсистемами через простой интерфейс,
-		    предоставляемый Фасадом.
+		    Когда фасад управляет жизненным циклом подсистемы, клиент может даже не знать о существовании подсистемы. Такой подход позволяет держать сложность под контролем.
 		    """
 
-		    return facade.operation()
+		    print(facade.operation())
 
 
 		if __name__ == "__main__":
@@ -1122,7 +1304,7 @@
 		    facade = Facade(subsystem1, subsystem2)
 		    client_code(facade)
 
-Легковес
+Легковес, Flyweight, Приспособленец, Кэш
 
 	Структурный паттерн.
 
@@ -1156,9 +1338,117 @@
 
 	Пример на python
 
-		...
+		import json
+		from typing import Dict
 
-Заместитель
+
+		class Flyweight():
+		    """
+		    Легковес хранит общую часть состояния (также называемую внутренним
+		    состоянием), которая принадлежит нескольким реальным бизнес-объектам.
+
+		    Легковес принимает оставшуюся часть состояния (внешнее состояние, уникальное
+		    для каждого объекта) через его параметры метода.
+		    """
+
+		    def __init__(self, shared_state: str) -> None:
+		        self._shared_state = shared_state
+
+		    def operation(self, unique_state: str) -> None:
+		        s = json.dumps(self._shared_state)
+		        u = json.dumps(unique_state)
+
+
+		class FlyweightFactory():
+		    """
+		    Фабрика Легковесов создает объекты-Легковесы и управляет ими. Она
+		    обеспечивает правильное разделение легковесов. Когда клиент запрашивает
+		    легковес, фабрика либо возвращает существующий экземпляр, либо создает
+		    новый, если он ещё не существует.
+		    """
+
+		    _flyweights: Dict[str, Flyweight] = {}
+
+		    def __init__(self, initial_flyweights: Dict) -> None:
+		        for state in initial_flyweights:
+		            self._flyweights[self.get_key(state)] = Flyweight(state)
+
+		    def get_key(self, state: Dict) -> str:
+		        """
+		        Возвращает хеш строки Легковеса для данного состояния.
+		        """
+
+		        return "_".join(sorted(state))
+
+		    def get_flyweight(self, shared_state: Dict) -> Flyweight:
+		        """
+		        Возвращает существующий Легковес с заданным состоянием или создает
+		        новый.
+		        """
+
+		        key = self.get_key(shared_state)
+
+		        if not self._flyweights.get(key):
+		            print("FlyweightFactory: Can't find a flyweight, creating new one.")
+		            self._flyweights[key] = Flyweight(shared_state)
+		        else:
+		            print("FlyweightFactory: Reusing existing flyweight.")
+
+		        return self._flyweights[key]
+
+		    def list_flyweights(self) -> None:
+		        count = len(self._flyweights)
+		        print("\n".join(map(str, self._flyweights.keys())), end="")
+
+
+		def add_car_to_police_database(
+		    factory: FlyweightFactory, plates: str, owner: str,
+		    brand: str, model: str, color: str
+		) -> None:
+
+		    flyweight = factory.get_flyweight([brand, model, color])
+		    # Клиентский код либо сохраняет, либо вычисляет внешнее состояние и передает
+		    # его методам легковеса.
+		    flyweight.operation([plates, owner])
+
+
+		if __name__ == "__main__":
+		    """
+		    Клиентский код обычно создает кучу предварительно заполненных легковесов на
+		    этапе инициализации приложения.
+		    """
+
+		    factory = FlyweightFactory([
+		        ["Chevrolet", "Camaro2018", "pink"],
+		        ["Mercedes Benz", "C300", "black"],
+		        ["Mercedes Benz", "C500", "red"],
+		        ["BMW", "M5", "red"],
+		        ["BMW", "X6", "white"],
+		    ])
+
+		    factory.list_flyweights()
+
+		    add_car_to_police_database(
+		        factory, 
+		        "CL234IR", 
+		        "James Doe", 
+		        "BMW", 
+		        "M5", 
+		        "red"
+		    )
+
+		    add_car_to_police_database(
+		        factory, 
+		        "CL234IR", 
+		        "James Doe", 
+		        "BMW", 
+		        "X1", 
+		        "red"
+		    )
+		    
+		    factory.list_flyweights()
+
+Заместитель, Proxy
 
 	Cтруктурный паттерн.
 
@@ -1196,55 +1486,79 @@
 
 	Пример на python
 
-		class Subject:
-		    """Интерфейс субъекта объявляет общие операции как для реального субъекта, 
-		    так и для Заместителя.
+		from abc import ABC, abstractmethod
 
+
+		class Subject(ABC):
+		    """
+		    Интерфейс Субъекта объявляет общие операции как для Реального Субъекта, так
+		    и для Заместителя. 
+
+		    Пока клиент работает с Реальным Субъектом, используя этот интерфейс, вы сможете передать ему заместителя вместо реального субъекта.
 		    """
 
 		    @abstractmethod
-		    def request(self):
+		    def request(self) -> None:
 		        pass
 
 
 		class RealSubject(Subject):
-		    """Реальный субъект содержит некоторую базовую бизнес-логику."""
+		    """
+		    Реальный Субъект содержит некоторую базовую бизнес-логику. Как правило,
+		    Реальные Субъекты способны выполнять некоторую полезную работу, которая к
+		    тому же может быть очень медленной или точной – например, коррекция входных
+		    данных. Заместитель может решить эти задачи без каких-либо изменений в коде
+		    Реального Субъекта.
+		    """
 
-		    def request(self):
-		        pass
+		    def request(self) -> None:
+		        print("RealSubject")
 
 
 		class Proxy(Subject):
-		    """Интерфейс pаместителя идентичен интерфейсу реального субъекта."""
+		    """
+		    Интерфейс Заместителя идентичен интерфейсу Реального Субъекта.
+		    """
 
-		    def __init__(self, real_subject):
+		    def __init__(self, real_subject: RealSubject) -> None:
 		        self._real_subject = real_subject
 
-		    def request(self):
-		        """Заместитель может выполнить свои задачи, а затем, в зависимости от результата, 
-		        передать выполнение методу в связанном объекте класса реального субъекта.
+		    def request(self) -> None:
+		        """
+		        Наиболее распространёнными областями применения паттерна Заместитель
+		        являются ленивая загрузка, кэширование, контроль доступа, ведение
+		        журнала и т.д. Заместитель может выполнить одну из этих задач, а затем,
+		        в зависимости от результата, передать выполнение одноимённому методу в
+		        связанном объекте класса Реального Субъекта.
 		        """
 
 		        if self.check_access():
 		            self._real_subject.request()
 		            self.log_access()
 
-		    def check_access(self):
+		    def check_access(self) -> bool:
+		        print("Proxy: Checking access prior to firing a real request.")
 		        return True
 
-		    def log_access(self):
-		        print('logging')
+		    def log_access(self) -> None:
+		        print("Proxy: Logging the time of request.", end="")
 
 
-		def client_code(subject):
+		def client_code(subject: Subject) -> None:
+		    """
+		    Клиентский код должен работать со всеми объектами (как с реальными, так и
+		    заместителями) через интерфейс Субъекта, чтобы поддерживать как реальные
+		    субъекты, так и заместителей.
+		    """
+
 		    subject.request()
+
 
 		if __name__ == "__main__":
 		    real_subject = RealSubject()
-
 		    client_code(real_subject)
-		    proxy = Proxy(real_subject)
 
+		    proxy = Proxy(real_subject)
 		    client_code(proxy)
 
 Поведенческие
