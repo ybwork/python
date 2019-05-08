@@ -535,6 +535,7 @@
 
 	if x > y: print(x)
 
+	# a > b это условие
 	x = 10 if a > b else 11
 
 while
