@@ -96,7 +96,7 @@
 
 	Список: фабричный метод, абстрактная фабрика, строитель, прототип, одиночка.
 
-Фабричный метод
+Фабричный метод (Виртуальный конструктор, Factory Method)
 
 	Порождающий паттерн.
 
@@ -234,7 +234,7 @@
 		    client_code(ConcreteCreator1())
 		    client_code(ConcreteCreator2())
 
-Абстрактная фабрика
+Абстрактная фабрика (Abstract Factory)
 
 	Порождающий паттерн.
 
@@ -413,7 +413,7 @@
 		    client_code(ConcreteFactory1())
 		    client_code(ConcreteFactory2())
 
-Строитель
+Строитель (Builder)
 	
 	Порождающий паттерн.
 
@@ -569,7 +569,7 @@
 		    builder.produce_part_b()
 		    builder.product.list_parts()
 
-Прототип
+Прототип (Клон, Prototype)
 
 	Порождающий паттерн.
 
@@ -628,7 +628,7 @@
 		if __name__ == '__main__':
 		    main()
 
-Одиночка
+Одиночка (Singleton)
 
 	Порождающий паттерн.
 
@@ -670,7 +670,7 @@
 
 	Список: адаптер, мост, компоновщик, декоратор, фасад, легковес, заместитель.
 
-Адаптер
+Адаптер (Обёртка, Adapter)
 
 	Структурный паттерн.
 
@@ -749,7 +749,7 @@
 		    adapter = Adapter(adaptee)
 		    client_code(adapter)
 
-Мост
+Мост (Bridge)
 
 	Структурный паттерн.
 
@@ -846,7 +846,7 @@
 		    abstraction = ExtendedAbstraction(implementation)
 		    client_code(abstraction)
 
-Компоновщик, Дерево, Composite
+Компоновщик (Дерево, Composite)
 
 	Структурный паттерн.
 
@@ -1089,7 +1089,7 @@
 		    client_code(tree)
 		    client_code2(tree, simple)
 
-Декоратор, Обёртка, Decorator
+Декоратор (Обёртка, Decorator)
 
 	Структурный паттерн.
 
@@ -1201,7 +1201,7 @@
 		    decorator2 = ConcreteDecoratorB(decorator1)
 		    client_code(decorator2)
 
-Фасад, Facade
+Фасад (Facade)
 
 	Структурный паттерн.
 
@@ -1304,7 +1304,7 @@
 		    facade = Facade(subsystem1, subsystem2)
 		    client_code(facade)
 
-Легковес, Flyweight, Приспособленец, Кэш
+Легковес (Приспособленец, Кэш, Flyweight)
 
 	Структурный паттерн.
 
@@ -1448,7 +1448,7 @@
 		    
 		    factory.list_flyweights()
 
-Заместитель, Proxy
+Заместитель (Proxy)
 
 	Cтруктурный паттерн.
 
@@ -1567,7 +1567,7 @@
 
 	Список: Цепочка обязанностей, команда, итератор, посредник, снимок, наблюдатель, состояние, стратегия, шаблонный метод, посетитель.
 
-Цепочка обязанностей
+Цепочка обязанностей (CoR, Chain of Command, Chain of Responsibility)
 
 	Поведенческий паттерн.
 
@@ -1700,7 +1700,7 @@
 		    client_code(monkey)
 		    client_code(squirrel)
 
-Команда
+Команда (Действие, Транзакция, Action, Command)
 
 	Поведенческий паттерн.
 
@@ -1836,7 +1836,7 @@
 		    )
 		    invoker.do_something_important()
 
-Итератор
+Итератор (Iterator)
 
 	Поведенческий паттерн.
 
@@ -1952,7 +1952,7 @@
 		    print("\n".join(collection))
 		    print("\n".join(collection.get_reverse_iterator()))
 
-Посредник
+Посредник (Intermediary, Controller, Mediator)
 
 	Поведенческий паттерн.
 
@@ -2033,7 +2033,7 @@
 
 
 		"""
-		Конкретные Компоненты реализуют различную функциональность. Они не зависят от
+		Конкретные Компоненты реализуют различную функциональность. Они не зависят отё
 		других компонентов. Они также не зависят от каких-либо конкретных классов
 		посредников.
 		"""
@@ -2064,7 +2064,7 @@
 		    c1.do_a()
 		    c2.do_d()
 
-Снимок
+Снимок (Хранитель, Memento)
 
 	Поведенческий паттерн.
 
@@ -2231,7 +2231,7 @@
 		    caretaker.undo()
 		    caretaker.undo()
 
-Наблюдатель
+Наблюдатель (Издатель-Подписчик, Слушатель, Observer)
 
 	Поведенческий паттерн.
 
@@ -2387,7 +2387,7 @@
 
 		    subject.some_business_logic()
 
-Состояние
+Состояние (State)
 
 	Поведенческий паттерн.
 
@@ -2510,7 +2510,7 @@
 		    context.request1()
 		    context.request2()
 
-Стратегия
+Стратегия (Strategy)
 
 	Поведенческий паттерн.
 
@@ -2548,83 +2548,91 @@
 
 	Пример на python
 
+		from __future__ import annotations
+		from abc import ABC, abstractmethod
+		from typing import List
+
+
 		class Context():
-		    """Контекст определяет интерфейс, представляющий интерес для клиентов."""
+		    """
+		    Контекст определяет интерфейс, представляющий интерес для клиентов.
+		    """
 
-		    def __init__(self, strategy):
-		        """Обычно Контекст принимает стратегию через конструктор, а также
+		    def __init__(self, strategy: Strategy) -> None:
+		        """
+		        Обычно Контекст принимает стратегию через конструктор, а также
 		        предоставляет сеттер для её изменения во время выполнения.
-
 		        """
 
 		        self._strategy = strategy
 
 		    @property
-		    def strategy(self):
-		        """Контекст хранит ссылку на один из объектов Стратегии. 
-
-		        Контекст не знает конкретного класса стратегии. 
-
-		        Он должен работать со всеми стратегиями через интерфейс Стратегии.
-
+		    def strategy(self) -> Strategy:
+		        """
+		        Контекст хранит ссылку на один из объектов Стратегии. Контекст не знает
+		        конкретного класса стратегии. Он должен работать со всеми стратегиями
+		        через интерфейс Стратегии.
 		        """
 
 		        return self._strategy
 
 		    @strategy.setter
-		    def strategy(self, strategy):
-		        """Обычно Контекст позволяет заменить объект Стратегии во время выполнения."""
+		    def strategy(self, strategy: Strategy) -> None:
+		        """
+		        Обычно Контекст позволяет заменить объект Стратегии во время выполнения.
+		        """
 
 		        self._strategy = strategy
 
-		    def do_some_business_logic(self):
-		        """Вместо того, чтобы самостоятельно реализовывать множественные версии
+		    def do_some_business_logic(self) -> None:
+		        """
+		        Вместо того, чтобы самостоятельно реализовывать множественные версии
 		        алгоритма, Контекст делегирует некоторую работу объекту Стратегии.
-
 		        """
 
-		        result = self._strategy.do_algorithm(['a', 'b', 'c'])
+		        result = self._strategy.do_algorithm(["a", "b", "c", "d", "e"])
 
 
-		class Strategy:
-		    """Интерфейс Стратегии объявляет операции, общие для всех поддерживаемых версий
+		class Strategy(ABC):
+		    """
+		    Интерфейс Стратегии объявляет операции, общие для всех поддерживаемых версий
 		    некоторого алгоритма.
 
 		    Контекст использует этот интерфейс для вызова алгоритма, определённого
 		    Конкретными Стратегиями.
-
 		    """
 
 		    @abstractmethod
-		    def do_algorithm(self, data):
+		    def do_algorithm(self, data: List):
 		        pass
 
 
-		"""Конкретные Стратегии реализуют алгоритм, следуя базовому интерфейсу Стратегии.
-
-		Этот интерфейс делает их взаимозаменяемыми в Контексте.
-
-		"""
+		"""Конкретные Стратегии реализуют алгоритм, следуя базовому интерфейсу Стратегии."""
 
 
 		class ConcreteStrategyA(Strategy):
-		    def do_algorithm(self, data):
+		    def do_algorithm(self, data: List) -> List:
 		        return sorted(data)
 
 
 		class ConcreteStrategyB(Strategy):
-		    def do_algorithm(self, data):
+		    def do_algorithm(self, data: List) -> List:
 		        return reversed(sorted(data))
 
 
 		if __name__ == "__main__":
+		    # Клиентский код выбирает конкретную стратегию и передаёт её в контекст.
+		    # Клиент должен знать о различиях между стратегиями, чтобы сделать
+		    # правильный выбор.
+
 		    context = Context(ConcreteStrategyA())
 		    context.do_some_business_logic()
 
+		    # изменение стратегии на лету через сеттер
 		    context.strategy = ConcreteStrategyB()
 		    context.do_some_business_logic()
 
-Шаблонный метод
+Шаблонный метод (Template Method)
 
 	Поведенческий паттерн.
 
@@ -2656,17 +2664,22 @@
 
 	Пример на python
 
-		class AbstractClass:
-		    """Абстрактный Класс определяет шаблонный метод, содержащий скелет некоторого
-		    алгоритма.
+		from abc import ABC, abstractmethod
+
+
+		class AbstractClass(ABC):
+		    """
+		    Абстрактный Класс определяет шаблонный метод, содержащий скелет некоторого
+		    алгоритма, состоящего из вызовов (обычно) абстрактных примитивных операций.
 
 		    Конкретные подклассы должны реализовать эти операции, но оставить сам
 		    шаблонный метод без изменений.
-
 		    """
 
-		    def template_method(self):
-		        """Шаблонный метод определяет скелет алгоритма."""
+		    def template_method(self) -> None:
+		        """
+		        Шаблонный метод определяет скелет алгоритма.
+		        """
 
 		        self.base_operation1()
 		        self.required_operations1()
@@ -2678,23 +2691,23 @@
 
 		    # Эти операции уже имеют реализации.
 
-		    def base_operation1(self):
-		        pass
+		    def base_operation1(self) -> None:
+		        print("base_operation1")
 
-		    def base_operation2(self):
-		        pass
+		    def base_operation2(self) -> None:
+		        print("base_operation2")
 
-		    def base_operation3(self):
-		        pass
+		    def base_operation3(self) -> None:
+		        print("base_operation3")
 
 		    # А эти операции должны быть реализованы в подклассах.
 
 		    @abstractmethod
-		    def required_operations1(self):
+		    def required_operations1(self) -> None:
 		        pass
 
 		    @abstractmethod
-		    def required_operations2(self):
+		    def required_operations2(self) -> None:
 		        pass
 
 		    # Это «хуки». Подклассы могут переопределять их, но это не обязательно,
@@ -2702,51 +2715,43 @@
 		    # предоставляют дополнительные точки расширения в некоторых критических
 		    # местах алгоритма.
 
-		    def hook1(self):
+		    def hook1(self) -> None:
 		        pass
 
-		    def hook2(self):
+		    def hook2(self) -> None:
 		        pass
 
 
 		class ConcreteClass1(AbstractClass):
-		    """Конкретные классы должны реализовать все абстрактные операции базового
-		    класса. 
-
-		    Они также могут переопределить некоторые операции с реализацией по
+		    """
+		    Конкретные классы должны реализовать все абстрактные операции базового
+		    класса. Они также могут переопределить некоторые операции с реализацией по
 		    умолчанию.
-
 		    """
 
-		    def required_operations1(self):
-		        pass
+		    def required_operations1(self) -> None:
+		        print("required_operations1")
 
-		    def required_operations2(self):
-		        pass
+		    def required_operations2(self) -> None:
+		        print("required_operations2")
 
 
 		class ConcreteClass2(AbstractClass):
-		    """Обычно конкретные классы переопределяют только часть операций базового
-		    класса.
+		    def required_operations1(self) -> None:
+		        print("required_operations1")
 
+		    def required_operations2(self) -> None:
+		        print("required_operations2")
+
+		    def hook1(self) -> None:
+		        print("hook1")
+
+
+		def client_code(abstract_class: AbstractClass) -> None:
 		    """
-
-		    def required_operations1(self):
-		        pass
-
-		    def required_operations2(self):
-		        pass
-
-		    def hook1(self):
-		        pass
-
-
-		def client_code(abstract_class):
-		    """Клиентский код вызывает шаблонный метод для выполнения алгоритма. 
-
-		    Клиентский код не должен знать конкретный класс объекта, с которым работает, при
+		    Клиентский код вызывает шаблонный метод для выполнения алгоритма. Клиентский
+		    код не должен знать конкретный класс объекта, с которым работает, при
 		    условии, что он работает с объектами через интерфейс их базового класса.
-
 		    """
 
 		    abstract_class.template_method()
@@ -2756,7 +2761,7 @@
 		    client_code(ConcreteClass1())
 		    client_code(ConcreteClass2())
 
-Посетитель
+Посетитель (Visitor)
 
 	Поведенческий паттерн.
 
@@ -2804,9 +2809,9 @@
 
 
 		class Component(ABC):
-		    """Интерфейс Компонента объявляет метод accept, который в качестве аргумента
+		    """
+		    Интерфейс Компонента объявляет метод accept, который в качестве аргумента
 		    может получать любой объект, реализующий интерфейс посетителя.
-
 		    """
 
 		    @abstractmethod
@@ -2815,47 +2820,42 @@
 
 
 		class ConcreteComponentA(Component):
-		    """Каждый Конкретный Компонент должен реализовать метод accept таким образом,
+		    """
+		    Каждый Конкретный Компонент должен реализовать метод accept таким образом,
 		    чтобы он вызывал метод посетителя, соответствующий классу компонента.
-
 		    """
 
 		    def accept(self, visitor: Visitor) -> None:
-		        """Обратите внимание, мы вызываем visitConcreteComponentA, что
-		        соответствует названию текущего класса. 
-
-		        Таким образом мы позволяем посетителю узнать, с каким классом 
-		        компонента он работает.
-
+		        """
+		        Обратите внимание, мы вызываем visitConcreteComponentA, что
+		        соответствует названию текущего класса. Таким образом мы позволяем
+		        посетителю узнать, с каким классом компонента он работает.
 		        """
 
 		        visitor.visit_concrete_component_a(self)
 
 		    def exclusive_method_of_concrete_component_a(self) -> str:
-		        """Конкретные Компоненты могут иметь особые методы, не объявленные в их
-		        базовом классе или интерфейсе. 
-
-		        Посетитель всё же может использовать эти методы, поскольку он знает о конкретном классе компонента.
-
+		        """
+		        Конкретные Компоненты могут иметь особые методы, не объявленные в их
+		        базовом классе или интерфейсе. Посетитель всё же может использовать эти
+		        методы, поскольку он знает о конкретном классе компонента.
 		        """
 
-		        return 'A'
+		        return "A"
 
 
 		class ConcreteComponentB(Component):
 		    def accept(self, visitor: Visitor):
 		        visitor.visit_concrete_component_b(self)
 
-		    def exclusive_method_of_concrete_component_b(self) -> str:
-		        return 'B'
+		    def special_method_of_concrete_component_b(self) -> str:
+		        return "B"
 
 
 		class Visitor(ABC):
-		    """Интерфейс Посетителя объявляет набор методов посещения, соответствующих
-		    классам компонентов. 
-
-		    Сигнатура метода посещения позволяет посетителю определить конкретный класс компонента, с которым он имеет дело.
-
+		    """
+		    Интерфейс Посетителя объявляет набор методов посещения, соответствующих
+		    классам компонентов.
 		    """
 
 		    @abstractmethod
@@ -2867,13 +2867,21 @@
 		        pass
 
 
+		"""
+		Конкретные Посетители реализуют несколько версий одного и того же алгоритма,
+		которые могут работать со всеми классами конкретных компонентов.
+
+		Максимальную выгоду от паттерна Посетитель вы почувствуете, используя его со
+		сложной структурой объектов, такой как дерево Компоновщика.
+		"""
+
+
 		class ConcreteVisitor1(Visitor):
 		    def visit_concrete_component_a(self, element) -> None:
 		        element.exclusive_method_of_concrete_component_a()
-		        # здесь будет код импорта?
 
 		    def visit_concrete_component_b(self, element) -> None:
-		        element.exclusive_method_of_concrete_component_b()
+		        element.special_method_of_concrete_component_b()
 
 
 		class ConcreteVisitor2(Visitor):
@@ -2881,13 +2889,14 @@
 		        element.exclusive_method_of_concrete_component_a()
 
 		    def visit_concrete_component_b(self, element) -> None:
-		        element.exclusive_method_of_concrete_component_b()
+		        element.special_method_of_concrete_component_b()
 
 
 		def client_code(components: List[Component], visitor: Visitor) -> None:
-		    """Клиентский код может выполнять операции посетителя над любым набором
-		    элементов, не выясняя их конкретных классов. 
-
+		    """
+		    Клиентский код может выполнять операции посетителя над любым набором
+		    элементов, не выясняя их конкретных классов. Операция принятия направляет
+		    вызов к соответствующей операции в объекте посетителя.
 		    """
 
 		    for component in components:
