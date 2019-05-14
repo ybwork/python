@@ -1,0 +1,7 @@
+Конектимся к ssh devel@192.168.7.76
+
+mc
+
+Переходим в log
+
+Смотрим в magic-celery-description.txt
