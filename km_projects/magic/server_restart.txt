@@ -1,0 +1,25 @@
+После выполнения этих тасков в celery-system, можно перезапускать сервер
+
+	[2019-05-17 12:45:59,542: INFO/MainProcess] Task sync_korallmicro[575a5257-2180-472a-84de-903c1ef6578a] succeeded in 69.0522057s: None
+	[2019-05-17 12:50:00,081: INFO/MainProcess] Received task: simple_ones_sync_send_signal[3228ff8b-ebb8-43b5-a5cd-a906e392de93]
+	[2019-05-17 12:50:00,084: INFO/MainProcess] Task simple_ones_sync_send_signal[3228ff8b-ebb8-43b5-a5cd-a906e392de93] succeeded in 0.00203619999957s: None
+	[2019-05-17 12:50:00,236: INFO/MainProcess] Received task: simple_ones_sync[85751856-e313-4e98-8bad-ff66ef0c4ae9]
+	[2019-05-17 12:51:39,543: INFO/Worker-2] simple_ones_sync[85751856-e313-4e98-8bad-ff66ef0c4ae9]: Обновим цены и остатки для 59881 записей
+	[2019-05-17 12:56:52,937: INFO/Worker-2] simple_ones_sync[85751856-e313-4e98-8bad-ff66ef0c4ae9]: Вставим 51 записей "Remain"
+	[2019-05-17 12:56:52,951: INFO/Worker-2] simple_ones_sync[85751856-e313-4e98-8bad-ff66ef0c4ae9]: Проанализируем цены на наличие скачков
+	[2019-05-17 12:56:53,805: INFO/MainProcess] Task simple_ones_sync[85751856-e313-4e98-8bad-ff66ef0c4ae9] succeeded in 413.5674416s: None
+	[2019-05-17 13:00:00,042: INFO/MainProcess] Received task: sync_filter_korallmicro[5e14575a-cbe4-42e0-b981-3d1fbad74bb2]
+	[2019-05-17 13:00:00,053: INFO/MainProcess] Received task: sync_bonusclub[8443fdb9-6852-479b-bc98-585cd8bbb1bd]
+	[2019-05-17 13:00:00,061: INFO/Worker-1] sync_filter_korallmicro[5e14575a-cbe4-42e0-b981-3d1fbad74bb2]: run "sync_filter_korallmicro"
+	[2019-05-17 13:00:02,406: INFO/Worker-2] sync_bonusclub[8443fdb9-6852-479b-bc98-585cd8bbb1bd]: Updated 959 items
+	[2019-05-17 13:00:02,550: INFO/Worker-2] sync_bonusclub[8443fdb9-6852-479b-bc98-585cd8bbb1bd]: Cleared 22751 items
+	[2019-05-17 13:00:02,557: INFO/MainProcess] Task sync_bonusclub[8443fdb9-6852-479b-bc98-585cd8bbb1bd] succeeded in 2.5035629s: None
+
+Команды перезапуска сервера
+
+	supervisorctl status
+	мягкий рестарт (двоеточие после magic: ВАЖНО)
+	supervisorctl restart magic:
+
+	жесткий рестарт (прибьет процессы):
+	magic/restart.sh
