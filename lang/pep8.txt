@@ -227,18 +227,20 @@
 		Optional plotz says to frobnicate the bizbaz first.
 
 		"""
+		return True
 
-		"""Return a foobang
+		"""Return a foobang.
 
 		Optional plotz says to frobnicate the bizbaz first.
 		
 		"""
+		return True
 
 		Очень важно, чтобы закрывающие кавычки стояли на отдельной строке и между ними и последней строкой была пустая. 
 
 	Для однострочной документации можно оставить закрывающие кавычки на той же строке:
 
-		"""Return a foobang"""
+		"""Return a foobang."""
 
 	Так же можно писать комментарии в стиле Django:
 
@@ -246,6 +248,7 @@
         Constructor. Called in the URLconf; can contain helpful extra
         keyword arguments, and other things.
         """
+        return True
 
 Соглашения по именованию
 
