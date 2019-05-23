@@ -363,3 +363,20 @@
 
             original_image.format = jpeg
 
+Пересекающийся товар в неактивных акциях
+
+    Время действие акции "15 лет КМ" не вышло, поэтому и возникала данная проблема.
+
+Integrity Error в синхронизации между magic и 1c.
+
+    Падает таск sync_shop.
+
+    Task sync_shop with id a8304a88-c59d-4254-b5ae-3003666a1cf5 raised exception:
+    IntegrityError(1062, "Duplicate entry \'df1771cb-5db6-11e8-80d4-6805ca44419c\' for key \'PRIMARY\'")'
+
+    File "/home/devel/www/magic/modules/catalog/tasks.py", line 620, in sync_shop
+    sync(shop_type)
+    File "/home/devel/www/magic/modules/catalog/tasks.py", line 444, in sync
+    bk_product.flush()
+
+    Группы и катологи это одно и то же.
