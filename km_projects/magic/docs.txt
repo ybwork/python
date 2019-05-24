@@ -4,7 +4,9 @@
 
 	Карточка товара
 
-	Вид-тип
+	Слепок карточки товара
+
+	Группы рассылки
 
 Развертывание
 
@@ -22,16 +24,221 @@
 
 	Карточка товара - это описание и набор фотографий для каждого продукта, который представлен в этих магазинах.
 
-	Для более детальной информации о том, что содержит карточка товара, можно посмотреть в cards/models.py -> class ProductCard или в бд magic, таблица cards_productcard.
-
 	Карточка товара создаётся и наполняется менеджерами интернет магазинов.
 
-	На локальной машине этот процесс можно посмотреть по адресу http://0.0.0.0:8000/cards/productcard/
+	Более детальная информация:
 
-Вид-тип
+		Описан в модели ProductCard.
+
+		Сохраняется в базу magic, таблица cards_productcard.
+
+		На локальной машине этот процесс можно посмотреть по адресу http://localhost:8000/cards/productcard/
+
+Слепок карточки товара
 
 	Есть карточка товара.
 
-	У каждой карточки товара есть вид-тип.
+	У карточки товара есть слепок.
+
+	Слепок это запись в другой таблице.
+
+	Слепок карточки товара формируется после того, как карточка помечена, как "проверена".
+
+	Интернет магазины korallmicro и snr берут данные для карточки товара напрямую из слепков.
+
+	Более детальная информация:
+
+		Описан в модели ProductCardDescription.
+
+		Сохраняется в базу magic, таблица cards_productcarddescription.
+
+		Формирование происходит в фоне с помощью celery и таскa update_description_via_change_card.
+
+Группы рассылки
+
+    При определенных условиях пользователям и разработчикам системы приходят уведомления. Для разных уведомлений существуют различные группы рассылки.
+
+    Здесь будет описано какие существуют группы рассылки, кто в них находится и в каких случаях туда приходят письма.
+
+    ADMINS
+
+        В эту группу входят ответственные за поддержку системы.
+
+        Сюда приходят сообщения после логгирования (уровень ERROR) и при возникновении других ошибок.
+
+        Смотреть вызовы logger.error, mail_admins, send_html_email в методе to_dict модели InfoCatalog.
+
+        На 30.04.2019 в этой группе:
+
+            alexandr_angilenko@km-union.ru
+
+            senchenko_vs@km-union.ru
+
+            kaduk_ia@km-union.ru
+
+    MANAGERS
+
+        В эту группу входят управляющие этой системы.
+
+        Смотреть вызов метода mail_managers.
+
+        На 30.04.2019 в этой группе:
+
+            alexander_glubokov@km-union.ru
+
+            vlad_vaholsky@km-union.ru
+
+    KMCLIENT_NOTIFICATION_EMAILS
+
+        Судя по коду нигде не используется.
+
+    SYSTEM_NOTIFICATION_EMAIL_GROUPS
+
+        В эту группу входят ответственные за поддержку системы.
+
+        Сюда приходят сообщения о различных процессах работы системы, которые происходят в фоне. Например "формирование фильтров на сайт" или "появились карточки товара с новыми шаблонами" и т.п.
+
+        Для более подробной инфы смотреть таски в приложениях card, catalog, istore, korallmicro, ones.
+
+        На 30.04.2019 в этой группе:
+
+            alexandr_angilenko@km-union.ru
+
+            senchenko_vs@km-union.ru
+
+            kaduk_ia@km-union.ru
+
+    FRIENDS_FROM_1C_EMAIL_GROUPS
+
+        Судя по коду нигде не используется.
+
+    FRIENDS_FROM_INTEGRATOR_EMAIL_GROUPS
+
+        Судя по коду нигде не используется.
+
+    CONTENT_MANAGER_NOTIFICATION_EMAIL_GROUPS
+
+        В эту группу входят контент менеджеры различных магазинов.
+
+        Сюда приходят сообщения о различных процессах работы системы, которые происходят в фоне. Например "формирование фильтров на сайт" или "появились карточки товара с новыми шаблонами" и т.п.
+
+        Для более подробной инфы смотреть таски в приложениях card, catalog, istore, korallmicro, ones.
+
+        На 30.04.2019 в этой группе:
+
+            korallmicro - alexander_glubokov@km-union.ru, vlad_vaholsky@km-union.ru
+
+            istore - alexander_glubokov@km-union.ru, Azevich_EM@km-union.ru
+
+            snr_new - alexander_glubokov@km-union.ru, vlad_vaholsky@km-union.ru
+
+    REVIEW_CHECKER_NOTIFICATION_EMAIL_GROUPS
+
+        В эту группу входят проверяющие отзывы на товары.
+
+        Сюда приходят письма, когда пользователь оставил отзыв о товара.
+
+        На 30.04.2019 в этой группе:
+
+            aleksey_lomakin@km-union.ru
+
+    OFFERS_CHECKER_NOTIFICATION_EMAIL_GROUPS
+
+        В эту группу входят ответственные за выгодные предложения.
+
+        Сюда приходят письма об существующих выгодных предложениях и сроке их действия.
+
+        На 30.04.2019 в этой группе:
+
+            folvarkov@mail.ru
+
+            alexandrcms@gmail.com
+
+            skvooz@gmail.com
+
+    UNIQUE_FULL_ALIAS_CHECKER_NOTIFICATION_EMAIL_GROUPS
+
+        В эту группу входят ответственные за каталогом.
+
+        Сюда приходят письма, когда происходит ошибка при синхронизации с 1С для сайта.
+
+        На 30.04.2019 в этой группе:
+
+            alexandrcms@gmail.com
+
+            aleksey_lomakin@km-union.ru
+
+            alexander_glubokov@km-union.ru
+
+    ACTUAL_CHECKER_NOTIFICATION_EMAIL_GROUPS
+
+        В эту группу входят ответственные за смену актуальности карточки товара.
+
+        Сюда приходят письма, когда изменился параметр is_actual у карточки товара.
+
+        Это происходит в фоне, поэтому смотреть в тасках приложения cards.
+
+        На 30.04.2019 в этой группе:
+
+            svetlana_koroleva@km-union.ru
+
+            tatyana_zakharova@km-union.ru
+
+    CONFIGURATOR_ANALITICS
+
+        В эту группу входят ответственные за проверку статистики по конфигуратору.
+
+        На 30.04.2019 скорее всего его выпилили.
+
+        На 30.04.2019 в этой группе:
+
+            fastunova_va@km-union.ru
+
+    SITE_PRODUCTS_REPORT_EMAILS
+
+        В эту группу входят ответственные за проверку отчетов о карточках товаров.
+
+        Сюда приходят письма, при формировании отчетов о карточках товаров.
+
+        Отчеты формируются в фоне. Смотреть таски приложения cards.
+
+        На 30.04.2019 в этой группе:
+
+            alexander_glubokov@km-union.ru
+
+            abakarov_ag@km-union.ru
+
+            angilenko_aa@km-union.ru
+
+            senchenko_vs@km-union.ru
+
+            kaduk_ia@km-union.ru
+
+    CRITICAL_ERROR_EMAIL_GROUPS
+
+        В эту группу входят ответственные за управление и поддержку системы.
+
+        Сюда приходят письма, когда возникают критические для работы системы ошибки.
+
+        Судя по коду это: "Ошибка обновления данных на стороне magic после анализа существующих объектов."
+
+        На 30.04.2019 в этой группе:
+
+            vlad_vaholsky@km-union.ru
+
+            alexander_glubokov@km-union.ru
+
+            aleksey_lomakin@km-union.ru
+
+            malashikhin_da@km-union.ru
+
+            mihail_shinkarenko@km-union.ru
+
+            alexandr_angilenko@km-union.ru
+
+            senchenko_vs@km-union.ru
+
+            kaduk_ia@km-union.ru
+
 
 	

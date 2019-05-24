@@ -38,6 +38,8 @@
 
 	Менеджеры модели и queryset-ы
 
+	Транзакции
+
 	Нюансы
 
 Тестирование
@@ -342,3 +344,19 @@ The contenttypes framework
 	Update
 
 		При выполнение update, если обновляемое значение отличается от уже существующего, то затирает self.queryset, если нет, то возращает.
+
+	Обработка ошибок в транзакциях
+
+		@transaction.atomic
+		def viewfunc(request):
+		    create_parent()
+
+		    try:
+		        with transaction.atomic():
+		            generate_relationships()
+		    except IntegrityError:
+		        handle_exception()
+
+		    add_children()
+
+		Если не написать with transaction.atomic() в блоке try: except, то будет ошибка, потому что generate_relationships() не выполниться и прервёт основную транзакцию
