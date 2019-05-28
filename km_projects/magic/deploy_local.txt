@@ -10,9 +10,9 @@
 
 	автоматическое создание
 
-		chmod +x local_deploy.sh
+		chmod +x deploy_local.sh
 
-		./local_deploy.sh
+		./deploy_local.sh
 
 	ручное создание
 
