@@ -231,6 +231,8 @@ Commit
 
 	Можно добавить в один коммит например один файл из трех, а другие два добавить в другой коммит. Узнать как.
 
+
+
 	git branch - показывает все ветки
 
 	git checkout -b name_branch - создаёт ветку и переключает на неё	
@@ -277,7 +279,7 @@ Commit
 
 	git remote set-url origin git@gitlab0.km-union.ru:python/magic.git - задает url для origin репозитория
 
-	git reset --hard HEAD^ - удаляет последний коммит
+	git reset --hard HEAD^ - удаляет последний коммит на текущей ветки
 
 	git branch --set-upstream-to=mp/deal deal - связывает локальную ветку с веткой из репозитория (используется для пула после hard reset)
 
