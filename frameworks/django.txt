@@ -326,6 +326,16 @@ The contenttypes framework
 	Есть дилемма: где создавать метод, который работает с queryset, а потом преобразует его к листу через values_list? Ответ: Я предпочитаю возвращать queryset, а потом после вызова метода дописывать values_list.
 
 	В кастомном queryset-е не переопределяется метод get_queryset, только в кастомном менеджере.
+
+Вливание новых данных на проект
+
+	Сделали git pull
+
+	Если есть изменения в requirements.txt, то обновили зависимости.
+
+	Если есть изменения в моделях, то выполнили миграции.
+
+	Если есть изменения в шаблонах, то выполнили collectstatic.
 	
 Нюансы
 
@@ -366,3 +376,36 @@ The contenttypes framework
 		    add_children()
 
 		Если не написать with transaction.atomic() в блоке try: except, то будет ошибка, потому что generate_relationships() не выполниться и прервёт основную транзакцию
+
+	Distinct с MySQL и values_list
+
+		Отказывается работать без order_by.
+
+		Поэтому пишем так:
+
+			res = ProductCard.objects.filter(ode__isnull=False).order_by('code').distinct()
+
+			И теперь можем использовать values_list
+
+				res.values_list('code', flat=True)
+
+	Создание условий для запросов с Q
+
+		def collect_q_query_conditions(self, is_or_operator, conditions):
+	        q_obj = Q()
+	        for condition in conditions:
+	            if is_or_operator:
+	                q_obj |= Q(**{condition: conditions[condition]})
+	            else:
+	                q_obj &= Q(**{condition: conditions[condition]})
+	        return q_obj
+
+	Сравнение Q объектов
+
+		Как один из вариантов сравнить стрковое представление объектов
+
+		a = unicode(Q() | Q(images__isnull=False) | Q(has_invalid_images=True))
+		
+		b = unicode(Q() | Q(images__isnull=False) | Q(has_invalid_images=True))
+
+		self.assertEqual(first=a, second=b)
