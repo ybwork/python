@@ -141,6 +141,22 @@
 			}
 		}
 
+	И тогда в etc/nginx/conf.d/default.conf будет так:
+
+		user  nginx;
+
+		worker_processes  2;
+
+		pid /var/run/nginx.pid;
+
+		error_log  /var/log/nginx.error_log  info;
+
+		http {
+			include /etc/nginx/sites-available/server1.conf;
+		}
+
+		
+
 	Директива listen задает комбинацию IP-адреса и номера порта либо путь к сокету в домене UNIX.
 
 	В директиве server_name возможно использование метасимвола *
