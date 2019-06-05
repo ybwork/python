@@ -1,1 +1,1 @@
-SELECT * FROM magic.ones_prices WHERE product_id=201883 AND type_price_id = 8;
+SELECT * FROM magic.ones_prices WHERE product_id=224904 AND type_price_id = 8;
