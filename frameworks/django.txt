@@ -416,3 +416,9 @@ The contenttypes framework
 		b = unicode(Q() | Q(images__isnull=False) | Q(has_invalid_images=True))
 
 		self.assertEqual(first=a, second=b)
+
+	Debug сигналов и тасков
+
+		При дебаге сигналов принты будут выводиться в run, потому что сигналы относятся к django.
+
+		При дебаге тасков принты будут выводить в celery, потому что таски относятся к celery.
