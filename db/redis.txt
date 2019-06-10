@@ -29,6 +29,10 @@
 
 	sudo systemctl restart redis.service
 
+	sudo systemctl stop redis.service
+
+	sudo systemctl start redis.service
+
 	sudo systemctl status redis
 
 Запуск

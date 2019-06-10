@@ -298,26 +298,8 @@
         
         _find_duplicates_action_templates (return False)
 
-        _find_duplicates_for_products (return False)     
-
-Проблема с обработкой изображений с помощью PIL
-
-    Ошибка происходит в том случае, когда original_image.format = none
-
-    Пример
-
-        225115
-
-            original_image.mode = rgba
-
-            original_image.format = none
-
-        220
-
-            original_image.mode = rgb
-
-            original_image.format = jpeg
-
+        _find_duplicates_for_products (return False)   
+    
 Пересекающийся товар в неактивных акциях
 
     Время действие акции "15 лет КМ" не вышло, поэтому и возникала данная проблема.
@@ -338,6 +320,8 @@ Integrity Error в синхронизации между magic и 1c.
 
 Проблема с обработкой изображений с помощью PIL #18128
 
+    Ошибка происходит в том случае, когда original_image.format = none
+
     Не давать загружать картинки с отсутствующим форматом
 
         Найти карточки с плохими картинками
@@ -351,3 +335,27 @@ Integrity Error в синхронизации между magic и 1c.
 Когда карточка становится актуальной
 
     Ставится в 1с и обновляется таском в фоне.
+
+Выгодные предложения
+
+    js
+
+        catalog/static/data/js/init.js
+
+        function load_offerproperties
+
+    модель OfferProperty
+
+Не приходят письма если возникает ошибки при проведении карточек товара
+
+    Может происходить из-за того что необновился счетчик в кэше.
+
+    В таком случае не срабатывает нужное условие (см. таск update_descriptions_and_previews) и кэш никогда не отчищается.
+
+    На 10.06.2019 счетчик в кэше может не обновится в том случае если не удалось получить кэш с помощью cache.get('separation_info').
+
+        Эта ситуация может быть в двух случаях:
+
+            1. Упал redis server
+
+            2. Нет кэша с таким ключом
