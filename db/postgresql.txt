@@ -697,21 +697,7 @@ VACUUM
 
 		createuser --interactive joe
 
-	sudo /etc/init.d/postgresql restart - перезапуск postgresql
-
-	\q - выход из аккаунта
-
-	DROP USER yetbetter; - удаляет пользователя
-
-	pg_dump dbname > outfile
-
-	psql -> \c db_name (коннект с базой) -> \dt (показывает таблицы) -> SELECT id FROM organizers;
-
-	psql -> show data_directory; - показывает где хранятся данные (обычно в /var/lib/postgresql/data)
-
-	------------------------
-
-	psql -U postgres
+	psql -U postgres - доступ к терминальной программе (в ней можно использовать sql)
 
 		CREATE USER ilya WITH PASSWORD 'asdf1234'; - создаёт пользователя
 
@@ -740,6 +726,18 @@ VACUUM
 		\d table_name - показывает все колонки в таблице
 
 		SELECT * FROM public.table_name;
+
+	sudo /etc/init.d/postgresql restart - перезапуск postgresql
+
+	\q - выход из аккаунта
+
+	DROP USER yetbetter; - удаляет пользователя
+
+	pg_dump dbname > outfile
+
+	psql -> \c db_name (коннект с базой) -> \dt (показывает таблицы) -> SELECT id FROM organizers;
+
+	psql -> show data_directory; - показывает где хранятся данные (обычно в /var/lib/postgresql/data)
 
 	переходим в директорию с дампом -> pg_restore -U user_name -d db_name -1 file.dump
 	

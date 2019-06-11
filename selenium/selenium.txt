@@ -1,0 +1,56 @@
+Оглавление
+
+	Что это
+
+	Установка
+
+	С django
+
+Что это
+
+	...
+
+Установка
+
+	pip install selenium
+
+	sudo apt-get update
+
+	sudo apt-get install chromium-chromedriver
+
+С django
+
+	class ProductCardFunctionalTests(StaticLiveServerTestCase):
+	    def setUp(self):
+	        User.objects.create_user(
+	            username='Ilya',
+	            email='kaduk2593@gmail.com',
+	            password='asdf1234',
+	            is_superuser=True,
+	            is_staff=True,
+	        )
+
+	    @classmethod
+	    def setUpClass(self):
+	        self.selenium = WebDriver()
+	        super(ProductCardFunctionalTests, self).setUpClass()
+
+	    @classmethod
+	    def tearDownClass(self):
+	        self.selenium.quit()
+	        super(ProductCardFunctionalTests, self).tearDownClass()
+
+	    def test_login(self):
+	        self.selenium.get('{}/login/'.format(self.live_server_url))
+
+	        user_name_input = self.selenium.find_element_by_name('username')
+	        user_name_input.send_keys('Ilya')
+
+	        user_password_input = self.selenium.find_element_by_name('password')
+	        user_password_input.send_keys('asdf123')
+
+	        self.selenium.find_element_by_class_name('submit-row').click()
+
+	Методы setUpClass() и tearDownClass() используются для выполнения некоторой инициализации в рамках класса, т.е. для переопределения настроек.
+
+	

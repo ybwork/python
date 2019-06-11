@@ -20,7 +20,15 @@
 
 	Заливка дампа
 
+	Запуск тестов
+
+	Настройка проекта в pycharm
+
 	Запуск проекта
+
+	Команды git
+
+	Команды linux
 
 Установка языка
 
@@ -96,6 +104,110 @@ Cтягивание существующего проекта
 
 	При откате теряются данные таблиц, которые откатываются.
 
+	./manage.py migrate name_app zero
+
+Заливка дампа
+
+	postgersql
+
+		sudo -i -u postgres
+
+		Переходим в директорию с дампом.
+
+		pg_restore -U postgres -d db_name -1 file_name.dump
+
+	pgadmin
+
+		На нужной бд нажимаем правой кнопкой.
+
+		Выбираем restore.
+
+		В открывшемся окне добавляем файл в поле filename (при добавлении тип файла задаем "all")
+
+		Нажимаем "restore"
+
+	mysql
+
+		mysql -u root -p
+
+		enter password: asdf1234
+
+		Переходим в директорию с бэкапом.
+
+		mysqldump -u root -p db_name < dbexport.sql
+
+		enter password: asdf1234
+
+	mysqlworkbench
+
+		В категории managment выбираем data/import restore
+
+		Выбираем import from self-container file.
+
+		Добавляем туда файл с дампом (при добавлении тип файла задаем "all")
+
+		Выставляем в поле default target schema нужную базу.
+
+Запуск тестов
+
+	./manage.py test
+
+	Запуску тестов может мешать встроенный contenttypes фреймворк.
+
+	Один из вариантов решения этой проблемы это найти в модели следующий кусок кода и закоментировать его.
+
+		class Profile(models.Model):
+		    user = models.ForeignKey(User, related_name='profile', verbose_name=u'Пользователь')
+		    content_type = models.ForeignKey(ContentType)
+
+Настройка проекта в pycharm
+
+	Привязываем виртуальное окружение
+
+		File -> Settings -> Project -> Project interpreter -> иконка шестеренка -> Show all -> знак плюс -> выбираем Existing environment -> /path/to/envs/name_env/bin/python
+
+	Добавляем автозапуск проекта
+
+		В правой части возле кнопки "старт" ищем select.
+
+		Выбираем add cofiguration.
+
+		В открывшемся окне разворачиваем нажимаем на плюс и выбираем python.
+
+		В поле working directory задаем путь до файла manage.py
+
+		В поле script path задаем ./manage.py
+
+		В поле parameters задаем команду которая должна выполниться, runserver 0.0.0.0:8000
+
+	Добавляем автозапуск celery (если надо)
+
+		В правой части возле кнопки "старт" ищем select.
+
+		Выбираем add cofiguration.
+
+		В открывшемся окне разворачиваем нажимаем на плюс и выбираем python.
+
+		В поле working directory задаем путь до корня проекта
+
+		В поле script path задаем - celery
+
+		В поле parameters задаем команду которая должна выполниться, -A app_celery worker -Q default,system,description,image_prepare --purge
+
+	Добавляем автозапуск тестов
+
+		В правой части возле кнопки "старт" ищем select.
+
+		Выбираем add cofiguration.
+
+		В открывшемся окне разворачиваем нажимаем на плюс и выбираем python.
+
+		В поле working directory задаем путь до файла manage.py
+
+		В поле script path задаем ./manage.py
+
+		В поле parameters задаем команду которая должна выполниться, test
+
 Запуск проекта
 
 	python manage.py runserver
@@ -103,3 +215,43 @@ Cтягивание существующего проекта
 	./manage.py runserver
 
 	./manage.py runserver 0.0.0.0:8000
+
+Команды git
+
+	git clone project_link
+
+	git status
+
+	git add .
+
+	git add path/to/file.py path/to/file.py
+
+	git log
+
+	git commit
+
+	git commit -m
+
+	git push
+
+	git push --set-upstream origin branch_name
+
+	git pull
+
+	git checkout -b branch_name
+
+	git branch -d branch_name
+
+	git branch -D branch_name
+
+	git merge branch_name (делаем на той ветки в которую хотим залить, а имя должно быть той ветки, которую вливаем)
+
+	git branch -r
+
+	git stash
+
+	git stash apply
+
+	git commit --amend (позволяет изменить сообщение коммита, но если запушил, то не использовать)
+
+	git reset --soft HEAD^ (удаляет последний коммит, но оставляет все изменения)
