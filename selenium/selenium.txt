@@ -30,6 +30,21 @@
 	            is_staff=True,
 	        )
 
+	        Kind.objects.create(
+	            kind=u'Автомагнитола',
+	            type=u'Автомагнитола'
+	        )
+
+	        self.selenium.get('{}/login/'.format(self.live_server_url))
+
+	        user_name_input = self.selenium.find_element_by_name('username')
+	        user_name_input.send_keys('Ilya')
+
+	        user_password_input = self.selenium.find_element_by_name('password')
+	        user_password_input.send_keys('asdf1234')
+
+	        self.selenium.find_element_by_class_name('submit-row').click()
+
 	    @classmethod
 	    def setUpClass(self):
 	        self.selenium = WebDriver()
@@ -40,16 +55,35 @@
 	        self.selenium.quit()
 	        super(ProductCardFunctionalTests, self).tearDownClass()
 
-	    def test_login(self):
-	        self.selenium.get('{}/login/'.format(self.live_server_url))
+	    def test_product_card_page(self):
+	        self.selenium.get(
+	            '{}/cards/productcard/add/'.format(self.live_server_url)
+	        )
 
-	        user_name_input = self.selenium.find_element_by_name('username')
-	        user_name_input.send_keys('Ilya')
+	        product_card_code_input = self.selenium.find_element_by_name('code')
+	        product_card_code_input.send_keys('11')
 
-	        user_password_input = self.selenium.find_element_by_name('password')
-	        user_password_input.send_keys('asdf123')
+	        product_card_kind_input = Select(
+	            self.selenium.find_element_by_name('kind')
+	        )
+	        product_card_kind_input.select_by_value(
+	            value=str(Kind.objects.get(kind=u'Автомагнитола').pk)
+	        )
 
-	        self.selenium.find_element_by_class_name('submit-row').click()
+	        product_card_author_input = Select(
+	            self.selenium.find_element_by_name('author')
+	        )
+	        product_card_author_input.select_by_value(
+	            value=str(User.objects.get(username='Ilya').pk)
+	        )
+
+	        self.selenium.find_element_by_name('_continue').click()
+
+	        assert u'Пожалуйста, исправьте ошибки ниже.' not in self.selenium.page_source
+	        self.assertEqual(
+	            first=ProductCard.objects.filter(code=11).exists(),
+	            second=True
+	        )
 
 	Методы setUpClass() и tearDownClass() используются для выполнения некоторой инициализации в рамках класса, т.е. для переопределения настроек.
 

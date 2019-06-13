@@ -304,7 +304,7 @@ Midnight Commander
 
 			Last login: Mon Feb 18 10:31:11 2019 from 10.10.54.50
 
-	 tar -xvf имя_архива.tar.gz - извлекает файл из архива
+	tar -xvf имя_архива.tar.gz - извлекает файл из архива
 
 	cp ~/Pictures/3.png ~/Pictures/4.png ~/Downloads/imgs/ - копирует что-либо из одной директории в другую, ~/Pictures/3.png - это что копируется, ~/Downloads/imgs/ - это куда копируется
 

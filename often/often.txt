@@ -255,3 +255,51 @@ Cтягивание существующего проекта
 	git commit --amend (позволяет изменить сообщение коммита, но если запушил, то не использовать)
 
 	git reset --soft HEAD^ (удаляет последний коммит, но оставляет все изменения)
+
+Команды linux
+
+	sudo apt-get update
+
+	sudo apt-get install package_name
+
+	sudo apt-get remove package_name
+
+
+	cd folder_name
+
+	ls
+
+	ls -a
+
+	ls -l
+
+
+	touch file_name.txt
+
+	sudo nano path/to/file.txt
+
+	cat file_name.txt
+
+	rm -f file_name
+
+	cp ~/what/copy/3.png ~/place/for/paste
+
+	mv old_file_name.conf new_file_name.conf
+
+	mv /home/user/oldname /home/user/newname
+
+
+	mkdir folder_name
+
+	rm -rf folder_name
+
+
+	ps -ef
+
+	sudo kill 7925 (7925 - PID)
+
+
+	ping localhost
+
+
+	ssh server_name
