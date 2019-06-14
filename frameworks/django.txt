@@ -40,6 +40,8 @@
 
 	Транзакции
 
+	Контекст
+
 	Нюансы
 
 Тестирование
@@ -344,6 +346,18 @@ The contenttypes framework
 
 	Если есть изменения в шаблонах, то выполнили collectstatic.
 	
+Контекст
+
+	from django.template import Template, Context
+
+	tmpl = 'Country: {{ my }}'
+
+	context = {'my': 'myvar'}
+
+	Template(tmpl).render(Context(context)
+
+	Выведет 'Country: myvar'
+
 Нюансы
 
 	До этого работало, а на следующий день перестало
