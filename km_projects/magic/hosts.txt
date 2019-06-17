@@ -5,3 +5,5 @@
 Тестовый
 
 	ssh devel@10.10.54.42
+
+	www/python/magic
