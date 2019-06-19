@@ -1,0 +1,82 @@
+Берем образы контейнеров
+
+	docker pull angilenko/nginx
+
+	docker pull angilenko/php_5.4
+
+Настраиваем нужную структуру директорий для точек монтирования
+
+	/home/ilya/work/projects/korallmicro_conf/nginx/conf.d/
+
+	/home/ilya/work/projects/korallmicro_conf/nginx/sites-available/
+
+	/home/ilya/work/projects/php/
+
+	/home/ilya/work/projects/korallmicro_conf/nginx/ssl/
+
+	/home/ilya/work/projects/korallmicro_conf/php/pool.d/
+
+Кладем файлы в директории
+
+	/home/ilya/work/projects/korallmicro_conf/nginx/conf.d/php-fpm.conf
+
+	/home/ilya/work/projects/korallmicro_conf/nginx/passwords/external
+
+	/home/ilya/work/projects/korallmicro_conf/nginx/sites-available/korallmicro
+
+	/home/ilya/work/projects/korallmicro_conf/nginx/sites-enabled/korallmicro
+
+	/home/ilya/work/projects/korallmicro_conf/php/pool.d/www.conf
+
+	/home/ilya/work/projects/php/project_korallmicro_from_gitlab
+
+Создаем конейнер nginx
+
+	docker run -t -i --name=nginx \
+	--publish=80:80 \
+	--publish=443:443 \
+	--volume=/home/ilya/work/projects/korallmicro_conf/nginx/conf.d:/etc/nginx/conf.d \
+	--volume=/home/ilya/work/projects/korallmicro_conf/nginx/sites-available:/etc/nginx/sites-available \
+	--volume=/home/ilya/work/projects/php:/www \
+	--volume=/home/ilya/work/projects/korallmicro_conf/nginx/ssl:/etc/nginx/ssl \
+	angilenko/nginx
+
+Создаем конейнер php-fpm
+
+	docker run -t -i --name=php \
+	--publish=55555:55555 \
+	--publish=55055:55055 \
+	--volume=/home/ilya/work/projects/korallmicro_conf/php/pool.d:/etc/php5/fpm/pool.d \
+	--volume=/home/ilya/work/projects/php:/www \
+	--add-host magic.km-union.ru:192.168.7.3 \
+	--add-host devdp.km-union.ru:192.168.7.3 \
+	--add-host dp.km-union.ru:192.168.7.54 \
+	--add-host new-mysql.km-union.ru:10.10.100.50 \
+	--add-host smtp1.km-union.ru:192.168.7.4 \
+	--add-host sdp.km-union.ru:192.168.7.3 \
+	--add-host fias.km-union.ru:192.168.7.3 \
+	angilenko/php_5.4
+
+Выполняем запуск php-fpm
+
+	docker exec -it php-fpm bash
+
+	service php-fpm restart
+
+Выполняем рестарт nginx
+
+	docker exec -it nginx bash
+
+	sevice nginx restart
+
+Проверяем работу сервера
+
+	ping dev-1.korallmicro.ru
+
+Проверяем, что порт nginx проброшен
+
+	sudo netstat -lptun
+
+Открываем сайт в браузере
+
+	http://dev-1.korallmicro.ru
