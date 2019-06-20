@@ -57,11 +57,23 @@
 	--add-host fias.km-union.ru:192.168.7.3 \
 	angilenko/php_5.4
 
-Выполняем запуск php-fpm
+Проверяем, что порт php-fpm проброшен
 
-	docker exec -it php-fpm bash
+	sudo netstat -lptun
 
-	service php-fpm restart
+	55555, 55055
+
+Выполняем рестарт php-fpm
+
+	docker exec -it php bash
+
+	service php5-fpm restart
+
+Проверяем, что порт nginx проброшен
+
+	sudo netstat -lptun
+
+	80, 443
 
 Выполняем рестарт nginx
 
@@ -73,10 +85,14 @@
 
 	ping dev-1.korallmicro.ru
 
-Проверяем, что порт nginx проброшен
-
-	sudo netstat -lptun
-
 Открываем сайт в браузере
 
 	http://dev-1.korallmicro.ru
+
+Настраиваем конфиг проекта
+
+	debug = 1
+
+	rostov_dealer_subdomain = 'dev-1'
+
+	logging.enable = 0
