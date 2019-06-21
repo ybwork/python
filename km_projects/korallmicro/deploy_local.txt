@@ -96,3 +96,9 @@
 	rostov_dealer_subdomain = 'dev-1'
 
 	logging.enable = 0
+
+Примечание
+
+	После развертывания выше хедера сайта будет висеть notice error by zend framework.
+
+	Она не влияет на работу, поэтому можно неубирать её.
