@@ -450,3 +450,25 @@ The contenttypes framework
 				{{ block.super }}
 
 			{% endblock %}
+
+	Переопределение сохранения ImageField
+
+		Для переопределения работы ImageField используем метод save и UploadedFile в модели.
+
+		    def save(self, *args, **kwargs):
+		        self.image = UploadedFile(
+		            file=self.image,
+		            name='{}.png'.format(
+		                self.image.name
+		            ),
+		            content_type='image/png',
+		            size=sys.getsizeof(self.image)
+		        )
+
+		        super(ProductCardImage, self).save()
+
+	Разница между обычным открытием файла и через BytesIO
+
+		Когда мы используем обычное открытие файла и записываем туда что то, то на диске создается файл с определенным содержимым.
+
+		Объект BytesIO не связан с каким-либо реальным файлом на диске. Это всего лишь кусок оперативной памяти, который ведет себя как файл.
