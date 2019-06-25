@@ -6,9 +6,13 @@
 
 	Основные настройки
 
+	django-admin и manage.py
+
 	Развертывание (nginx + gunicorn + django + postgresql)
 
 	Как Django обрабатывает запрос
+
+	Как Django хранит пароли
 
 Философия дизайна
 
@@ -267,7 +271,71 @@
 
 		Заметим что такое перенаправление может привести к потере всех данных при POST запросе.
 
+	LOGIN_REDIRECT_URL
+
+		URL куда перенаправляется пользователь поле авторизации пользователя в представлении (если не передан параметр next).
+
+	LOGIN_URL
+
+		URL, на который перенаправляются пользователи для авторизации.
+
+	LOGOUT_URL
+
+		URL, на который перенаправляются пользователи после выхода.
+
+	PASSWORD_RESET_TIMEOUT_DAYS
+
+		Количество дней, в течении которых действует ссылка для сброса пароля.
+
+	SESSION_COOKIE_AGE
+
+		По умолчанию: 1209600 (2 недели в секундах)
+
+		Время хранения сесионной куки в секундах.
+
+	SITE_ID
+
+		id сайта в таблице django_site базы данных.
+
+		Используется для привязки данных к конкретному сайту, что позволяет использовать один установленный проект для нескольких сайтов.
+
+django-admin и manage.py
+
+	Это консольные инструменты.
+
+	Во всех примерах в этом разделе используется django-admin, но вы можете использовать manage.py
+
+		django-admin <command> [options]
+
+		./manage.py <command> [options]
+
+	django-admin help
+
+		django-admin help --commands
+
+		django-admin help <command>
+
+	django-admin version - выводит текущую версию django
+
+	django-admin check - анализирует проект Django на наличие распространенных проблем
+
+		django-admin check auth admin othre_app
+
+		django-admin check --tag security - проверяет приложения только на безопастность
+
+			django-admin --list-tags
+
+		djanog-admin check --deploy - проверяет настройки для продакшена
+
+			djanog-admin check --deploy --settings=production_settings
+
+	django-admin loaddata mydata.json - ищет и загружает указанные фикстуры в базу данных
+
+	django-admin makemessages - анализирует все файлы в текущем каталоге и парсит строки, которые помечены для перевода.
+
 Развертывание
+
+
 
 
 

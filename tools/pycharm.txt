@@ -2,7 +2,11 @@
 
 	Команды
 
-	Настройки
+	Привязка виртуального окружения
+
+	Создание запуска по кнопке
+
+	Настройки темы
 
 Команды
 
@@ -10,9 +14,21 @@
 
 	cntl + alt + s -> Project: project_name -> Project interpreter
 
-Настройки
+Привязка виртуального окружения
 
 	File -> Settings -> Project -> Project interpreter -> шестерёнка -> Show all -> плюс -> Existing enviroment -> путь к виртуальному окружению (/home/ilya/work/projects/magic-env/bin/python)
+
+Создание запуска по кнопке
+
+	В правом верхнем углу возле git ищем и выбираем селект с названием add configuration.
+
+	Указываем working directory. Это то место где лежит manage.py
+
+	Выбираем python enterpreter. Это виртуальное окружение проекта.
+
+	Указываем parameters. Здесь должно быть runserver или runserver 0.0.0.0:8000
+
+	Указываем script path. Это файл, который должен выполнить python. В нашем случае manage.py
 
 Настройки темы
 
