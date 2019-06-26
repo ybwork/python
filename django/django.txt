@@ -104,7 +104,7 @@
 
 Основные настройки
 
-	Список основных настроек можно посмотреть здесь:
+	Можно посмотреть здесь:
 
 		https://djbook.ru/rel1.9/ref/settings.html#core-settings-topical-index
 
@@ -305,33 +305,89 @@ django-admin и manage.py
 
 	Во всех примерах в этом разделе используется django-admin, но вы можете использовать manage.py
 
-		django-admin <command> [options]
-
-		./manage.py <command> [options]
-
 	django-admin help
 
-		django-admin help --commands
+		help --commands
 
-		django-admin help <command>
+		help <command>
+
+	django-admin startproject
 
 	django-admin version - выводит текущую версию django
 
+	django-admin startapp name_app
+
+	django-admin makemigrations
+
+		--empty - создает пустую миграцию для последующего редактирования вручную
+
+		--merge - решает конфликты с миграциями
+
+		--name - задает имя миграции
+
+	django-admin migrate
+
+		<app_label>
+
+		<app_label> <migrationname>
+
+		--database
+
+		--fake - помечает миграции, как невыполненные (может “сломать” автоматическое применение миграций)
+
+		--fake-initial - помечает миграции, как выполненные
+
+	django-admin showmigrations
+
 	django-admin check - анализирует проект Django на наличие распространенных проблем
 
-		django-admin check auth admin othre_app
+		check auth admin othre_app - анализирует только заданные приложения
 
-		django-admin check --tag security - проверяет приложения только на безопастность
+		check --tag security - проверяет приложения только на безопастность
 
-			django-admin --list-tags
+			--list-tags
 
 		djanog-admin check --deploy - проверяет настройки для продакшена
 
 			djanog-admin check --deploy --settings=production_settings
 
+	django-admin diffsettings - показывает разницу между текущими настройками и настройками Django по умолчанию
+
+		--all - выводит все настройки, даже если они не отличаются от настроек по умолчанию
+
+	django-admin runserver
+
+		0.0.0.0:8000
+
+	django-admin dbshell
+
+		--database
+
+	django-admin shell - запускает интерактивный интерпретатор Python
+
 	django-admin loaddata mydata.json - ищет и загружает указанные фикстуры в базу данных
 
-	django-admin makemessages - анализирует все файлы в текущем каталоге и парсит строки, которые помечены для перевода.
+	django-admin inspectdb - выводит сгенерированные модели Django основе таблиц из бд (может пригодиться, когда есть бд, но нет моделей)
+
+		Если inspectdb не может подобрать подходящий тип поля модели, будет использоваться поле TextField с комментарием в коде 'This field type is a guess.' возле этого поля.
+
+		Если название колонки в таблице входит в зарезервированные слова Python (такие как 'pass', 'class' или 'for'), inspectdb добавит '_field' к названию атрибута.
+
+	django-admin sendtestemail foo@example.com bar@example.com - отправляет тестовое электронное письмо
+
+		--managers
+
+		--admins
+
+	django-admin changepassword user_name (работает только, если установлена система авторизации)
+
+	
+
+	Можно посмотреть здесь:
+
+		https://djbook.ru/rel1.9/ref/django-admin.html?highlight=django-admin
+
+		https://docs.djangoproject.com/en/2.2/ref/django-admin/
 
 Развертывание
 
