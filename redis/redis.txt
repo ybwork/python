@@ -4,6 +4,8 @@
 
 	Установка
 
+	Удаление
+
 	Общее
 
 Что это
@@ -26,9 +28,16 @@
 
 		Active: active
 
-	redis-cli ping
+	redis-cli 
 
-		pong
+		ping (должно ответить pong)
+
+Удаление
+
+	sudo systemctl stop redis
+
+	sudo apt-get purge --auto-remove redis-server
+
 
 Общее
 

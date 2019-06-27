@@ -1,0 +1,97 @@
+Здесь описано развертывание проекта для тестирования всей связки (dp + magic + korallmicro + snr).
+
+    Поэтому в настройках могут использоваться боевые соединения.
+
+Перед развертыванием убедиться, что в системе установлены:
+
+    postgresql 9.5
+
+    mysql 5.7
+
+    redis
+
+    rabbitmq
+
+    rabbitmq management
+
+    python-mysqldb
+
+    nodejs
+
+        curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+
+        sudo apt-get install -y nodejs
+
+        nodejs --version
+
+    npm
+
+        sudo apt-get install npm
+
+        npm --version
+
+    gulp-cli
+
+        sudo npm install gulpjs/gulp-cli -g
+
+Получение проекта
+
+    git clone (ссылку на репозиторий смотреть в gitlab, искать snr_engine)
+
+Создание виртуального окружения
+
+    Переходим в корень проекта, открываем terminal и выполняем:
+
+        python create_bootstrap.py
+
+            в корне проекта должен создасться bootstrap.py
+
+        python bootstrap.py
+
+            рядом с директорией проекта должна создасться директория с виртуальным окружением magic-env и в корневой директории проекта должна создасться директория bin
+
+        bin/pip install -r requirements.txt
+
+            убедиться, что все зависимости установились без ошибок
+
+        npm i
+
+            убедиться, что все зависимости установились без ошибок
+
+        bin/manage collectstatic
+
+            должна появиться директория collectstatic, где будут собранны статические файлы всех приложений проекта
+
+        npm run gulp-simple
+
+            если будут ошибки, то перед тем как лезть в код нужно:
+
+                удалить директорию collectstatic
+
+                выполнить команду bin/manage collectstatic
+
+                еще раз выполнить npm run gulp-simple
+
+Настройка settings_local.py
+
+    Берем боевой settings_local.py
+
+    Важные нюансы:
+
+        нужно переопределить LOCAL_DATABASES
+
+        для работы статики: 
+
+            DEBUG = False
+
+            DEBUG_STATIC = True
+
+            NEED_CACHE_PAGE_CONTEXT = False
+
+        для работы медиа файлов:
+
+            CDN_CAROUSEL = u'http://cdn2.korallmicro.ru/snr/images/carousel/{}'
+            CDN_SEOBLOCK = u'http://cdn2.korallmicro.ru/snr/images/seoblock/{}'
+            CDN_CATALOG = u'http://cdn2.korallmicro.ru/snr/images/catalog/{}'
+            CDN_PRODUCT = u'http://cdn2.korallmicro.ru/snr/images/product/{}/{}'
+            CDN_ARTICLE = u'http://cdn2.korallmicro.ru/snr/images/article/{}/{}'
