@@ -423,6 +423,101 @@ ORM и работа с базой данных
 
 			Настоятельно рекомендуем использовать нижний регистр при переопределении названия таблицы через db_table, особенно при использовании MySQL.
 
+	После определения моделей необходимо указать Django что необходимо их использовать. Это можно сделать, добавив в INSTALLED_APPS имя приложения.
+
+	Нельзя использовать имена конфликтующие с API моделей, такие как clean, save или delete.
+
+	Типы полей можно посмотреть здесь:
+
+		https://djbook.ru/rel1.9/ref/models/fields.html#model-field-types
+
+		https://docs.djangoproject.com/en/2.2/ref/models/fields/#field-types
+
+	Cамые используемые настройки полей:
+
+		null 
+
+			Если True, Django сохранит пустое значение как NULL в базе данных. По умолчанию - False.
+
+		blank
+
+			Если поле содержит blank=True, форма позволит передать пустое значение. При blank=False - поле обязательно.
+
+		choices
+
+			При определении, виджет формы использует select вместо стандартного текстового поля и ограничит значение поля указанными значениями.
+
+		    SHIRT_SIZES = (
+		        ('S', 'Small'),
+		        ('M', 'Medium'),
+		        ('L', 'Large'),
+		    )
+		    shirt_size = models.CharField(max_length=1, choices=SHIRT_SIZES)
+
+		default
+
+			Значение по умолчанию для этого поля.
+
+		primary_key
+
+			При True поле будет первичным ключом.
+
+			При этом Django не добавит поле id по умолчанию.
+
+		unique
+
+			При True поле будет уникальным.
+
+	По умолчанию Django для каждой модели добавляет такое поле: 
+
+		id = models.AutoField(primary_key=True)
+
+		Это автоинкрементный первичный ключ.
+
+	Каждое поле, кроме ForeignKey, ManyToManyField и OneToOneField, первым аргументом принимает необязательное читабельное название.
+
+		first_name = models.CharField('User name')
+
+	ForeignKey, ManyToManyField и OneToOneField первым аргументом принимает класс модели, поэтому для читабельного названия используется аргумент verbose_name.
+
+		sites = models.ForeignKey(Site, verbose_name='list of sites')
+
+	Желательно, чтобы название поля ForeignKey связанной было названием модели в нижнем регистре.
+
+	Для поля ForeignKey можно задать имя для обратной связи.
+
+		class Dealer(models.Model):
+			name = models.CharField(max_length=255)
+
+		class Car(models.Model):
+			dealer = models.ForeignKey(Dealer, related_name='super_cars')
+
+		Dealer.objects.first().super_cars.all()
+
+	Один ко многим
+
+		class Dealer(models.Model):
+			name = models.CharField(max_length=255)
+
+		class Car(models.Model):
+			dealer = models.ForeignKey(Dealer, on_delete=models.CASCADE)
+
+	Связь на модель, которая еще не определена
+
+		class Car(models.Model):
+			dealer = models.ForeignKey('Dealer', on_delete=models.CASCADE)
+
+		class Dealer(models.Model):
+			name = models.CharField(max_length=255)
+
+		Для связи на модель из другого приложения используйте название модели и приложения.
+
+			class Car(models.Model):
+				dealer = models.ForeignKey('app_name.Dealer', on_delete=models.CASCADE)
+
+
+
+
 Как Django обрабатывает запрос
 
 	Определяет какой файл конфигурации урлов считывать.

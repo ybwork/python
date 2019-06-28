@@ -91,11 +91,23 @@
 
 Настраиваем конфиг проекта
 
+	Находится в application/configs/application.ini
+
 	debug = 1
 
 	rostov_dealer_subdomain = 'dev-1'
 
 	logging.enable = 0
+
+	Чистим куки на http://dev-1.korallmicro.ru и https://wwww.korallmicro.ru
+
+	Если используем боевой кэш
+
+		caching.idPrefix = korallmicro_local_
+
+	Если не используем кэш вообще
+
+		caching.enable = 0
 
 Примечание
 

@@ -1,7 +1,28 @@
-[2019-03-20 13:39:28,640: ERROR/MainProcess] Task sync_shop[d02de00a-7c27-4360-aca7-4b58be7b0dde] raised unexpected: IntegrityError(1062, "Duplicate entry '187404' for key 'catalog_products_code_5ad755f595c78602_uniq'")
-Traceback (most recent call last):
+Список ошибок на которые можно не реагировать
 
-чаще всего косяк с дублирующимся товаром в 1С (но нужно смотреть, что за синк)
-IntegrityError: (1062, "Duplicate entry '\xd0\x92\xd1\x81\xd0\xb5 \xd0\xb4\xd0\xbb\xd1\x8f \xd0\xbe\xd1\x84\xd0\xb8\xd1\x81\xd0\xb0/\xd0\x9e\xd1\x80\xd0\xb3\xd1\x82\xd0\xb5\xd1\x85\xd0\xbd\xd0\xb8\xd0\xba\xd0\xb0/\xd0\x9c\xd0\xb8\xd0\xbd\
-xd0\xb8 \xd0\x90\xd0\xa2\xd0\xa1' for key 'full_name'")
-косяк с группой товаров, примерно как предыдущий
+	[2019-03-20 13:39:28,640: ERROR/MainProcess] Task sync_shop[d02de00a-7c27-4360-aca7-4b58be7b0dde] raised unexpected: IntegrityError(1062, "Duplicate entry '187404' for key 'catalog_products_code_5ad755f595c78602_uniq'")
+	Traceback (most recent call last):
+
+	чаще всего косяк с дублирующимся товаром в 1С (но нужно смотреть, что за синк)
+	IntegrityError: (1062, "Duplicate entry '\xd0\x92\xd1\x81\xd0\xb5 \xd0\xb4\xd0\xbb\xd1\x8f \xd0\xbe\xd1\x84\xd0\xb8\xd1\x81\xd0\xb0/\xd0\x9e\xd1\x80\xd0\xb3\xd1\x82\xd0\xb5\xd1\x85\xd0\xbd\xd0\xb8\xd0\xba\xd0\xb0/\xd0\x9c\xd0\xb8\xd0\xbd\
+	xd0\xb8 \xd0\x90\xd0\xa2\xd0\xa1' for key 'full_name'")
+	косяк с группой товаров, примерно как предыдущий
+
+	Task sync_shop with id 9830a61b-303d-411d-994b-0e258fcfdb97 raised exception:
+	'SyncError(u\'\\u041a\\u043e\\u043b\\u0438\\u0447\\u0435\\u0441\\u0442\\u0432\\u043e \\u0440\\u0430\\u0441\\u043f\\u0440\\u0435\\u0434\\u0435\\u043b\\u0435\\u043d\\u043d\\u044b\\u0445 \\u044d\\u043b\\u0435\\u043c\\u0435\\u043d\\u0442\\u043e\\u0432 8966 \\u0434\\u043b\\u044f \\u0441\\u0430\\u0439\\u0442\\u0430 "istore" \\u0432\\u043d\\u0435 \\u0434\\u043e\\u0432\\u0435\\u0440\\u0438\\u0442\\u0435\\u043b\\u044c\\u043d\\u043e\\u0433\\u043e \\u0434\\u0438\\u0430\\u043f\\u043e\\u0437\\u043e\\u043d\\u0430 [0.0, 0.0]\',)'
+
+
+	Task was called with args: [u'istore'] kwargs: {}.
+
+	The contents of the full traceback was:
+
+	Traceback (most recent call last):
+	  File "/home/devel/www/magic-env/local/lib/python2.7/site-packages/celery/app/trace.py", line 240, in trace_task
+	    R = retval = fun(*args, **kwargs)
+	  File "/home/devel/www/magic-env/local/lib/python2.7/site-packages/celery/app/trace.py", line 438, in __protected_call__
+	    return self.run(*args, **kwargs)
+	  File "/home/devel/www/magic-env/local/lib/python2.7/site-packages/django/utils/decorators.py", line 184, in inner
+	    return func(*args, **kwargs)
+	  File "/home/devel/www/magic/modules/catalog/tasks.py", line 657, in sync_shop
+	    new_distribution_count, shop_type, confidence_interval
+	SyncError: \u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u0440\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u043d\u044b\u0445 \u044d\u043b\u0435\u043c\u0435\u043d\u0442\u043e\u0432 8966 \u0434\u043b\u044f \u0441\u0430\u0439\u0442\u0430 "istore" \u0432\u043d\u0435 \u0434\u043e\u0432\u0435\u0440\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0433\u043e \u0434\u0438\u0430\u043f\u043e\u0437\u043e\u043d\u0430 [0.0, 0.0]
