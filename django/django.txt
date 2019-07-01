@@ -191,7 +191,7 @@
 
 	TIME_ZONE
 
-		Засовой пояс, который будет использоваться в проекте
+		Засовой пояс, который будет использоваться в проекте.
 
 	USE_I18N
 
@@ -205,7 +205,9 @@
 
 	USE_TZ
 
-		Указывает, используется ли часовой пояс.
+		При True, Django будет использовать объекты даты и времени с указанным часовым поясом. 
+
+		Иначе Django будет использовать объекты даты и времени без учета часового пояса.
 
 	CACHES
 
@@ -494,6 +496,27 @@ ORM и работа с базой данных
 
 		Dealer.objects.first().super_cars.all()
 
+	Название поля не может быть слово зарезервированное Python, т.к. это приведет к синтаксической ошибке.
+
+	Зарезервированные SQL слова, такие как join, where или select, можно использовать как название поля
+
+	Название поля не может содержать несколько нижних подчеркиваний подряд, т.к. такой подход Django использует для формирования запросов.
+
+	Можно создавать собственные типы полей.
+
+	Один к одному
+
+		class People(models.Model):
+			name = models.CharField(max_length=255)
+
+		class Pasport(models.Model):
+			people = models.OneToOneField(People, on_delete=models.CASCADE)
+			code = models.IntegerField()
+
+		На основе этих моделей создадутся 2 таблицы в бд - appname_people, appname_pasport.
+
+		В таблице appname_pasport будет связь один к одному - people_id.
+
 	Один ко многим
 
 		class Dealer(models.Model):
@@ -515,6 +538,61 @@ ORM и работа с базой данных
 			class Car(models.Model):
 				dealer = models.ForeignKey('app_name.Dealer', on_delete=models.CASCADE)
 
+	Многие ко многим
+
+		class Topping(models.Model):
+		    pass
+
+		class Pizza(models.Model):
+		    toppings = models.ManyToManyField(Topping)
+
+		Желательно, чтобы название поля ManyToManyField было множественным называнием связанных объектов.
+
+		Не имеет значения какая модель содержит поле ManyToManyField, но его может содержать только одна из моделей.
+
+		Обычно, ManyToManyField необходимо добавить в модель, которая будет редактироваться в форме. 
+
+			И потому что обычно думают о пицце с ингредиентами, а не об ингредиентах в различных пиццах.
+
+		В итоге на основе данной модели в бд создастся таблица appname_pizza_toppings.
+
+		Иногда необходимо хранить дополнительную информацию о связи.
+
+			Например музыкальные группы, музыканты и когда музыкант вступил в группу.
+
+			Для таких случаев Django позволяет определить модель для хранения связи многие ко многим и дополнительной информации.
+
+				class Person(models.Model):
+				    name = models.CharField(max_length=128)
+
+				class Group(models.Model):
+				    name = models.CharField(max_length=128)
+				    members = models.ManyToManyField(Person, through='Membership')
+
+				class Membership(models.Model):
+				    person = models.ForeignKey(Person, on_delete=models.CASCADE)
+				    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+				    date_joined = models.DateField()
+				    invite_reason = models.CharField(max_length=64)
+
+				На основе этих моделей создадутся таблицы appname_person, appname_group, appname_membership (здесь и будет находиться связи - person_id, group_id)
+
+				По сути эта такая же связь многие ко многим только с дополнительными полями в таблице, где хранится связь.
+
+	Дополнительные настройки для модели можно определить через class Meta.
+
+		class Ox(models.Model):
+		    horn_length = models.IntegerField()
+
+		    class Meta:
+		        ordering = ['horn_length']
+		        verbose_name_plural = 'oxen'
+
+		Все параметры мета можно посмотреть здесь:
+
+			https://djbook.ru/rel1.9/ref/models/options.html
+
+			https://docs.djangoproject.com/en/2.2/ref/models/options/
 
 
 
