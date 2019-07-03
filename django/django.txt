@@ -10,6 +10,8 @@
 
 	ORM и работа с базой данных
 
+	Выполнение запросов
+
 	Как Django обрабатывает запрос
 
 	Как Django хранит пароли
@@ -309,19 +311,22 @@ django-admin и manage.py
 
 	Во всех примерах в этом разделе используется django-admin, но вы можете использовать manage.py
 
+
 	django-admin help
 
 		help --commands
 
 		help <command>
 
+
 	django-admin startproject
 
-	django-admin version - выводит текущую версию django
+	./manage.py version - выводит текущую версию django
 
-	django-admin startapp name_app (принято именовать во множественном числе)
+	./manage.py startapp name_app (принято именовать во множественном числе)
 
-	django-admin makemigrations
+
+	./manage.py makemigrations
 
 		--empty - создает пустую миграцию для последующего редактирования вручную
 
@@ -329,7 +334,7 @@ django-admin и manage.py
 
 		--name - задает имя миграции
 
-	django-admin migrate
+	./manage.py migrate
 
 		<app_label>
 
@@ -341,9 +346,12 @@ django-admin и manage.py
 
 		--fake-initial - помечает миграции, как выполненные
 
-	django-admin showmigrations
+	./manage.py showmigrations
 
-	django-admin check - анализирует проект Django на наличие распространенных проблем
+	./manage.py migrate my_app zero
+
+
+	./manage.py check - анализирует проект Django на наличие распространенных проблем
 
 		check auth admin othre_app - анализирует только заданные приложения
 
@@ -355,41 +363,51 @@ django-admin и manage.py
 
 			djanog-admin check --deploy --settings=production_settings
 
-	django-admin diffsettings - показывает разницу между текущими настройками и настройками Django по умолчанию
+
+	./manage.py diffsettings - показывает разницу между текущими настройками и настройками Django по умолчанию
 
 		--all - выводит все настройки, даже если они не отличаются от настроек по умолчанию
 
-	django-admin changepassword user_name (работает только, если установлена система авторизации)
 
-	django-admin createsuperuser (работает только, если установлена система авторизации)
+	./manage.py changepassword user_name (работает только, если установлена система авторизации)
 
-	django-admin runserver
+	./manage.py createsuperuser (работает только, если установлена система авторизации)
+
+
+	./manage.py runserver
 
 		0.0.0.0:8000
 
-	django-admin dbshell
+
+	./manage.py dbshell
 
 		--database
 
-	django-admin shell - запускает интерактивный интерпретатор Python
+	./manage.py shell - запускает интерактивный интерпретатор Python
 
-	django-admin loaddata mydata.json - ищет и загружает указанные фикстуры в базу данных
 
-	django-admin inspectdb - выводит сгенерированные модели Django основе таблиц из бд (может пригодиться, когда есть бд, но нет моделей)
+	./manage.py loaddata mydata.json - ищет и загружает указанные фикстуры в базу данных
+
+
+	./manage.py inspectdb - выводит сгенерированные модели Django основе таблиц из бд (может пригодиться, когда есть бд, но нет моделей)
 
 		Если inspectdb не может подобрать подходящий тип поля модели, будет использоваться поле TextField с комментарием в коде 'This field type is a guess.' возле этого поля.
 
 		Если название колонки в таблице входит в зарезервированные слова Python (такие как 'pass', 'class' или 'for'), inspectdb добавит '_field' к названию атрибута.
 
-	django-admin sendtestemail foo@example.com bar@example.com - отправляет тестовое электронное письмо
+
+	./manage.py sendtestemail foo@example.com bar@example.com - отправляет тестовое электронное письмо
 
 		--managers
 
 		--admins
 
-	django-admin clearsessions - удаляет устаревшие данные сессий
 
-	django-admin collectstatic - собирает статические файлы приложений в одно место (директория collectstatic)
+	./manage.py clearsessions - удаляет устаревшие данные сессий
+
+
+	./manage.py collectstatic - собирает статические файлы приложений в одно место (директория collectstatic)
+
 
 	Можно посмотреть здесь:
 
@@ -509,6 +527,12 @@ ORM и работа с базой данных
 			        ordering = ['horn_length']
 			        verbose_name_plural = 'oxen'
 
+		Можно создать неуправляемую модель, указав в meta, managed=False.
+
+			Таблицы для этой модели не будет создаваться или удаляться.
+
+			Это полезно, если модель отображает существующую таблицу или “VIEW” в базе данных, которая была создана другим способом.
+
 	Один к одному
 
 		class People(models.Model):
@@ -590,6 +614,12 @@ ORM и работа с базой данных
 
 		Нужно определить, это должна ли родительская модель быть независимой моделью (с собственной таблицей в базе данных), или же родительская модель просто контейнер для хранения информации, доступной только через дочерние модели.
 
+		Запрещено переопределять атрибуты класса родителя в дочернем классе.
+
+			То есть если родительская модель имеет поле author, вы не можете создать поле с именем author в дочерних моделях.
+
+			Эти ограничения относятся только для атрибутов, которые являются экземплярами Field. Остальные атрибуты могут быть переопределены.
+
 		Абстрактные модели
 
 			Удобны при определении общих, для нескольких моделей, полей.
@@ -633,6 +663,12 @@ ORM и работа с базой данных
 
 			Все поля родительской модели будут доступны в дочерней при том, что значения будут храниться в разных таблицах.
 
+			Дочерняя модель не имеет доступа к родительскому классу Meta.
+
+			Можно не наследовать настроеки Meta родительской модели.
+
+			При использовании ForeignKey и ManyToManyField в дочерней модели по отношении к родительской обязательно нужно указать related_name
+
 			class Place(models.Model):
 			    name = models.CharField(max_length=50)
 			    address = models.CharField(max_length=80)
@@ -640,6 +676,51 @@ ORM и работа с базой данных
 			class Restaurant(Place):
 			    serves_hot_dogs = models.BooleanField(default=False)
 			    serves_pizza = models.BooleanField(default=False)
+
+			    class Meta:
+			    	ordering = []
+
+			class Guest(Place):
+    			customers = models.ManyToManyField(Place, related_name='guests')
+
+    	Proxy модели
+
+    		Используются для переопределения поведения модели (например сортировка, менеджер и т.д.) не меняя структуры базы данных.
+
+    		Указать что это proxy модель можно установив атрибут proxy в классе Meta в True.
+
+    		Если вы не определите ни один менеджер для proxy модели, он будет унаследован от родительской модели.
+
+    		Proxy модель использует ту же таблицу в базе данных, что и оригинальная.
+
+    		Должна наследоваться от одной модели.
+
+			class Person(models.Model):
+			    first_name = models.CharField(max_length=30)
+			    last_name = models.CharField(max_length=30)
+
+			class ProxyPerson(Person):
+				objects = NewManager()
+
+			    class Meta:
+			        proxy = True
+
+		Множественное наследование
+
+			Если есть несколько родительских объектов с классом Meta, в таком случае будет использован атрибут первой родительской модели, остальные будут проигнорированы.
+
+			Наследование от нескольких моделей, которые содержат первичное поле id, вызовет ошибку.
+
+				Чтобы избежать этой проблемы, можно явно указать AutoField поля в базовых моделях.
+
+			class Article(models.Model):
+			    article_id = models.AutoField(primary_key=True)
+
+			class Book(models.Model):
+			    book_id = models.AutoField(primary_key=True)
+
+			class BookReview(Book, Article):
+			    pass
 
 	Атрибуты модели
 
@@ -716,6 +797,81 @@ ORM и работа с базой данных
 		https://djbook.ru/rel1.9/ref/models/fields.html#model-field-types
 
 		https://docs.djangoproject.com/en/2.2/ref/models/fields/#field-types
+
+Выполнение запросов
+
+	Создание
+
+		Вы можете использовать get_or_create() с атрибутами ManyToManyField и обратными внешними связями, но это может вызвать некоторые проблемы при создании объектов.
+
+		При использовании bulk_create метод save() не будет вызван, и сигналы pre_save и post_save тоже.
+
+		bulk_create не работает с дочерними моделями при multi-table наследовании и со связями многое-ко-многим.
+
+
+		Person.objects.create(first_name='Ilya', last_name='Kaduk')
+
+		obj, created = Person.objects.get_or_create(first_name='Ilya', last_name='Kaduk')
+
+		obj, created = Person.objects.update_or_create(first_name='Ilya', last_name='Kaduk')
+
+		Person.objects.bulk_create([
+			Person(first_name='Vika', last_name='Baranova'),
+			Person(first_name='Ilya', last_name='Kaduk'),
+		])
+
+	Обновление
+
+		Django не выполняет запросов к базе данных, пока не будет вызван метод save().
+
+
+		offer = Offer.objects.get(name='old_name')
+		offer.name = 'new_name'
+		offer.save()
+
+
+		joe = Author.objects.create(name="Joe")
+		entry.authors.add(joe)
+
+
+		john = Author.objects.create(name="John")
+		paul = Author.objects.create(name="Paul")
+		entry.authors.add(john, paul)
+
+
+		# обновление нескольких объектов, которые соотвествуют условию
+		Entry.objects.filter(
+			pub_date__year=2007
+		).update(
+			headline='New value'
+		)
+
+
+		# обновляет все записи в связанном объекте
+		b = Blog.objects.get(pk=1)
+		Entry.objects.all().update(blog=b)
+
+
+		# если нужно сохранить каждый объект в QuerySet и удостовериться что метод save() вызван для каждого объекта
+		for item in my_queryset:
+		    item.save()
+
+
+		Entry.objects.all().update(pingbacks=F('pingbacks') + 1)
+
+	Выборка
+
+		Для получения объектов из базы данных, создается QuerySet.
+
+		QuerySet представляет выборку объектов из базы данных.
+
+		Обратиться к менеджерам можно только через класс модели и нельзя через ее экземпляр.
+
+		После каждого изменения QuerySet, вы получаете новый QuerySet, который никак не связан с предыдущим QuerySet.
+
+		QuerySets - ленивы, создание QuerySet не выполняет запросов к базе данных, пока QuerySet не вычислен.
+
+		QuerySet не вычислен
 
 Как Django обрабатывает запрос
 
