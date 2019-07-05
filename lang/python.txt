@@ -2006,4 +2006,10 @@ def get_arg(a):
 
 Модуль JSON
 
-	json.loads() - из строки генерирует json
+	json.loads() - из строки в json
+
+	json.dumps() - из json в строку
+
+		indent=4 - красивое форматирование для сохранения
+
+		ensure_ascii=False - преобразует юникодные строки с читабельный вид
