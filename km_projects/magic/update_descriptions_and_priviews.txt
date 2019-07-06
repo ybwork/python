@@ -1,0 +1,3 @@
+codes = ProductCard.objects.exclude(code__exact=None).get_checked().get_actual().filter(date_formed_description__isnull=True).values_list('code', flat=True)
+
+update_description_and_previews_signal.send(sender=ProductCard, filter={'code__in': codes}, do_update_description=True, do_upload_previews=True)
