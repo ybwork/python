@@ -68,6 +68,8 @@
 
 	sudo apt-get install erlang erlang-nox
 
+	sudo apt-get purge erlang
+
 	------------------------------------------------------------------------
 
 	sudo apt-get update
