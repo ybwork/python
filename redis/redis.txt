@@ -4,6 +4,8 @@
 
 	Установка
 
+	Docker
+
 	Удаление
 
 	Общее
@@ -32,12 +34,17 @@
 
 		ping (должно ответить pong)
 
+Docker
+
+	docker run -it --network some-network --rm redis redis-cli -p 6379:6379 -h redis
+
+	docker run --name redis -p 6379:6379 -d redis
+
 Удаление
 
 	sudo systemctl stop redis
 
 	sudo apt-get purge --auto-remove redis-server
-
 
 Общее
 

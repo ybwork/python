@@ -9,6 +9,8 @@
 	/home/ilya/work/projects/korallmicro_conf/nginx/conf.d/
 
 	/home/ilya/work/projects/korallmicro_conf/nginx/sites-available/
+	
+	/home/ilya/work/projects/korallmicro_conf/nginx/sites-enabled/
 
 	/home/ilya/work/projects/php/
 
