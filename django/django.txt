@@ -8,7 +8,15 @@
 
 	django-admin и manage.py
 
+
 	ORM и работа с базой данных
+
+	QuerySet
+
+	Когда вычисляется QuerySet
+
+	Выполнение запросов
+	
 
 	Как Django обрабатывает запрос
 
@@ -191,7 +199,7 @@
 
 	TIME_ZONE
 
-		Засовой пояс, который будет использоваться в проекте
+		Засовой пояс, который будет использоваться в проекте.
 
 	USE_I18N
 
@@ -205,7 +213,9 @@
 
 	USE_TZ
 
-		Указывает, используется ли часовой пояс.
+		При True, Django будет использовать объекты даты и времени с указанным часовым поясом. 
+
+		Иначе Django будет использовать объекты даты и времени без учета часового пояса.
 
 	CACHES
 
@@ -307,19 +317,22 @@ django-admin и manage.py
 
 	Во всех примерах в этом разделе используется django-admin, но вы можете использовать manage.py
 
+
 	django-admin help
 
 		help --commands
 
 		help <command>
 
+
 	django-admin startproject
 
-	django-admin version - выводит текущую версию django
+	./manage.py version - выводит текущую версию django
 
-	django-admin startapp name_app (принято именовать во множественном числе)
+	./manage.py startapp name_app (принято именовать во множественном числе)
 
-	django-admin makemigrations
+
+	./manage.py makemigrations
 
 		--empty - создает пустую миграцию для последующего редактирования вручную
 
@@ -327,7 +340,7 @@ django-admin и manage.py
 
 		--name - задает имя миграции
 
-	django-admin migrate
+	./manage.py migrate
 
 		<app_label>
 
@@ -339,9 +352,12 @@ django-admin и manage.py
 
 		--fake-initial - помечает миграции, как выполненные
 
-	django-admin showmigrations
+	./manage.py showmigrations
 
-	django-admin check - анализирует проект Django на наличие распространенных проблем
+	./manage.py migrate my_app zero
+
+
+	./manage.py check - анализирует проект Django на наличие распространенных проблем
 
 		check auth admin othre_app - анализирует только заданные приложения
 
@@ -353,41 +369,51 @@ django-admin и manage.py
 
 			djanog-admin check --deploy --settings=production_settings
 
-	django-admin diffsettings - показывает разницу между текущими настройками и настройками Django по умолчанию
+
+	./manage.py diffsettings - показывает разницу между текущими настройками и настройками Django по умолчанию
 
 		--all - выводит все настройки, даже если они не отличаются от настроек по умолчанию
 
-	django-admin changepassword user_name (работает только, если установлена система авторизации)
 
-	django-admin createsuperuser (работает только, если установлена система авторизации)
+	./manage.py changepassword user_name (работает только, если установлена система авторизации)
 
-	django-admin runserver
+	./manage.py createsuperuser (работает только, если установлена система авторизации)
+
+
+	./manage.py runserver
 
 		0.0.0.0:8000
 
-	django-admin dbshell
+
+	./manage.py dbshell
 
 		--database
 
-	django-admin shell - запускает интерактивный интерпретатор Python
+	./manage.py shell - запускает интерактивный интерпретатор Python
 
-	django-admin loaddata mydata.json - ищет и загружает указанные фикстуры в базу данных
 
-	django-admin inspectdb - выводит сгенерированные модели Django основе таблиц из бд (может пригодиться, когда есть бд, но нет моделей)
+	./manage.py loaddata mydata.json - ищет и загружает указанные фикстуры в базу данных
+
+
+	./manage.py inspectdb - выводит сгенерированные модели Django основе таблиц из бд (может пригодиться, когда есть бд, но нет моделей)
 
 		Если inspectdb не может подобрать подходящий тип поля модели, будет использоваться поле TextField с комментарием в коде 'This field type is a guess.' возле этого поля.
 
 		Если название колонки в таблице входит в зарезервированные слова Python (такие как 'pass', 'class' или 'for'), inspectdb добавит '_field' к названию атрибута.
 
-	django-admin sendtestemail foo@example.com bar@example.com - отправляет тестовое электронное письмо
+
+	./manage.py sendtestemail foo@example.com bar@example.com - отправляет тестовое электронное письмо
 
 		--managers
 
 		--admins
 
-	django-admin clearsessions - удаляет устаревшие данные сессий
 
-	django-admin collectstatic - собирает статические файлы приложений в одно место (директория collectstatic)
+	./manage.py clearsessions - удаляет устаревшие данные сессий
+
+
+	./manage.py collectstatic - собирает статические файлы приложений в одно место (директория collectstatic)
+
 
 	Можно посмотреть здесь:
 
@@ -409,19 +435,584 @@ ORM и работа с базой данных
 
 	    Минусы: скорость работы
 
-	За работу с базой данных отвечает модель.
+	Общее
 
-	Модели определяются в файле models.py каждого приложения.
+		За работу с базой данных отвечает модель.
 
-	Обычно одна модель представляет одну таблицу в бд.
+		Модели определяются в файле models.py каждого приложения.
 
-	В сообществе принято называть таблицы и модели в единственном числе. Например Product.
+		Обычно одна модель представляет одну таблицу в бд.
 
-	После выполнения миграций на основе моделей в базе данных создаются таблица в формате appname_modelname (cards_product).
+		В сообществе принято называть таблицы и модели в единственном числе. Например Product.
 
-		Название таблицы можно переопределить с помощью параметра db_table, который нужно добавить в класс Meta, который находится внутри класса модели.
+		После выполнения миграций на основе моделей в базе данных создаются таблица в формате appname_modelname (cards_product).
 
-			Настоятельно рекомендуем использовать нижний регистр при переопределении названия таблицы через db_table, особенно при использовании MySQL.
+			Название таблицы можно переопределить с помощью параметра db_table, который нужно добавить в класс Meta, который находится внутри класса модели.
+
+				Настоятельно рекомендуем использовать нижний регистр при переопределении названия таблицы через db_table, особенно при использовании MySQL.
+
+		После определения моделей необходимо указать Django что необходимо их использовать. Это можно сделать, добавив в INSTALLED_APPS имя приложения.
+
+		Нельзя использовать имена конфликтующие с API моделей, такие как clean, save или delete.
+
+		Cамые используемые настройки полей:
+
+			null 
+
+				Если True, Django сохранит пустое значение как NULL в базе данных. По умолчанию - False.
+
+			blank
+
+				Если поле содержит blank=True, форма позволит передать пустое значение. При blank=False - поле обязательно.
+
+			choices
+
+				При определении, виджет формы использует select вместо стандартного текстового поля и ограничит значение поля указанными значениями.
+
+			    SHIRT_SIZES = (
+			        ('S', 'Small'),
+			        ('M', 'Medium'),
+			        ('L', 'Large'),
+			    )
+			    shirt_size = models.CharField(max_length=1, choices=SHIRT_SIZES)
+
+			default
+
+				Значение по умолчанию для этого поля.
+
+			primary_key
+
+				При True поле будет первичным ключом.
+
+				При этом Django не добавит поле id по умолчанию.
+
+			unique
+
+				При True поле будет уникальным.
+
+		По умолчанию Django для каждой модели добавляет такое поле: 
+
+			id = models.AutoField(primary_key=True)
+
+			Это автоинкрементный первичный ключ.
+
+		Каждое поле, кроме ForeignKey, ManyToManyField и OneToOneField, первым аргументом принимает необязательное читабельное название.
+
+			first_name = models.CharField('User name')
+
+		ForeignKey, ManyToManyField и OneToOneField первым аргументом принимает класс модели, поэтому для читабельного названия используется аргумент verbose_name.
+
+			sites = models.ForeignKey(Site, verbose_name='list of sites')
+
+		Желательно, чтобы название поля ForeignKey связанной было названием модели в нижнем регистре.
+
+		Для поля ForeignKey можно задать имя для обратной связи.
+
+			class Dealer(models.Model):
+				name = models.CharField(max_length=255)
+
+			class Car(models.Model):
+				dealer = models.ForeignKey(Dealer, related_name='super_cars')
+
+			Dealer.objects.first().super_cars.all()
+
+		Название поля не может быть слово зарезервированное Python, т.к. это приведет к синтаксической ошибке.
+
+		Зарезервированные SQL слова, такие как join, where или select, можно использовать как название поля
+
+		Название поля не может содержать несколько нижних подчеркиваний подряд, т.к. такой подход Django использует для формирования запросов.
+
+		Можно создавать собственные типы полей.
+
+		Дополнительные настройки для модели можно определить через class Meta.
+
+			class Ox(models.Model):
+			    horn_length = models.IntegerField()
+
+			    class Meta:
+			        ordering = ['horn_length']
+			        verbose_name_plural = 'oxen'
+
+		Можно создать неуправляемую модель, указав в meta, managed=False.
+
+			Таблицы для этой модели не будет создаваться или удаляться.
+
+			Это полезно, если модель отображает существующую таблицу или “VIEW” в базе данных, которая была создана другим способом.
+
+	Один к одному
+
+		class People(models.Model):
+			name = models.CharField(max_length=255)
+
+		class Pasport(models.Model):
+			people = models.OneToOneField(People, on_delete=models.CASCADE)
+			code = models.IntegerField()
+
+		На основе этих моделей создадутся 2 таблицы в бд - appname_people, appname_pasport.
+
+		В таблице appname_pasport будет связь один к одному - people_id.
+
+	Один ко многим
+
+		class Dealer(models.Model):
+			name = models.CharField(max_length=255)
+
+		class Car(models.Model):
+			dealer = models.ForeignKey(Dealer, on_delete=models.CASCADE)
+
+	Связь на модель, которая еще не определена
+
+		class Car(models.Model):
+			dealer = models.ForeignKey('Dealer', on_delete=models.CASCADE)
+
+		class Dealer(models.Model):
+			name = models.CharField(max_length=255)
+
+		Для связи на модель из другого приложения используйте название модели и приложения.
+
+			class Car(models.Model):
+				dealer = models.ForeignKey('app_name.Dealer', on_delete=models.CASCADE)
+
+	Многие ко многим
+
+		class Topping(models.Model):
+		    pass
+
+		class Pizza(models.Model):
+		    toppings = models.ManyToManyField(Topping)
+
+		Желательно, чтобы название поля ManyToManyField было множественным называнием связанных объектов.
+
+		Не имеет значения какая модель содержит поле ManyToManyField, но его может содержать только одна из моделей.
+
+		Обычно, ManyToManyField необходимо добавить в модель, которая будет редактироваться в форме. 
+
+			И потому что обычно думают о пицце с ингредиентами, а не об ингредиентах в различных пиццах.
+
+		В итоге на основе данной модели в бд создастся таблица appname_pizza_toppings.
+
+		Иногда необходимо хранить дополнительную информацию о связи.
+
+			Например музыкальные группы, музыканты и когда музыкант вступил в группу.
+
+			Для таких случаев Django позволяет определить модель для хранения связи многие ко многим и дополнительной информации.
+
+				class Person(models.Model):
+				    name = models.CharField(max_length=128)
+
+				class Group(models.Model):
+				    name = models.CharField(max_length=128)
+				    members = models.ManyToManyField(Person, through='Membership')
+
+				class Membership(models.Model):
+				    person = models.ForeignKey(Person, on_delete=models.CASCADE)
+				    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+				    date_joined = models.DateField()
+				    invite_reason = models.CharField(max_length=64)
+
+				На основе этих моделей создадутся таблицы appname_person, appname_group, appname_membership (здесь и будет находиться связи - person_id, group_id)
+
+				По сути эта такая же связь многие ко многим только с дополнительными полями в таблице, где хранится связь.
+
+	Наследование
+
+		Базовый класс должен наследоваться от models.Model.
+
+		Нужно определить, это должна ли родительская модель быть независимой моделью (с собственной таблицей в базе данных), или же родительская модель просто контейнер для хранения информации, доступной только через дочерние модели.
+
+		Запрещено переопределять атрибуты класса родителя в дочернем классе.
+
+			То есть если родительская модель имеет поле author, вы не можете создать поле с именем author в дочерних моделях.
+
+			Эти ограничения относятся только для атрибутов, которые являются экземплярами Field. Остальные атрибуты могут быть переопределены.
+
+		Абстрактные модели
+
+			Удобны при определении общих, для нескольких моделей, полей.
+
+			Для этой модели не будет создана таблица в базе данных.
+
+			Поля в абстрактной модели будут в той модели, которая наследуется от неё.
+
+			Нельзя использовать поля с одинаковыми названиями в дочерней и родительской моделях.
+
+			Абстрактная модель не имеет менеджера.
+
+			Если дочерний класс не определяет собственный класс Meta, он унаследует родительский класс Meta.
+
+			Можно расширить родительский класс Meta.
+
+			class CommonInfo(models.Model):
+			    name = models.CharField(max_length=100)
+			    age = models.PositiveIntegerField()
+
+			    class Meta:
+			        abstract = True
+
+			class Student(CommonInfo):
+			    home_group = models.CharField(max_length=5)
+
+			    class Meta(CommonInfo.Meta):
+			        db_table = 'student_info'
+
+			Используя атрибут related_name для ForeignKey или ManyToManyField, вы должны всегда определять уникальное название для обратной связи.
+
+				Потому что поля абстрактной модели будут добавлены в каждой из дочерних моделей, с теми же значениями аргументов.
+
+				Не указав related_name для абстрактной модели, для обратной связи будет использовано название дочерней модели плюс '_set'.
+
+		Multi-table
+
+			Каждая модель имеет собственную таблицу в базе данных и может быть использована независимо.
+
+			Наследование использует связь между родительской и дочерней моделью через автоматически созданное поле OneToOneField.
+
+			Все поля родительской модели будут доступны в дочерней при том, что значения будут храниться в разных таблицах.
+
+			Дочерняя модель не имеет доступа к родительскому классу Meta.
+
+			Можно не наследовать настроеки Meta родительской модели.
+
+			При использовании ForeignKey и ManyToManyField в дочерней модели по отношении к родительской обязательно нужно указать related_name
+
+			class Place(models.Model):
+			    name = models.CharField(max_length=50)
+			    address = models.CharField(max_length=80)
+
+			class Restaurant(Place):
+			    serves_hot_dogs = models.BooleanField(default=False)
+			    serves_pizza = models.BooleanField(default=False)
+
+			    class Meta:
+			    	ordering = []
+
+			class Guest(Place):
+    			customers = models.ManyToManyField(Place, related_name='guests')
+
+    	Proxy модели
+
+    		Используются для переопределения поведения модели (например сортировка, менеджер и т.д.) не меняя структуры базы данных.
+
+    		Указать что это proxy модель можно установив атрибут proxy в классе Meta в True.
+
+    		Если вы не определите ни один менеджер для proxy модели, он будет унаследован от родительской модели.
+
+    		Proxy модель использует ту же таблицу в базе данных, что и оригинальная.
+
+    		Должна наследоваться от одной модели.
+
+			class Person(models.Model):
+			    first_name = models.CharField(max_length=30)
+			    last_name = models.CharField(max_length=30)
+
+			class ProxyPerson(Person):
+				objects = NewManager()
+
+			    class Meta:
+			        proxy = True
+
+		Множественное наследование
+
+			Если есть несколько родительских объектов с классом Meta, в таком случае будет использован атрибут первой родительской модели, остальные будут проигнорированы.
+
+			Наследование от нескольких моделей, которые содержат первичное поле id, вызовет ошибку.
+
+				Чтобы избежать этой проблемы, можно явно указать AutoField поля в базовых моделях.
+
+			class Article(models.Model):
+			    article_id = models.AutoField(primary_key=True)
+
+			class Book(models.Model):
+			    book_id = models.AutoField(primary_key=True)
+
+			class BookReview(Book, Article):
+			    pass
+
+	Атрибуты модели
+
+		Самый важный это objects, который является менеджером модели.
+
+		Менеджер это интерфейс, через который Django выполняет запросы к базе данных и получает объекты.
+
+		Менеджеры доступны только через класс модели, они не доступны в экземплярах (объектах) модели.
+
+	Методы модели
+
+		__str__ - возращает строковое представление объекта
+
+		__eq__ - ?
+
+		__hash__ - возращает хэш объекта
+
+		get_absolute_url - возвращает строку-url для объекта (используется в интерфейсе администратора для "Показать на сайте")
+
+			<a href="{{ object.get_absolute_url }}">{{ object.name }}</a>
+
+		get_FOO_display - возвращает значение поля из choices, который определен в модели. FOO нужно заменить на имя choices
+
+			class Person(models.Model):
+			    SHIRT_SIZES = (
+			        ('S', 'Small'),
+			        ('M', 'Medium'),
+			        ('L', 'Large'),
+			    )
+
+			p = Person(name="Fred")
+			p.get_shirt_size_display()
+
+		get_next_by_FOO - возвращает следующее значение поля из choices от текущего
+
+		get_previous_by_FOO - возвращает предыдущее значение поля из choices от текущего
+
+	Переопределение методов модели
+
+		Чаще всего вы захотите переопределить метод save() и delete().
+
+		Переопределенные методы модели не вызываются при множественных операциях с bulk.
+
+		Учтите, метод delete() не обязательно вызывается при массовом удалении объектов через QuerySet или как результат каскадного удаления.
+
+		class Blog(models.Model):
+		    name = models.CharField(max_length=100)
+
+		    def save(self, *args, **kwargs):
+		        # action before
+
+		        super().save(*args, **kwargs)
+
+		        # action after
+
+	Свои методы модели
+
+		Для добавления функционала работы с экземпляром модели, необходимо добавить метод в модель.
+
+		Методы модели работают с конкретной записью в таблице.
+
+		class Person(models.Model):
+		    def get_full_name(self):
+		    	return '{name] {surname}'.format(name=self.name, surname=self.surname)
+
+	Все параметры мета можно посмотреть здесь:
+
+		https://djbook.ru/rel1.9/ref/models/options.html
+
+		https://docs.djangoproject.com/en/2.2/ref/models/options/
+
+	Типы полей можно посмотреть здесь:
+
+		https://djbook.ru/rel1.9/ref/models/fields.html#model-field-types
+
+		https://docs.djangoproject.com/en/2.2/ref/models/fields/#field-types
+
+QuerySet
+
+	Для получения объектов из базы данных, создается QuerySet.
+
+	QuerySet представляет выборку объектов из базы данных.
+
+	Обратиться к менеджерам можно только через класс модели и нельзя через экземпляр.
+
+	После каждого изменения QuerySet, вы получаете новый QuerySet, который никак не связан с предыдущим.
+
+	Создание QuerySet не выполняет запросов к базе данных, пока QuerySet не вычислен.
+
+	Если используется срез, больше нельзя изменять queryset (например, добавлять фильтры, менять сортировку и т.д.).
+
+Когда вычисляется QuerySet
+	
+	При первом выполнении итерации
+
+		for e in Entry.objects.all():
+    		print(e.headline)
+
+    Если будет указан шаг среза
+
+    	Entry.objects.all()[1:10:2]
+
+    	Срез без шага возвращает новый не вычисленный QuerySet.
+
+    Если используется pickle для QuerySet
+
+    При обращении к св-ву объекта
+
+    	entry = Entry.objects.all()
+    	entry.first().name
+
+    При использовании repr()
+
+    	repr() используется для строкового представления объекта.
+
+    При использовании len()
+
+    	entry_count = len(Entry.objects.all())
+
+    При использовании list()
+
+    	entry_list = list(Entry.objects.all())
+
+    При вычислении булевого значения
+
+    	if Entry.objects.filter(headline='Test'):
+
+Выполнение запросов
+
+	Создание
+
+		Вы можете использовать get_or_create() с атрибутами ManyToManyField и обратными внешними связями, но это может вызвать некоторые проблемы при создании объектов.
+
+		При использовании bulk_create метод save() не будет вызван, и сигналы pre_save и post_save тоже.
+
+		bulk_create не работает с дочерними моделями при multi-table наследовании и со связями многое-ко-многим.
+
+
+		Person.objects.create(first_name='Ilya', last_name='Kaduk')
+
+		obj, created = Person.objects.get_or_create(first_name='Ilya', last_name='Kaduk')
+
+		obj, created = Person.objects.update_or_create(first_name='Ilya', last_name='Kaduk')
+
+		Person.objects.bulk_create([
+			Person(first_name='Vika', last_name='Baranova'),
+			Person(first_name='Ilya', last_name='Kaduk'),
+		])
+
+	Обновление
+
+		Django не выполняет запросов к базе данных, пока не будет вызван метод save().
+
+
+		offer = Offer.objects.get(name='old_name')
+		offer.name = 'new_name'
+		offer.save()
+
+
+		joe = Author.objects.create(name="Joe")
+		entry.authors.add(joe)
+
+
+		john = Author.objects.create(name="John")
+		paul = Author.objects.create(name="Paul")
+		entry.authors.add(john, paul)
+
+
+		# обновление нескольких объектов, которые соотвествуют условию
+		Entry.objects.filter(
+			pub_date__year=2007
+		).update(
+			headline='New value'
+		)
+
+
+		# обновляет все записи в связанном объекте
+		b = Blog.objects.get(pk=1)
+		Entry.objects.all().update(blog=b)
+
+
+		# если нужно сохранить каждый объект в QuerySet и удостовериться что метод save() вызван для каждого объекта
+		for item in my_queryset:
+		    item.save()
+
+
+		Entry.objects.all().update(pingbacks=F('pingbacks') + 1)
+
+	Выборка
+
+		Entry.objects.all()
+
+		Entry.objects.get()
+
+		Entry.objects.first()
+
+		Фильтры по связанным объектам
+
+			Blog.objects.filter(entry__authors__name='Lennon')
+
+		Фильтрация по связям многие ко многим
+
+			# возьми все с ...=2006, а также с ...='What'
+
+			Entry.objects.filter(pub_date__year=2006).filter(headline__startswith='What')
+
+			# запись должна удовлетворять оба условия
+
+			Entry.objects.filter(pub_date__year=2006, headline__startswith='What', pub_date__gte=datetime(2005, 1, 30))
+
+		Exclude по связям многие ко многим
+
+			Blog.objects.exclude(
+			    entry__headline__contains='Lennon',
+			    entry__pub_date__year=2008,
+			)
+
+		Если необходимо всего лишь узнать содержит ли результат, то эффективнее использовать метод exists()
+
+			Entry.objects.filter(pk=22).exists()
+
+		Для получения одного объекта, а не списка, используйте индекс вместо среза
+
+			Entry.objects.all()[0]
+
+		Другие условия выборки
+
+			# точное совпадение
+			Entry.objects.get(headline__exact="Cat bites dog")
+
+			# точное регистро-независимое, совпадение
+			Entry.objects.filter(name__iexact='beatles blog')
+
+			# проверка на вхождение, как Like
+			Entry.objects.filter(headline__contains='Lennon')
+
+			# знак % экранировать не нужно
+			Entry.objects.filter(headline__contains='%')
+
+			# регистронезависимая проверка на вхождение
+			Entry.objects.filter(headline__icontains='Lennon')
+
+			# больше чем
+			Entry.objects.filter(id__gt=4)
+
+			# больше чем или равно
+			Entry.objects.filter(id__gte=4)
+
+			# меньше чем
+			Entry.objects.filter(id__lt=4)
+
+			# меньше чем или равно
+			Entry.objects.filter(id__lte=4)
+
+			# начинается ли поле с указанного значения
+			Entry.objects.filter(id__startswith=4)
+
+			# регистронезависимая проверка начинается ли поле с указанного значения
+			Entry.objects.filter(id__istartswith=4)
+
+			# проверка оканчивается ли поле с указанного значения
+			Entry.objects.filter(id__endswith=4)
+
+			# регистронезависимая проверка оканчивается ли поле с указанного значения
+			Entry.objects.filter(id__iendswith=4)
+
+			# проверка на вхождение в диапазон (включающий)
+			Entry.objects.filter(pub_date__range=(start_date, end_date))
+
+			# проверка на дату
+			Entry.objects.filter(pub_date__date=datetime.date(2005, 1, 1))
+
+			# проверяет на IS NULL
+			Entry.objects.filter(pub_date__isnull=True)
+
+			# проверяет на IS NOT NULL
+			Entry.objects.filter(pub_date__isnull=False) 
+
+			# полнотекстовый поиск, который использует преимущества полнотекстового индекса. Работает как и contains но значительно быстрее.
+			Entry.objects.filter(headline__search="+Django -jazz Python")
+
+			# проверка регулярным выражением
+			Entry.objects.filter(title__regex=r'^(An?|The) +')
+
+			# регистронезависимая проверка регулярным выражением
+			Entry.objects.filter(title__iregex=r'^(an?|the) +')
 
 Как Django обрабатывает запрос
 

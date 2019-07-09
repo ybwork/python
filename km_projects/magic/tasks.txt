@@ -346,6 +346,11 @@ Integrity Error в синхронизации между magic и 1c.
 
     модель OfferProperty
 
+    get_json_offertypes
+
+    from main.tasks.profiles  import apply_ones_action_prices
+    pply_ones_action_prices.delay(1)
+
 Не приходят письма если возникает ошибки при проведении карточек товара
 
     Может происходить из-за того что необновился счетчик в кэше.

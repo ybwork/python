@@ -1,7 +1,0 @@
-ssh devel@cdn2.km-union.ru
-
-bold4;fx
-
-../media/storage
-
-на cdn НЕ заходи из mc в ../media/storage/korallmicro/images/product
