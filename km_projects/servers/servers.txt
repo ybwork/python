@@ -1,10 +1,10 @@
 Боевой
 
-	ssh devel@192.168.7.76
+	ssh devel@192.168.7.76 (magic)
 
-	ssh devel@192.168.7.77
+	ssh devel@192.168.7.77 (snr)
 
-		snr
+	ssh web@192.168.7.54 (dp)
 
 Тестовый
 
