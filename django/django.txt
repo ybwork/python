@@ -47,6 +47,8 @@
 
 		Удаление
 
+		Использование чистого SQL
+
 	Безопасность
 	
 
@@ -1244,17 +1246,121 @@ QuerySet
 
 	Агрегация
 
-		...
+		Позволяют вычислить одно значение из группы значений одного столбца в таблице. 
+
+		Например мы хотим узнать кол-во книг всех авторов или кол-во книг одного автора.
+
 
 		Для всех объектов в целом
 
 			Используется .aggregate()
 
-			Например, мы хотим вычислить среднюю цену для всех книг.
+			aggregate() завершающая инструкция для QuerySet, которая возвращает словарь с результатом.
 
-				Book.objects.all().aggregate(Avg('price'))
+
+			Book.objects.all().aggregate(Avg('price'))
+
+			Book.objects.aggregate(Avg('price'))
+
+			# Оба запроса выше вычислят результат, который будет доступен по ключу price__avg
+
+			Book.objects.aggregate(Avg('price'), Max('price'), Min('price'))
+
+			# average_price - имя ключа по которому можно получить результат
+			Book.objects.aggregate(average_price=Avg('price'))
 
 		Для каждого объекта
+
+			Используется .annotate()
+
+
+			book = Book.objects.annotate(Count('authors'))
+
+			book[0].authors__count
+
+			book[1].authors__count
+
+			Book.objects.annotate(num_authors=Count('authors'))
+
+			Book.objects.annotate(Count('authors'), Count('chapters'))
+
+
+			Объединение нескольких агрегаций через annotate() может привести к неправильному результату, т.к. объединяются несколько таблиц. Из-за использования LEFT OUTER JOIN могут создаваться дублирующиеся записи, если объединенные таблицы содержат разное количество записей. Однако, агрегация Count принимает аргумент distinct, который может помочь.
+
+				Book.objects.annotate(Count('authors', distinct=True), Count('chapters', distinct=True))
+
+		По связанным моделям
+
+			Store.objects.aggregate(min_price=Min('books__price'))
+
+			Store.objects.annotate(min_price=Min('books__price'))
+
+
+			Store.objects.aggregate(youngest_age=Min('books__authors__age'))
+
+		Обратные связи
+
+			Publisher.objects.annotate(Count('book'))
+
+			# получаем самую старую книгу издателя
+			Publisher.objects.aggregate(oldest_pubdate=Min('book__pubdate'))
+
+		Другие методы и агрегация
+
+			При исользовании будет использовататься тот порядок, который задан, то есть если сначала идет агрегация, а потом фильтрация, то так и будет. И на оборот.
+
+
+			Фильтр ограничит выборку объектов, для которых необходимо выполнить агрегацию.
+
+			Фильтры и exclud-ы можно использовать после агрегации.
+
+
+			Book.objects.filter(name__startswith="Django").annotate(num_authors=Count('authors'))
+
+			Book.objects.annotate(num_authors=Count('authors')).filter(num_authors__gt=1)
+
+		Аннотация и сортировка order_by()
+
+			При исользовании будет использовататься тот порядок, который задан, то есть если сначала идет агрегация, а потом фильтрация, то так и будет. И на оборот.
+
+
+			Book.objects.annotate(num_authors=Count('authors')).order_by('num_authors')
+
+		Аннотация и values()
+
+			При исользовании будет использовататься тот порядок, который задан, то есть если сначала идет агрегация, а потом фильтрация, то так и будет. И на оборот.
+
+
+			Вместо того, чтобы вычислить значение для каждого объекта QuerySet, сначала все объекты результата будут разделены на группы по уникальному значению полей, указанных в values().
+
+			А аннотация будет использована для каждой группы и будут использованы значения всех объектов группы.
+
+
+
+			Author.objects.values('name').annotate(average_rating=Avg('book__rating'))
+
+				В примере выше, авторы будут сгруппированы по имени, поэтому вы получите средний рейтинг для уникального имени автора. 
+
+				Это означает, что, если в базе есть два автора с одинаковым именем, их результаты будут объединены вместе, а среднее значение будет вычислено, как среднее значение книг обоих авторов.
+
+				Однако, если annotate() используется перед values(), аннотация будет вычислена для каждого объекта и values() просто ограничит возвращаемые поля.
+
+		Влияние сортировки по-умолчанию и order_by()
+
+			Если в модели задана сортировка по умолчанию, то она будет влиять.
+
+				class Meta:
+					ordering = ['name']
+
+				Чтобы решить проблему нужно убрать сортировку из запроса и добавить нужные поля в values().
+
+					Item.objects.values("data").annotate(Count("id")).order_by()
+
+		Аннотация для агрегации
+
+			Можно использовать если нужно посчитать среднее количество авторов для каждой книги.
+
+				Book.objects.annotate(num_authors=Count('authors')).aggregate(Avg('num_authors'))
 
 	Удаление
 
@@ -1262,6 +1368,10 @@ QuerySet
 		entry.delete()
 
 		Entry.objects.filter(pub_date__year=2005).delete()
+
+	Использование чистого SQL
+
+		...
 
 Безопасность
 
