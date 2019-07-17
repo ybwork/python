@@ -92,7 +92,34 @@
 
 	Как
 
+		Получаем запрос
+
+		Нужно чистить кэш на каждой новой минуте или делать по другому.
+
+			Пишем кэш в формате 
+
+				ключ = {
+					время = кол-во обращений
+				}
+
+			Если при проверке не находит время, то отчищаем весь кэш по ключу.
+
+		Смотрим есть ли кэш
+
+			Если нет кэша по данной временной метке, то создаем
+
+			Если есть кэш, то проверяем кол-во запросов
+
+				Если лимит привышем, то выходим
+
+				Если нет, то даем запросу пройти дальше
+
 		cache.set
+
+			key => {
+
+				time => count
+			}
 
 		cache.get
 
@@ -101,6 +128,24 @@
 		cache
 
 			cache.delete_pattern('key')
+
+
+		---
+
+		current_date_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+		limit_get_feed_in_minute = 4
+
+		request_count = cache.get_or_set('request_count', 'request_count', {})
+
+		if current_date_time not in request_count:
+			cache.delete('request_count')
+			cache.set('request_count', {current_date_time: 1})
+
+		if  request_count[current_date_time] > limit_get_feed_in_minute:
+			return None
+
+		cache.set('request_count', {current_date_time: limit_get_feed_in_minute += 1})
 
 
 

@@ -49,6 +49,11 @@
 
 		Использование чистого SQL
 
+
+	Транзакции
+
+		...
+	
 	Безопасность
 	
 
@@ -1371,8 +1376,89 @@ QuerySet
 
 	Использование чистого SQL
 
-		...
+		Использование модели
 
+			Этот вариант выполняет запрос и возвращает RawQuerySet.
+
+			RawQuerySet может быть проитерирован (как и обычный QuerySet) для получения объектов.
+
+				Хотя RawQuerySet и можно проитерировать как QuerySet, RawQuerySet не предоставляет все методы QuerySet.
+
+			SQL Запрос переданный в .raw() не проверяется.
+
+			Если запрос возвращает не набор записей, вы получите ошибку.
+
+
+			Выполняя запрос в MySQL, обратите внимание на преобразование типов. 
+
+				Если вы выполняете запрос по текстовому полю, но используете числовое значение, MySQL преобразует все значения поля в число перед сравнением.
+
+				Чтобы избежать этого, используйте значение правильного типа в запросе.
+
+
+			Person.objects.raw('SELECT * FROM myapp_person')
+
+			for p in Person.objects.raw('SELECT * FROM myapp_person'):
+				print(p)
+
+			first_person = Person.objects.raw('SELECT * FROM myapp_person')[0]
+
+				Если база данных содержит большое количество записей Person, эффективнее ограничить результат выборки на уровне SQL.
+
+					first_person = Person.objects.raw('SELECT * FROM myapp_person LIMIT 1')[0]
+
+			Отложенная загрузка полей
+
+				Есть только одно поле, которое вы обязаны загрузить - первичный ключ.
+
+					Если вы забудете про первичный ключ, будет вызвано исключение InvalidQuery.
+
+				Это означает, что неуказанные в запросе поля будут загружены при обращении к ним.
+
+					for p in Person.objects.raw('SELECT id, first_name FROM myapp_person'):
+						# этого поля не было в запросе и оно загрузилось только сейчас (выполнился ещё один запрос)
+						print(p.last_name)
+
+			Используйте %s в строке с запросом для списка параметров, или %(key)s для словаря(где key будет заменен на значение ключа из словаря), независимо от базы данных.
+
+				lname = 'Doe'
+				erson.objects.raw('SELECT * FROM myapp_person WHERE last_name = %s', [lname])
+
+			Не используйте форматирование строк в запросе!
+
+				При вставке параметров непосредственно в строку запроса, рано или поздно вы станете жертвой атаки с внедрением SQL-кода. 
+
+				query = 'SELECT * FROM myapp_person WHERE last_name = %s' % lname
+				Person.objects.raw(query)
+
+		Выполнение запроса на прямую
+
+			def my_custom_sql(self):
+			    cursor = connection.cursor()
+
+			    cursor.execute('SELECT foo FROM bar WHERE baz = %s', [self.baz])
+
+			    return cursor.fetchone()
+
+			Если необходимо вставить символ процента, необходимо его продублировать.
+
+				cursor.execute("SELECT foo FROM bar WHERE baz = '30%%' AND id = %s", [self.id])
+
+			Если вы используете несколько баз данных, вы можете использовать django.db.connections для получения подключения к конкретной базе данных.
+
+				cursor = connections['my_db_alias'].cursor()
+
+			По умолчанию Python DB API вернет результат без названий полей, то есть вы получите список значений, а не словарь.
+
+				За счет небольшой потери производительности вы можете получить словарь следующим образом:
+
+					def dictfetchall(cursor):
+					    columns = [col[0] for col in cursor.description]
+					    return [
+					        dict(zip(columns, row))
+					        for row in cursor.fetchall()
+					    ]
+					    
 Безопасность
 
 	Защита от межсайтового скриптинга (XSS)
