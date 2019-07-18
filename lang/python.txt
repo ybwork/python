@@ -2013,3 +2013,18 @@ def get_arg(a):
 		indent=4 - красивое форматирование для сохранения
 
 		ensure_ascii=False - преобразует юникодные строки с читабельный вид
+
+Нюансы
+	
+	Оператор +=
+
+		Не работает если присваивать процесс в переменную или словарь
+
+			new = feed_limit_get_in_minute += 1
+
+			cache.set('request_count', {date_time_current: feed_limit_get_in_minute += 1})
+
+			Привильно так
+
+				feed_limit_get_in_minute += 1
+				cache.set('request_count', {date_time_current: feed_limit_get_in_minute})
