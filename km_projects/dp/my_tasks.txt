@@ -86,6 +86,114 @@
 
 Закрыть возможность создавать пользователей с одинаковым email 18347
 
-	url(r'^create/(?P<event_uuid>[0-9a-f|-]+)/$', create_customer, name='api_create_customer')
+	create
 
-	http://127.1.0.1:8300/api/customer/create/4097a061-d6ae-4655-9823-84f7e83cbcd9
+		url(r'^create/(?P<event_uuid>[0-9a-f|-]+)/$', create_customer, name='api_create_customer')
+
+		http://127.1.0.1:8300/api/customer/create/4097a061-d6ae-4655-9823-84f7e83cbcd9
+
+		dp_package/profile/form.py -> 
+
+			class BaseCreateCustomerForm(RenderFormMixin, DateBirthValidationMixin
+
+				def clean_email(self):
+
+	auth
+
+		url(r'^auth/$', authorization_customer, name='api_auth_customer')
+
+		dp_package/profile/form.py 
+
+			class AuthCustomerForm(RenderFormMixin, forms.Form):
+
+				def clean_email(self):
+
+	request
+
+		import requests
+
+		requests.post('http://127.1.0.1:8300/api/customer/create/4097a061-d6ae-4655-9823-84f7e83cbcd9/', data = {'name': 'Ilya3', 'email': 'KADUK_IA@km-union.ru', 'password': 'asdf1234'})
+
+		def create_customer_handler(post):
+
+			...
+
+			print create_customer_form.errors
+
+	Вопросы:
+
+		Все уже есть, в чем тогда проблема?
+
+	Что
+
+		Валидацию на почту.
+
+		Имя почты одинаковое с верхним регистром, должно выдавать ошибку.
+
+	Как
+
+		Проверяем почту.
+
+		Если есть символы в верхнем регистре, то показываем ошибку.
+
+		Если нет, то разрешаем создать.
+
+	Как
+
+		re.findall(r'[A-ZА-Я]', a)
+
+Посадочная страница
+
+	- все, что они хотят размесить согласовать Зелюков Анатолий
+
+	- если все ок, мы берем в работу
+
+	- создать задачу в мега плане
+
+	- подключить Виктора
+
+
+Проблема с апи MoneyCare, 17835
+
+	def check_status_order_in_money_care():
+
+	    for mc_order in money_care_orders:
+	        order = mc_order.order
+	        response = requests.get(
+	            url.format(settings.MONEY_CARE_URL, mc_order.mc_id),
+	            headers=auth_header
+	        )
+	        print reponse
+	        print auth_header
+
+	Все ок.
+
+	Сервер где находится https://mc1.moneycare.su установил сертификат.
+
+	Dp делает запрос, получает в ответ сертификат, проверяется его в центре.
+
+	Если не валидные выкидывает ошибку.
+
+		Из модуля requests
+
+			"Requests verifies SSL certificates for HTTPS requests, just like a web browser. By default, SSL verification is enabled, and Requests will throw a SSLError if it’s unable to verify the certificate"
+
+Исправить отчет с состоянием обработки заказа, 18349
+
+	http://127.1.0.1:8300/dpa/orders/order/
+
+	146308
+
+	http://127.1.0.1:8300/orders/?dealer_site=46
+
+	http://127.1.0.1:8300/dpa/orders/order/146308/change/?_changelist_filters=q%3D146308
+
+		SELECT * FROM public.orders_order WHERE id = 123372;
+
+		SELECT * FROM public.customer_profile_customer WHERE id = 150846;
+
+	- dp, Новый отчет, 17621; ломакин;
+
+	- use case magic, для будущих функциональных тестов, 18755; к глубокову за консультацией "как работает"
+
+	по задачам отписываться причастным;

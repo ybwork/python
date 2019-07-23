@@ -56,6 +56,8 @@
 
 		Использование чистого SQL
 
+		Оптимизация
+
 
 	Управление транзакциями базы данных
 
@@ -1555,6 +1557,18 @@ QuerySet
 					        dict(zip(columns, row))
 					        for row in cursor.fetchall()
 					    ]
+
+	Оптимизация
+
+		Первым делом определите какие запросы выполняются и как быстро.
+
+			from django.db import connection
+
+			connection.queries
+
+			или
+
+			Customer.objects.filter(email='kaduk@gmail.com').queries
 
 Управление транзакциями базы данных
 
