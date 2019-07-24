@@ -180,17 +180,82 @@
 
 Исправить отчет с состоянием обработки заказа, 18349
 
-	http://127.1.0.1:8300/dpa/orders/order/
+	Заказы диллера
 
-	146308
+		http://127.1.0.1:8300/orders/?dealer_site=67
 
-	http://127.1.0.1:8300/orders/?dealer_site=46
+	Состояние заказа
 
-	http://127.1.0.1:8300/dpa/orders/order/146308/change/?_changelist_filters=q%3D146308
+		http://127.1.0.1:8300/dpa/orders/orderprocessstate/123372/change/?_changelist_filters=q%3D146308
 
-		SELECT * FROM public.orders_order WHERE id = 123372;
+	Отчет
 
-		SELECT * FROM public.customer_profile_customer WHERE id = 150846;
+		http://127.1.0.1:8300/reports/
+
+	Название отчета
+
+		"Отчет об ошибках" или "Отчет об ошибках по заказам" (более подробный).
+
+	Поддомен
+
+		stavropol.korallmicro.ru
+
+	Время
+
+		с 14 по 18 февраля 2019
+
+	В коде
+
+		modules/report/views.py
+
+			class Report(FormView):
+				def form_valid(self, form):
+					...
+
+					REPORT_MAPPER.get(report_type)
+
+						total-orders-errors
+
+							modules/report/views.py
+
+								'total-orders-errors': reports.OrderErrorByClientReport,
+
+									class OrderErrorByClientReport(BaseReport, SimpleHeaderMixin):
+										def _render_data(self, block_render, report_options):
+
+											...
+
+											error_times_dict = OrderProcessState.objects
+
+	Параметр заказа, который отвечает за его остановку
+
+		finish_order_processing
+
+	Модель, где хранится состояние заказа
+
+		class OrderProcessState(models.Model):
+
+		OrderProcessState.objects.get(order_id=146308).error_start_time
+
+	Вопросы:
+
+		Что происходит, когда пользователь нажал "не дозвонился"?
+
+			{'url': r'^submit/(?P<order_id>\d+)/(?P<action>[\w_]+)/$', 'wrapper_view': wrapper_order_submit_view},
+
+			class OrderSubmitView(NotAllowed404View, ApiMixIn):
+
+				...
+
+				def need_to_call(self, request, order):
+
+					...
+
+				    end_order_process_time.send(Order, order_id=order.id, reason_alias='NEED_TO_CALL')
+
+				    	def end_process_time_handler(sender, order_id, **kwargs):
+
+-----------------------------------------------------------------------------------
 
 	- dp, Новый отчет, 17621; ломакин;
 
