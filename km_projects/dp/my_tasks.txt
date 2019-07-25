@@ -226,34 +226,104 @@
 											...
 
 											error_times_dict = OrderProcessState.objects
-
-	Параметр заказа, который отвечает за его остановку
-
-		finish_order_processing
-
+											
 	Модель, где хранится состояние заказа
 
 		class OrderProcessState(models.Model):
 
 		OrderProcessState.objects.get(order_id=146308).error_start_time
 
+	Вопросы Малашихина:
+
+		Ставится ли стоп, когда диллер нажал "не дозвонился"?
+
+		А если через 3 дня нажал "дозвонился" то как считается время?
+
+	Проверка
+
+		Создаем заказ
+
+		Нажимаем "не дозвонился"
+
+		Смотрим что произошло
+
 	Вопросы:
 
 		Что происходит, когда пользователь нажал "не дозвонился"?
 
+		Пробовал на заказе 163821.
+
 			{'url': r'^submit/(?P<order_id>\d+)/(?P<action>[\w_]+)/$', 'wrapper_view': wrapper_order_submit_view},
 
-			class OrderSubmitView(NotAllowed404View, ApiMixIn):
+				class OrderSubmitView(NotAllowed404View, ApiMixIn):
 
-				...
+					def need_to_call(self, request, order):
 
-				def need_to_call(self, request, order):
+					    end_order_process_time.send(Order, order_id=order.id, reason_alias='NEED_TO_CALL')
 
-					...
+					    	def end_process_time_handler(sender, order_id, **kwargs):
 
-				    end_order_process_time.send(Order, order_id=order.id, reason_alias='NEED_TO_CALL')
+					    		order_process_state = OrderProcessState.objects.select_for_update().get(order_id=order_id)
 
-				    	def end_process_time_handler(sender, order_id, **kwargs):
+Проблема с выгодными предложениями magic
+
+	http://magic.km-union.ru/catalog/offertype/35/change/
+
+	https://www.korallmicro.ru/products/offer/35?utm_source=site&utm_medium=banner_mainpage&utm_campaign=category&utm_term=allactions
+
+		def sync_offers(site_models=SITE_MODELS, shop_type=CURRENT_SHOPPING_TYPE):
+
+		def ones_sync_offers_by_shop(shopping_type):
+
+		def get_json_offertypes(request):
+
+		def set_show_on_main_offertype(request, offertype_pk, show_on_main_value):
+
+		def sync_offers_korallmicro():
+
+	http://magic.km-union.ru/catalog/catalog/318144/change/
+
+	https://www.korallmicro.ru/catalog/portativnaya_tekhnika/vneshnie_akkumulyatory
+
+		class InfoCatalog(models.Model):
+
+		class CatalogAdmin(admin.ModelAdmin):
+
+		def sync_catalogs_and_products(site_models=SITE_MODELS, shop_type=CURRENT_SHOPPING_TYPE):
+
+		def update_infocatalog(sender, **kwargs):
+
+		def create_default_info_catalog(shop_type):
+
+		!!!!!!!!!!!!
+
+		catalog/tasks
+
+			def sync(shop_type=settings.DEFAULT_SHOPPING_TYPE):
+
+			6a5d63c8bb18fb4d
+
+			6a5d63c8bb18fb4d
+
+			[2019-07-25 13:43:47,848: ERROR/MainProcess] Task sync_shop[4f66da87-344e-44e8-8c7c-237dcf8b6a3f] raised unexpected: IntegrityError(1452, 'Cannot add or update a child row: a foreign key constraint fails (`magic`.`catalog_distributions`, CONSTRAINT `product_id_refs_code_6a5d63c8bb18fb4d` FOREIGN KEY (`product_id`) REFERENCES `catalog_products` (`code`))')
+
+		Коралл берет нужные данные из
+
+			Базы korallmicro
+
+				SELECT * FROM public.catalogs WHERE name = 'Внешние аккумуляторы';
+
+			class CatalogController
+
+				public function indexAction(){
+
+					$renderedProductItems = $product->renderProductItemsByAlias($alias, $renderParams['type'], $renderParams['sort'], $renderParams['is_dealer_provided'], $renderParams['sort_direction']);
+
+					var_dump($alias, $renderParams['type'], $renderParams['sort'], $renderParams['is_dealer_provided'], $renderParams['sort_direction']); die();
+
+		Что записывает туда данные?
+
+			def sync_catalogs_and_products(site_models=SITE_MODELS, shop_type=CURRENT_SHOPPING_TYPE):
 
 -----------------------------------------------------------------------------------
 
