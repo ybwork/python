@@ -204,14 +204,24 @@
 
 		с 14 по 18 февраля 2019
 
+	Учет времени обработки заказа
+
+		Модель class OrderProcessTime(models.Model):
+
+	Статус заказа
+
+		Модель class OrderProcessState(models.Model):
+
+		Создается/изменяется при создании/изменении заказа.
+
+		По умолчанию заказ фиксируется как неошибочный.
+
 	В коде
 
 		modules/report/views.py
 
 			class Report(FormView):
 				def form_valid(self, form):
-					...
-
 					REPORT_MAPPER.get(report_type)
 
 						total-orders-errors
@@ -241,11 +251,46 @@
 
 	Проверка
 
-		Создаем заказ
+		Берем готовый заказ
+
+			163821
+
+			http://127.1.0.1:8300/dpa/orders/order/163821/change/
+
+			http://127.1.0.1:8300/dpa/orders/orderprocessstate/?q=163821
+
+			http://127.1.0.1:8300/orders/?dealer_site=67
+
+			Сброс времени начала обработки
+
+				ord_process_state = OrderProcessState.objects.get(order_id=163821)
+
+				ord_process_state - 140844
+
+				ord_process_time = OrderProcessTime.objects.get(state_id=ord_process_state.pk)
+
+			OrderProcessState.objects.select_for_update().get(order_id=order_id)
 
 		Нажимаем "не дозвонился"
 
 		Смотрим что произошло
+
+			Скорее всего проблема в этих условиях
+
+				# если превышено время обработки и когда заказ обработан
+	            if order_process_state.has_error and finish_order_processing:
+	                order_process_state.error_finish_time = current_time
+	                update_fields.append('error_finish_time')
+
+
+	            # если остановлен по расписанию оператора
+	            if order_process_state.stopped_by_operators_schedule:
+	                order_process_state.stopped_by_operators_schedule = False
+	                update_fields.append('stopped_by_operators_schedule')
+
+
+	            if update_fields:
+	                order_process_state.save(update_fields=update_fields)
 
 	Вопросы:
 
@@ -332,3 +377,9 @@
 	- use case magic, для будущих функциональных тестов, 18755; к глубокову за консультацией "как работает"
 
 	по задачам отписываться причастным;
+
+-------------
+
+Когда в 1с узлы обмена новые позиции для синхронизации в мэджик и если их много, то мэд шлет смс
+
+	
