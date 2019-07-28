@@ -24,7 +24,9 @@
 
 	pip3 install https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v4.8/pip/pgadmin4-4.8-py2.py3-none-any.whl
 
-	sudo nano lib/python3.6/site-packages/pgadmin4/config_local.py
+	cd venvs/pgadmin4/lib/python3.6/site-packages/pgadmin4/
+
+	sudo nano config_local.py
 
 		import os
 		DATA_DIR = os.path.realpath(os.path.expanduser(u'~/.pgadmin/'))
@@ -34,7 +36,11 @@
 		STORAGE_DIR = os.path.join(DATA_DIR, 'storage')
 		SERVER_MODE = False
 
-	python3 lib/python3.6/site-packages/pgadmin4/pgAdmin4.py
+	python3 pgAdmin4.py
+
+	При дальнейших включениях
+
+		python3 lib/python3.6/site-packages/pgadmin4/pgAdmin4.py
 
 Запуск
 

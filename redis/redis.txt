@@ -36,9 +36,15 @@
 
 Docker
 
+	docker run --name redis -p 6379:6379 -d redis
+
+	docker run -it --network redis-network --rm redis redis-cli -h redis
+
+
+
 	docker run -it --network some-network --rm redis redis-cli -p 6379:6379 -h redis
 
-	docker run --name redis -p 6379:6379 -d redis
+	
 
 Удаление
 
