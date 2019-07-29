@@ -14,7 +14,13 @@
 
 Установка
 
-	git clone git@gitlab0.km-union.ru:abakarov_ag/py-env-utils.git
+	pip install setuptools
+
+	cd /usr/local/lib/python2.7/
+
+		если нет dist-packages, то sudo mkdir dist-packages
+
+	git clone git@gitlab0.km-union.ru:packages/py-env-utils.git
 
 	cd py-env-utils
 

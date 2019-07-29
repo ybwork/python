@@ -1,4 +1,8 @@
- Оглавление
+sudo apt-get remove pycharm pycharm-community && sudo apt-get autoremove
+
+flatpak remove com.jetbrains.PyCharm-Community
+
+Оглавление
 
 	Команды
 
