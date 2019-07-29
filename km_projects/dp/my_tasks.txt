@@ -296,19 +296,59 @@
 
 		Что происходит, когда пользователь нажал "не дозвонился"?
 
-		Пробовал на заказе 163821.
+			Пробовал на заказе 163821	.
 
-			{'url': r'^submit/(?P<order_id>\d+)/(?P<action>[\w_]+)/$', 'wrapper_view': wrapper_order_submit_view},
+				{'url': r'^submit/(?P<order_id>\d+)/(?P<action>[\w_]+)/$', 'wrapper_view': wrapper_order_submit_view},
 
-				class OrderSubmitView(NotAllowed404View, ApiMixIn):
+					class OrderSubmitView(NotAllowed404View, ApiMixIn):
 
-					def need_to_call(self, request, order):
+						def need_to_call(self, request, order):
 
-					    end_order_process_time.send(Order, order_id=order.id, reason_alias='NEED_TO_CALL')
+						    end_order_process_time.send(Order, order_id=order.id, reason_alias='NEED_TO_CALL')
 
-					    	def end_process_time_handler(sender, order_id, **kwargs):
+						    	def end_process_time_handler(sender, order_id, **kwargs):
 
-					    		order_process_state = OrderProcessState.objects.select_for_update().get(order_id=order_id)
+						    		order_process_state = OrderProcessState.objects.select_for_update().get(order_id=order_id)
+
+		Какой статус получает заказ при создании?
+
+			New
+
+		В какой раздел попадает заказ со статусом New?
+
+			В раздел "Заказ сформирован".
+
+				class NewOrdersView(OrdersBaseView):
+
+		Что такое OrderProcessTime?
+
+			Это таблица для учета времени обработки заказа.
+
+		Что такое OrderProcessState?
+
+			Это таблица, где фиксируется статус заказа.
+
+			По умолчанию заказ создается, как неошибочный. То есть поля error_start_time и error_end_time пустые, а has_error равно False.
+
+		Когда начинается учет времени обработки заказа?
+
+			from orders.views import *
+
+			from orders.signals import start_order_process_time
+
+	        start_order_process_time.send(Order, order_id=order.pk, reason_alias='ORDER_CREATED')
+
+	    Когда останавливается учет времени обработки заказа?
+
+	    	Когда срабатывает обработчик сигнала def end_process_time_handler(sender, order_id, **kwargs)
+
+	    		if last_time_item.end_time
+
+	    Как работает вся цепочка учета времени?
+
+	    	Заказ создали.
+
+
 
 Проблема с выгодными предложениями magic
 
