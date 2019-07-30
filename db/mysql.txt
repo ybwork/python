@@ -4,6 +4,8 @@
 
 	Команды
 
+	Заливка бэкапа
+
 	Нюансы
 
 Docker
@@ -51,6 +53,14 @@ Docker
 	переходим в директорию с бэкапом -> mysqldump -u user_name -p db_name < dbexport.sql - заливает дамп базы
 
 	enter password:
+
+Заливка бэкапа
+
+	docker exec -it mysql_5.7 bash
+
+	/etc/mysql/conf.d
+
+	mysql -u username -p database_name < file.sql
 
 Нюансы
 
