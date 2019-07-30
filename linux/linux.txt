@@ -308,6 +308,8 @@ Midnight Commander
 
 	cp ~/Pictures/3.png ~/Pictures/4.png ~/Downloads/imgs/ - копирует что-либо из одной директории в другую, ~/Pictures/3.png - это что копируется, ~/Downloads/imgs/ - это куда копируется
 
+	tail -f ~/log/magic-celery-system.txt - позволяет в реал-тайме отслеживать изменения файла
+
 Часто используемые команды
 
 	Директории

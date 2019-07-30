@@ -271,27 +271,6 @@
 
 			OrderProcessState.objects.select_for_update().get(order_id=order_id)
 
-		Нажимаем "не дозвонился"
-
-		Смотрим что произошло
-
-			Скорее всего проблема в этих условиях
-
-				# если превышено время обработки и когда заказ обработан
-	            if order_process_state.has_error and finish_order_processing:
-	                order_process_state.error_finish_time = current_time
-	                update_fields.append('error_finish_time')
-
-
-	            # если остановлен по расписанию оператора
-	            if order_process_state.stopped_by_operators_schedule:
-	                order_process_state.stopped_by_operators_schedule = False
-	                update_fields.append('stopped_by_operators_schedule')
-
-
-	            if update_fields:
-	                order_process_state.save(update_fields=update_fields)
-
 	Вопросы:
 
 		Что происходит, когда пользователь нажал "не дозвонился"?
@@ -347,8 +326,6 @@
 	    Как работает вся цепочка учета времени?
 
 	    	Заказ создали.
-
-
 
 Проблема с выгодными предложениями magic
 
@@ -410,16 +387,48 @@
 
 			def sync_catalogs_and_products(site_models=SITE_MODELS, shop_type=CURRENT_SHOPPING_TYPE):
 
------------------------------------------------------------------------------------
+Продукт пометили в 1с, как "не для магазина", а он всеравно появился на korallmicro
 
-	- dp, Новый отчет, 17621; ломакин;
+	is_not_for_retail
 
-	- use case magic, для будущих функциональных тестов, 18755; к глубокову за консультацией "как работает"
+	from raw_processing.models import *
 
-	по задачам отписываться причастным;
+	class Nomenclature(models.Model):
+		code = код карточки товара
+		is_not_for_retail = models.BooleanField(db_column=u'НеДляРозницы')
 
--------------
+	Nomenclature.objects.get(code=26491).is_not_for_retail
 
-Когда в 1с узлы обмена новые позиции для синхронизации в мэджик и если их много, то мэд шлет смс
+	full_ones_sync_send_signal
 
-	
+		full_ones_sync_finish
+
+			http://broker.km-union.ru/broker/rule/
+
+				ищим full_ones_sync_finish (должно быть MagicRabbitMQ, всю чепочку тасков можно посмотреть в http://broker.km-union.ru/dashboard/)
+
+					def sync_db():
+
+						def sync(self):
+
+							self.prepare_1c_data(vtbs_dict, type_prices_dict, stores_dict)
+
+				def sync_shop(shop_type=settings.DEFAULT_SHOPPING_TYPE, use_confidence_interval=True):
+
+					def sync(shop_type=settings.DEFAULT_SHOPPING_TYPE):
+
+						'148b0e4d-b200-11e2-93f1-002655df3ac1' in delete_products
+
+						хуйня тут в exclude
+						Products.objects.filter(uid__in=delete_products).exclude(distributions__catalog__type__in=shop_types).delete()
+
+	Цепочка работы этой хуйни
+
+		В 1с появились новые продукты.
+
+		1с выгрузил данные в 1с 8 рав и послал сигнал.
+
+		На этот сигнал среагировал magic.
+
+		Magic выгрузил данные из 1с 8 рав в свои таблицы.
+
