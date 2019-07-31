@@ -413,22 +413,57 @@
 
 							self.prepare_1c_data(vtbs_dict, type_prices_dict, stores_dict)
 
+				# вызывает наш брокер
 				def sync_shop(shop_type=settings.DEFAULT_SHOPPING_TYPE, use_confidence_interval=True):
 
 					def sync(shop_type=settings.DEFAULT_SHOPPING_TYPE):
 
-						'148b0e4d-b200-11e2-93f1-002655df3ac1' in delete_products
+						'148b0e4d-b200-11e2-93f1-002655df3ac1' in products_uuids
+						'148b0e4d-b200-11e2-93f1-002655df3ac1' in ones_product_uuids
 
-						хуйня тут в exclude
+						'148b0e4d-b200-11e2-93f1-002655df3ac1' in add_products
+					    '148b0e4d-b200-11e2-93f1-002655df3ac1' in delete_products
+					    '148b0e4d-b200-11e2-93f1-002655df3ac1' in change_products
+
 						Products.objects.filter(uid__in=delete_products).exclude(distributions__catalog__type__in=shop_types).delete()
+
+							Products.objects.filter(uid='148b0e4d-b200-11e2-93f1-002655df3ac1')[0].distributions.first().catalog.type
+
+						OProducts.objects.get_for_sale_and_retail(shop_type=shop_type)
+
+							В условии для snr, snr_new все правильно.
+
+				catalog_products (SELECT * FROM magic.catalog_products WHERE uid = '148b0e4d-b200-11e2-93f1-002655df3ac1';)
+
+					catalog_distributions (SELECT * FROM magic.catalog_distributions where product_id = 26491;)
+
+						catalog_catalog (SELECT * FROM magic.catalog_catalog where id = 318246;)
+
+				ones_products (SELECT * FROM magic.ones_products WHERE uid = '148b0e4d-b200-11e2-93f1-002655df3ac1';)
 
 	Цепочка работы этой хуйни
 
 		В 1с появились новые продукты.
 
-		1с выгрузил данные в 1с 8 рав и послал сигнал.
+		1с выгрузил данные в 1с 8 рав и послал сигнал (выгружают всё, а мы сами фильтруем).
 
 		На этот сигнал среагировал magic.
 
 		Magic выгрузил данные из 1с 8 рав в свои таблицы.
+
+	Некоторые сигналы посылает наш брокер
+
+		http://gitlab0.km-union.ru/python/broker/blob/master/modules/broker/sources/rabbitmq/sources.py
+
+	Можно ли добавить один и тот же продукт в каталоги snr и korallmicro?
+
+		Да, можно.
+
+	Причина возникновения бага
+
+		Скорее всего добавили один и тот же товар в каталоги korallmicro и snr (в 1с).
+
+		Затем удалили этот товар из каталога korallmicro (в 1с).
+
+		... Не создаётся в catalog_distributions
 
