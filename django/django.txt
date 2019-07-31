@@ -101,6 +101,10 @@
 
 		Контент, загружаемый пользователями
 
+	Shell
+
+	Debug toolbar
+
 	Тесты
 
 	Развертывание
@@ -1928,6 +1932,54 @@ QuerySet
 
 		Если ваш сайт принимает файлы, настоятельно советуем ограничить размер таких загрузок в конфигурации веб сервера для предотвращения атак на отказ сервиса (DOS).
 
+Shell
+
+	Open pycharm terminal
+
+	./manage.py shell
+
+	from django.db import connection
+
+	from product.models import Product
+
+	Product.objects.count()
+
+	connection.queries - show query to db
+
+Debug toolbar
+
+	pip install django-debug-toolbar
+
+	INSTALLED_APPS = [
+	    'debug_toolbar',
+	]
+
+	MIDDLEWARE = [
+	    'debug_toolbar.middleware.DebugToolbarMiddleware',
+	]
+
+	mysite/urls.py ->
+
+		if settings.DEBUG:
+		    import debug_toolbar
+		    urlpatterns = [
+		        path('__debug__/', include(debug_toolbar.urls)),
+		    ] + urlpatterns
+
+	settings.py -> INTERNAL_IPS = ('127.0.0.1',)
+
+    settings.py -> DEBUG -> True
+
+	TEMPLATES = [
+	    {
+	        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+	    },
+	]
+
+	project -> create folder templates -> base.html
+
+	app -> create folder templates/app_name -> template_name.html
+
 Тесты
 
 	...
@@ -1949,6 +2001,21 @@ QuerySet
 			        return function_for_decorate(self, request, *args, **kwargs)
 			    return wrapper
 
+	При использовании прокси-модели нужно выполнить все операции миграции.
+
+	Когда используем конструкции с нижним подчёркиванием. Например _('My offer'). Нужно подключать символ нижнего подчёркивания (_).
+
+	При использовании методов has_change_permission и has_delete_permission их аргумент obj может быть None и его методы соответственно не доступны. Это происходит в том случае, когда мы загружаем страницу с выводом всех записей. Поэтому если мы переопределяем эти методы, то проверять obj. 
+
+	Если в модели есть 2 поля с ForeignKey, основанных на одинаковых моделях, то к одному из полей нужно добавить аргумент related_name.
+
+	Если используем шаблоны, то храним их в директории templates, которая в корне проекта. (почитать почему в tutorial)
+
+	Для использования success_url с именованным урлом нужно использовать функцию reverse_lazy().
+
+	Для корректной работы статики на локальной машине debug должен быть в True.
+
+	Если нужно повторить админский редирект, когда объект не существует, то используем встроенную функцию _get_obj_does_not_exist_redirect. Её описание находится в django/django/contrib/admin/options.py
 
 	
 	
