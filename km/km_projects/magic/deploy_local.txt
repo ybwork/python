@@ -1,3 +1,7 @@
+OSError: [Errno 2] No such file or directory: '/home/oem/work/projects/magic/change_log/korallmicro'
+
+	Добавить директории /home/oem/work/projects/magic/change_log/korallmicro
+
 sudo apt-get install python-mysqldb
 
 sudo apt-get install libxml2-dev libxslt-dev python-dev

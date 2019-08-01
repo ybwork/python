@@ -331,61 +331,51 @@
 
 	http://magic.km-union.ru/catalog/offertype/35/change/
 
-	https://www.korallmicro.ru/products/offer/35?utm_source=site&utm_medium=banner_mainpage&utm_campaign=category&utm_term=allactions
-
-		def sync_offers(site_models=SITE_MODELS, shop_type=CURRENT_SHOPPING_TYPE):
-
-		def ones_sync_offers_by_shop(shopping_type):
-
-		def get_json_offertypes(request):
-
-		def set_show_on_main_offertype(request, offertype_pk, show_on_main_value):
-
-		def sync_offers_korallmicro():
+		https://www.korallmicro.ru/products/offer/35?utm_source=site&utm_medium=banner_mainpage&utm_campaign=category&utm_term=allactions
 
 	http://magic.km-union.ru/catalog/catalog/318144/change/
 
-	https://www.korallmicro.ru/catalog/portativnaya_tekhnika/vneshnie_akkumulyatory
+		https://www.korallmicro.ru/catalog/portativnaya_tekhnika/vneshnie_akkumulyatory
 
-		class InfoCatalog(models.Model):
+	Коралл берет нужные данные из
 
-		class CatalogAdmin(admin.ModelAdmin):
+		Базы korallmicro
+
+			SELECT * FROM public.catalogs WHERE name = 'Внешние аккумуляторы';
+
+		class CatalogController
+
+			public function indexAction(){
+
+				$renderedProductItems = $product->renderProductItemsByAlias($alias, $renderParams['type'], $renderParams['sort'], $renderParams['is_dealer_provided'], $renderParams['sort_direction']);
+
+				var_dump($alias, $renderParams['type'], $renderParams['sort'], $renderParams['is_dealer_provided'], $renderParams['sort_direction']); die();
+
+	Что записывает туда данные?
 
 		def sync_catalogs_and_products(site_models=SITE_MODELS, shop_type=CURRENT_SHOPPING_TYPE):
 
-		def update_infocatalog(sender, **kwargs):
+	Помогло
 
-		def create_default_info_catalog(shop_type):
+		Для всех акций
 
-		!!!!!!!!!!!!
+			from catalog.tasks import *
 
-		catalog/tasks
+			sync_offers_korallmicro.delay()
 
-			def sync(shop_type=settings.DEFAULT_SHOPPING_TYPE):
+		Для банера с акциями над выводом продуктов
 
-			6a5d63c8bb18fb4d
+			...
 
-			6a5d63c8bb18fb4d
+	Куда смотреть?
 
-			[2019-07-25 13:43:47,848: ERROR/MainProcess] Task sync_shop[4f66da87-344e-44e8-8c7c-237dcf8b6a3f] raised unexpected: IntegrityError(1452, 'Cannot add or update a child row: a foreign key constraint fails (`magic`.`catalog_distributions`, CONSTRAINT `product_id_refs_code_6a5d63c8bb18fb4d` FOREIGN KEY (`product_id`) REFERENCES `catalog_products` (`code`))')
+		Изменение выгодных предложений
 
-		Коралл берет нужные данные из
+			http://magic.km-union.ru/catalog/offertype/35/change/
 
-			Базы korallmicro
+		Там должен быть вызов синхронизации выгодных предложений
 
-				SELECT * FROM public.catalogs WHERE name = 'Внешние аккумуляторы';
-
-			class CatalogController
-
-				public function indexAction(){
-
-					$renderedProductItems = $product->renderProductItemsByAlias($alias, $renderParams['type'], $renderParams['sort'], $renderParams['is_dealer_provided'], $renderParams['sort_direction']);
-
-					var_dump($alias, $renderParams['type'], $renderParams['sort'], $renderParams['is_dealer_provided'], $renderParams['sort_direction']); die();
-
-		Что записывает туда данные?
-
-			def sync_catalogs_and_products(site_models=SITE_MODELS, shop_type=CURRENT_SHOPPING_TYPE):
+			sync_offers_korallmicro.delay()
 
 Продукт пометили в 1с, как "не для магазина", а он всеравно появился на korallmicro
 
@@ -443,11 +433,35 @@
 
 	Цепочка работы этой хуйни
 
-		В 1с появились новые продукты.
+		1с выгрузил все продукты в 1C_8_RAW и послал сигнал.
 
-		1с выгрузил данные в 1с 8 рав и послал сигнал (выгружают всё, а мы сами фильтруем).
+			task_sync_db
 
-		На этот сигнал среагировал magic.
+		На этот сигнал среагировал magic и отправил сигнал в наш брокер.
+
+			full_ones_sync_finish
+
+		Наш брокер принял сигнал от magic и обработал.
+
+			full_ones_to_magic_sync
+
+		Обработчик сигнала от magic послал свой сигнал.
+
+			full_ones_to_magic_sync_finish
+
+		Сигнал full_ones_to_magic_sync_finish обработали обработчики
+
+			catalog_istore_sync
+
+			full_sync
+
+			full_sync
+
+			price_update
+
+			catalog_korallmicro_sync
+
+			catalog_snr_new_sync	
 
 		Magic выгрузил данные из 1с 8 рав в свои таблицы.
 
@@ -467,3 +481,40 @@
 
 		... Не создаётся в catalog_distributions
 
+	Как товар попадает в таблицу product в базе korallmicro?
+
+		def sync_catalogs_and_products(site_models=SITE_MODELS,shop_type=CURRENT_SHOPPING_TYPE):
+
+	Где могут возникать проблемы?
+
+		catalog/tasks.py
+
+			def sync
+
+		korallmicro/tasks.py
+
+			def sync_catalogs_and_products
+
+	Как протестить?
+
+		from catalog.tasks import *
+
+		sync_shop.delay(shop_type='korallmicro')
+
+		from korallmicro.tasks import sync as korallmicro_shop_sync
+
+		sync_korallmicro.delay()
+
+		from catalog.models import *
+
+		Products.objects.filter(code__in=[65963, 65964, 65965, 65966, 65967, 65968, 85880, 85881, 85882, 85884, 86408, 86410, 111088, 111089, 111357, 111360, 111362, 123404, 124525, 143455, 143456, 155652, 183643]).count()
+
+	Отработало, как нужно
+
+		from catalog.tasks import *
+
+		sync_shop.delay(shop_type='korallmicro')
+
+		from korallmicro.tasks import sync as korallmicro_shop_sync
+
+		sync_korallmicro.delay()
