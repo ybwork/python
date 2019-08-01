@@ -37,10 +37,10 @@
 	docker run -t -i --name=nginx \
 	--publish=80:80 \
 	--publish=443:443 \
-	--volume=/home/ilya/work/projects/korallmicro_conf/nginx/conf.d:/etc/nginx/conf.d \
-	--volume=/home/ilya/work/projects/korallmicro_conf/nginx/sites-available:/etc/nginx/sites-available \
-	--volume=/home/ilya/work/projects/php:/www \
-	--volume=/home/ilya/work/projects/korallmicro_conf/nginx/ssl:/etc/nginx/ssl \
+	--volume=/home/user_name/work/projects/korallmicro_conf/nginx/conf.d:/etc/nginx/conf.d \
+	--volume=/home/user_name/work/projects/korallmicro_conf/nginx/sites-available:/etc/nginx/sites-available \
+	--volume=/home/user_name/work/projects/php:/www \
+	--volume=/home/user_name/work/projects/korallmicro_conf/nginx/ssl:/etc/nginx/ssl \
 	angilenko/nginx
 
 Создаем конейнер php-fpm
@@ -48,8 +48,8 @@
 	docker run -t -i --name=php \
 	--publish=55555:55555 \
 	--publish=55055:55055 \
-	--volume=/home/ilya/work/projects/korallmicro_conf/php/pool.d:/etc/php5/fpm/pool.d \
-	--volume=/home/ilya/work/projects/php:/www \
+	--volume=/home/user_name/work/projects/korallmicro_conf/php/pool.d:/etc/php5/fpm/pool.d \
+	--volume=/home/user_name/work/projects/php:/www \
 	--add-host magic.km-union.ru:192.168.7.3 \
 	--add-host devdp.km-union.ru:192.168.7.3 \
 	--add-host dp.km-union.ru:192.168.7.54 \
@@ -101,8 +101,6 @@
 
 	logging.enable = 0
 
-	Чистим куки на http://dev-1.korallmicro.ru и https://wwww.korallmicro.ru
-
 	Если используем боевой кэш
 
 		caching.idPrefix = korallmicro_local_
@@ -110,6 +108,18 @@
 	Если не используем кэш вообще
 
 		caching.enable = 0
+
+Запуск
+
+	Открываем ингокнито хрома.
+
+	Вставляем http://dev-1.korallmicro.ru
+
+	Идет редирект на htps://wwww.korallmicro.ru
+
+	Правой кнопкой мыши возле протокола -> site_settings -> clear cookie
+
+	Вставляем в адресную строку http://dev-1.korallmicro.ru
 
 Примечание
 
