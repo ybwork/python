@@ -365,7 +365,9 @@
 
 		Для банера с акциями над выводом продуктов
 
-			...
+			from catalog.tasks import *
+
+			sync_korallmicro.delay()
 
 	Куда смотреть?
 

@@ -1731,7 +1731,7 @@ QuerySet
 
 			или
 
-			Customer.objects.filter(email='kaduk@gmail.com').queries
+			Customer.objects.filter(email='kaduk@gmail.com').query
 
 		Вы также можете использовать сторонние приложения, например, django-debug-toolbar, или инструменты, которые мониторят непосредственно базу данных.
 
