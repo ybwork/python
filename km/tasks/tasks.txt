@@ -204,18 +204,6 @@
 
 		с 14 по 18 февраля 2019
 
-	Учет времени обработки заказа
-
-		Модель class OrderProcessTime(models.Model):
-
-	Статус заказа
-
-		Модель class OrderProcessState(models.Model):
-
-		Создается/изменяется при создании/изменении заказа.
-
-		По умолчанию заказ фиксируется как неошибочный.
-
 	В коде
 
 		modules/report/views.py
@@ -236,13 +224,7 @@
 											...
 
 											error_times_dict = OrderProcessState.objects
-											
-	Модель, где хранится состояние заказа
-
-		class OrderProcessState(models.Model):
-
-		OrderProcessState.objects.get(order_id=146308).error_start_time
-
+										
 	Вопросы Малашихина:
 
 		Ставится ли стоп, когда диллер нажал "не дозвонился"?
@@ -251,115 +233,115 @@
 
 	Проверка
 
-		Берем готовый заказ
+		163821
 
-			163821
+		http://127.1.0.1:8300/dpa/orders/order/163821/change/
 
-			http://127.1.0.1:8300/dpa/orders/order/163821/change/
+		http://127.1.0.1:8300/dpa/orders/orderprocessstate/?q=163821
 
-			http://127.1.0.1:8300/dpa/orders/orderprocessstate/?q=163821
+		http://127.0.1.1:8200/orders/?dealer_site=67
 
-			http://127.0.1.1:8200/orders/?dealer_site=67
+		В pgadmin
 
-			В pgadmin
+			SELECT * FROM public.orders_order WHERE id = 163821;
 
-				SELECT * FROM public.orders_order WHERE id = 163821;
+			SELECT * FROM public.orders_orderprocesstime WHERE state_id = 140844;
 
-				SELECT * FROM public.orders_orderprocesstime WHERE state_id = 140844;
+			-----------
 
-				-----------
+			SELECT * FROM public.orders_order WHERE id = 166361;
 
-				SELECT * FROM public.orders_order WHERE id = 166361;
+			SELECT * FROM public.orders_orderprocessstate WHERE order_id = 166361;
 
-				SELECT * FROM public.orders_orderprocessstate WHERE order_id = 166361;
+			SELECT * FROM public.orders_orderprocesstime WHERE state_id = 143375;
 
-				SELECT * FROM public.orders_orderprocesstime WHERE state_id = 143375;
+			SELECT * FROM public.orders_historicalorder WHERE id = 166361;
 
-				SELECT * FROM public.orders_historicalorder WHERE id = 166361;
+			166463 
 
-			Сброс времени начала обработки
+		Сброс времени начала обработки
 
-				from orders.models import *
+			from orders.models import *
 
-				ord_process_state = OrderProcessState.objects.get(order_id=163821)
+			ord_process_state = OrderProcessState.objects.get(order_id=163821)
 
-				ord_process_state - 140844
+			ord_process_state - 140844
 
-				ord_process_time = OrderProcessTime.objects.get(state_id=ord_process_state.pk)
+			ord_process_time = OrderProcessTime.objects.get(state_id=ord_process_state.pk)
 
-				ord_process_time.end_time=None
+			ord_process_time.end_time=None
 
-				ord_process_time.reason_for_finish=None
+			ord_process_time.reason_for_finish=None
 
-				ord_process_time.save()
+			ord_process_time.save()
 
-			Cброс статуса заказа
+		Cброс статуса заказа
 
-				ord = Order.objects.get(pk=163821)
+			ord = Order.objects.get(pk=163821)
 
-				ord.state='New'
+			ord.state='New'
 
-				ord.save()
+			ord.save()
 
-	Вопросы:
+	Какой статус получает заказ при создании?
 
-		Что происходит, когда пользователь нажал "не дозвонился"?
+		New
 
-			Пробовал на заказе 163821	.
+	В какой раздел попадает заказ со статусом New?
 
-				{'url': r'^submit/(?P<order_id>\d+)/(?P<action>[\w_]+)/$', 'wrapper_view': wrapper_order_submit_view},
+		В раздел "Заказ сформирован".
 
-					class OrderSubmitView(NotAllowed404View, ApiMixIn):
+			class NewOrdersView(OrdersBaseView):
 
-						def need_to_call(self, request, order):
+	Что такое OrderProcessState?
 
-						    end_order_process_time.send(Order, order_id=order.id, reason_alias='NEED_TO_CALL')
+		Это таблица, где фиксируется статус заказа.
 
-						    	def end_process_time_handler(sender, order_id, **kwargs):
+		По умолчанию заказ создается, как неошибочный. То есть поля error_start_time и error_end_time пустые, а has_error равно False.
 
-						    		order_process_state = OrderProcessState.objects.select_for_update().get(order_id=order_id)
+	Что такое OrderProcessTime?
 
-		Какой статус получает заказ при создании?
+		Это таблица для учета времени обработки заказа.
 
-			New
+	Когда начинается учет времени обработки заказа?
 
-		В какой раздел попадает заказ со статусом New?
+		from orders.views import *
 
-			В раздел "Заказ сформирован".
+		from orders.signals import start_order_process_time
 
-				class NewOrdersView(OrdersBaseView):
+		from orders.models import *
 
-		Что такое OrderProcessTime?
+        start_order_process_time.send(Order, order_id=166467, reason_alias='ORDER_CREATED')
 
-			Это таблица для учета времени обработки заказа.
+        	Обработчик:
 
-		Что такое OrderProcessState?
+        		start_order_process_time.connect(start_process_time_handler)
 
-			Это таблица, где фиксируется статус заказа.
+        		def start_process_time_handler(
 
-			По умолчанию заказ создается, как неошибочный. То есть поля error_start_time и error_end_time пустые, а has_error равно False.
+    Когда останавливается учет времени обработки заказа?
 
-		Когда начинается учет времени обработки заказа?
+    	from orders.views import *
 
-			from orders.views import *
+		from orders.signals import end_order_process_time
 
-			from orders.signals import start_order_process_time
+        end_order_process_time.send(Order, order_id=order.id, reason_alias='NEED_TO_CALL')
 
-	        start_order_process_time.send(Order, order_id=order.pk, reason_alias='ORDER_CREATED')
+    	Обработчик: 
 
-	    Когда останавливается учет времени обработки заказа?
+    		end_order_process_time.connect(end_process_time_handler)
 
-	    	Когда срабатывает обработчик сигнала def end_process_time_handler(sender, order_id, **kwargs)
+    		def end_process_time_handler(
 
-	    		if last_time_item.end_time
+    Как протестить
 
-	    	Сигнал end_order_process_time.
+    	Создать через dpa заказ
 
-	    		Отправляется при разных условиях: когда нажали "не дозвонился", когда закончилось рабочее время и т.д.
+    	start_order_process_time.send(Order, order_id=76626, reason_alias='ORDER_CREATED')
 
-	    Как работает вся цепочка учета времени?
+    	ord_process_state = OrderProcessState.objects.get(order_id=76626)
 
-	    	Заказ создали.
+    	print OrderProcessTime.objects.get(state_id=ord_process_state.pk)
 
 Проблема с выгодными предложениями magic
 
@@ -554,3 +536,7 @@
 		from korallmicro.tasks import sync as korallmicro_shop_sync
 
 		sync_korallmicro.delay()
+
+страна производитель есть в 1С, но нет в magic
+
+	229812

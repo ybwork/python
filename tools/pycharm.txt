@@ -1,8 +1,8 @@
-sudo apt-get remove pycharm pycharm-community && sudo apt-get autoremove
-
-flatpak remove com.jetbrains.PyCharm-Community
-
 Оглавление
+
+	Установка
+
+	Удаление (если был установлен через software manager linux mint)
 
 	Команды
 
@@ -13,6 +13,28 @@ flatpak remove com.jetbrains.PyCharm-Community
 	Настройки темы
 
 	Привязка пакетов
+
+	Трассировка
+
+Установка
+
+	sudo add-apt-repository ppa:ubuntu-desktop/ubuntu-make
+
+	apt-get update
+
+	apt-get install ubuntu-make
+
+	umake ide pycharm
+
+	Дефолтный путь установки - ~/.local/share/umake/ide/pycharm/, при желании можно изменить. 
+
+	Также по итогу добавить для удобства симлинк чтоб запускать командой pycharm а не ~/.local/share/umake/ide/pycharm/bin/pycharm.sh для этого дадим команду
+
+Удаление (если был установлен через software manager linux mint)
+
+	sudo apt-get remove pycharm pycharm-community && sudo apt-get autoremove
+
+	flatpak remove com.jetbrains.PyCharm-Community
 
 Команды
 
@@ -59,3 +81,17 @@ flatpak remove com.jetbrains.PyCharm-Community
 	В pycharm, где главный проект File -> Open -> Директория с пакетом -> Attach.
 
 	Директория с пакетом должена появить ниже директории с проектом.
+
+Трассировка
+	
+	В terminal:
+
+		from django.conf import settings
+
+		settings.DEBUG = True
+
+		from django.db import connection
+
+		Model.objects.count()
+
+		print len(connection.queries)

@@ -89,7 +89,7 @@
 
 Открываем сайт в браузере
 
-	http://dev-1.korallmicro.ru
+	http://dev-1.korallmicro.ru/
 
 Настраиваем конфиг проекта
 
