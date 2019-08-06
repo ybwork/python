@@ -22,11 +22,11 @@
 
 	/home/ilya/work/projects/korallmicro_conf/nginx/conf.d/php-fpm.conf
 
-	/home/ilya/work/projects/korallmicro_conf/nginx/passwords/external
-
 	/home/ilya/work/projects/korallmicro_conf/nginx/sites-available/korallmicro
 
 	/home/ilya/work/projects/korallmicro_conf/nginx/sites-enabled/korallmicro
+
+	/home/ilya/work/projects/korallmicro_conf/nginx/passwords/external
 
 	/home/ilya/work/projects/korallmicro_conf/php/pool.d/www.conf
 

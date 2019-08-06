@@ -259,9 +259,27 @@
 
 			http://127.1.0.1:8300/dpa/orders/orderprocessstate/?q=163821
 
-			http://127.1.0.1:8300/orders/?dealer_site=67
+			http://127.0.1.1:8200/orders/?dealer_site=67
+
+			В pgadmin
+
+				SELECT * FROM public.orders_order WHERE id = 163821;
+
+				SELECT * FROM public.orders_orderprocesstime WHERE state_id = 140844;
+
+				-----------
+
+				SELECT * FROM public.orders_order WHERE id = 166361;
+
+				SELECT * FROM public.orders_orderprocessstate WHERE order_id = 166361;
+
+				SELECT * FROM public.orders_orderprocesstime WHERE state_id = 143375;
+
+				SELECT * FROM public.orders_historicalorder WHERE id = 166361;
 
 			Сброс времени начала обработки
+
+				from orders.models import *
 
 				ord_process_state = OrderProcessState.objects.get(order_id=163821)
 
@@ -269,7 +287,19 @@
 
 				ord_process_time = OrderProcessTime.objects.get(state_id=ord_process_state.pk)
 
-			OrderProcessState.objects.select_for_update().get(order_id=order_id)
+				ord_process_time.end_time=None
+
+				ord_process_time.reason_for_finish=None
+
+				ord_process_time.save()
+
+			Cброс статуса заказа
+
+				ord = Order.objects.get(pk=163821)
+
+				ord.state='New'
+
+				ord.save()
 
 	Вопросы:
 
@@ -323,15 +353,19 @@
 
 	    		if last_time_item.end_time
 
+	    	Сигнал end_order_process_time.
+
+	    		Отправляется при разных условиях: когда нажали "не дозвонился", когда закончилось рабочее время и т.д.
+
 	    Как работает вся цепочка учета времени?
 
 	    	Заказ создали.
 
 Проблема с выгодными предложениями magic
 
-	http://magic.km-union.ru/catalog/offertype/35/change/
+	http://magic.km-union.ru/catalog/offertype/172/change/
 
-		https://www.korallmicro.ru/products/offer/35?utm_source=site&utm_medium=banner_mainpage&utm_campaign=category&utm_term=allactions
+		https://www.korallmicro.ru/products/offer/172?utm_source=site&utm_medium=banner_mainpage&utm_campaign=category&utm_term=allactions
 
 	http://magic.km-union.ru/catalog/catalog/318144/change/
 
