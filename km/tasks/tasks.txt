@@ -333,6 +333,10 @@
 
     		def end_process_time_handler(
 
+    	Учет времени может остановиться если закончилось время работы магазина. Для обработки таких ситуация работает крон.
+
+    		check_time_order_processing
+
     Как протестить
 
     	Создать через dpa заказ
@@ -371,6 +375,23 @@
 
 		def sync_catalogs_and_products(site_models=SITE_MODELS, shop_type=CURRENT_SHOPPING_TYPE):
 
+	Как правильно вызвать catalog/tasks.py -> def sync?
+
+		from catalog.tasks import *
+
+		sync_shop.delay(shop_type='korallmicro')
+
+	Как узнать на каком продукте падает?
+
+		Перед bk_distributions.flush() поставить это:
+
+	        my_prod = [products[product_uuid]['code'] for product_uuid in _product_uuids]
+	        print my_prod
+
+	    Затем в добавить так:
+
+	    	bk_distributions = BulkCreator(Distributions, cache_size=1)
+
 	Помогло
 
 		Для всех акций
@@ -394,6 +415,10 @@
 		Там должен быть вызов синхронизации выгодных предложений
 
 			sync_offers_korallmicro.delay()
+
+	Цепочка синхронизации
+
+		...
 
 Продукт пометили в 1с, как "не для магазина", а он всеравно появился на korallmicro
 
