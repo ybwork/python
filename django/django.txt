@@ -16,6 +16,9 @@
 		django-admin и manage.py
 
 
+	Архитектура проекта
+
+
 	Базы данных
 
 		Настройка
@@ -597,6 +600,68 @@ django-admin и manage.py
 		https://djbook.ru/rel1.9/ref/django-admin.html?highlight=django-admin
 
 		https://docs.djangoproject.com/en/2.2/ref/django-admin/
+
+Архитектура проекта
+	
+	Кейс из Two scoops of Django
+
+		<repository_root>/
+			<configuration_root>/
+			<django_project_root>/
+
+		repository_root - корневая директория проекта с README.rst, manage.py, .gitignore, requirements.txt и т.д.
+
+		configuration_root - здесь settings, базовый urls.py
+
+		django_project_root - тут проект
+
+		icecreamratings
+		├── config/
+		│   ├── settings/
+		|	|  		__init__.py
+		|   |		local.py
+		|	|		...
+		│   ├── __init__.py
+		│   ├── urls.py
+		│   └── wsgi.py
+		├── docs/
+		├── icecreamratings/
+		│   ├── media/ # Development only!
+		│   ├── products/
+		│   ├── profiles/
+		│   ├── ratings/
+		│   ├── static/
+		│   └── templates/
+		├── .gitignore
+		├── Makefile
+		├── README.rst
+		├── manage.py
+		└── requirements.txt
+
+		Мой вариант
+
+			project_name
+			├── config/
+			│   ├── settings/
+			|	|  		__init__.py
+			|   |		local.py
+			|	|		...
+			│   ├── __init__.py
+			│   ├── urls.py
+			│   └── wsgi.py
+			├── docs/
+			├── project_name/
+			│   ├── media/ # Development only!
+			│   ├── products/
+			│   ├── profiles/
+			│   ├── ratings/
+			│   ├── static/
+			│   └── templates/
+			├── .gitignore
+			├── Makefile
+			├── README.rst
+			├── manage.py
+			└── requirements.txt
 
 Базы данных
 

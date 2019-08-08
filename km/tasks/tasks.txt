@@ -349,6 +349,10 @@
 
 Проблема с выгодными предложениями magic
 
+	Какой код падает с duplicate enry?
+
+		190177
+
 	http://magic.km-union.ru/catalog/offertype/172/change/
 
 		https://www.korallmicro.ru/products/offer/172?utm_source=site&utm_medium=banner_mainpage&utm_campaign=category&utm_term=allactions
@@ -383,10 +387,11 @@
 
 	Как узнать на каком продукте падает?
 
-		Перед bk_distributions.flush() поставить это:
+		В /modules/ones/models.py -> def flush поставить это:
 
-	        my_prod = [products[product_uuid]['code'] for product_uuid in _product_uuids]
-	        print my_prod
+        if self._model.__name__ == 'Products' and self._cache and hasattr(self._cache[0], 'code'):
+            my_prod = [product.code for product in self._cache]
+            print my_prod
 
 	    Затем в добавить так:
 
@@ -394,17 +399,33 @@
 
 	Помогло
 
-		Для всех акций
+		Korallmicro
 
-			from catalog.tasks import *
+			Для всех акций
 
-			sync_offers_korallmicro.delay()
+				from catalog.tasks import *
 
-		Для банера с акциями над выводом продуктов
+				sync_offers_korallmicro.delay()
 
-			from catalog.tasks import *
+			Для банера с акциями над выводом продуктов
 
-			sync_korallmicro.delay()
+				from catalog.tasks import *
+
+				sync_korallmicro.delay()
+
+		Snr
+		
+			Для всех акций
+
+				from catalog.tasks import *
+
+				sync_offers_snr.delay()
+
+			Для банера с акциями над выводом продуктов
+
+				from snr.tasks import *
+
+				sync.delay(site_models='sales_base_models.models', shop_type='snr_new')
 
 	Куда смотреть?
 
