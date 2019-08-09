@@ -638,30 +638,17 @@ django-admin и manage.py
 		├── manage.py
 		└── requirements.txt
 
-		Мой вариант
+		Для корректной работы меняем:
 
-			project_name
-			├── config/
-			│   ├── settings/
-			|	|  		__init__.py
-			|   |		local.py
-			|	|		...
-			│   ├── __init__.py
-			│   ├── urls.py
-			│   └── wsgi.py
-			├── docs/
-			├── project_name/
-			│   ├── media/ # Development only!
-			│   ├── products/
-			│   ├── profiles/
-			│   ├── ratings/
-			│   ├── static/
-			│   └── templates/
-			├── .gitignore
-			├── Makefile
-			├── README.rst
-			├── manage.py
-			└── requirements.txt
+			manage.py
+
+				os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+
+			local.py
+
+				ROOT_URLCONF = 'config.urls'
+
+				WSGI_APPLICATION = 'config.wsgi.application'
 
 Базы данных
 
@@ -2727,6 +2714,12 @@ Unit тесты
             cache.set('is_sent_email', True)
 
             Желательно после окончания инструкции. В данном случае после and.
+
+    Orm запросы внутри except c IntegrityError
+
+    	Будут падать с ошибкой, потому что каждый запрос обёрнут в транзация а при IntegrityError происходит откат всех транзакций и поэтому все запросы будут падать с ошибкой:
+
+    		TransactionManagementError("An error occurred in the current transaction. You can't execute queries until the end of the 'atomic' block.",)
 
 	
 

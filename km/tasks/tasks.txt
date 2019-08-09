@@ -437,9 +437,141 @@
 
 			sync_offers_korallmicro.delay()
 
-	Цепочка синхронизации
+	Как узнать на каком продукте падает?
 
-		...
+	    def flush(self):
+	        from catalog.models import Products as CatalogProduct, Distributions
+	        if self._model.__name__ == 'Products' and self._cache and hasattr(self._cache[0], 'code'):
+	            print 'cache'
+	            print self._cache
+
+	            for product in self._cache:
+	                print 'all cache product code'
+	                print product.code
+
+	            product_code = self._cache[0].code
+	            print 'product_code'
+	            print product_code
+
+	            print 'is exists code in catalog_products'
+	            print CatalogProduct.objects.filter(code=product_code).exists()
+	        elif self._model.__name__ == 'Distributions' and self._cache and hasattr(self._cache[0], 'product_id'):
+	            print 'cache'
+	            print self._cache
+
+	            for distribution in self._cache:
+	                print 'all cache distribution product_id'
+	                print distribution.product_id
+
+	            product_id = self._cache[0].product_id
+	            print 'code'
+	            print product_id
+
+	            print 'is exists product_id in catalog_products'
+	            print CatalogProduct.objects.filter(code=product_id).exists()
+	        self._model.objects.bulk_create(self._cache)
+	        self.total_created += len(self._cache)
+	        self._cache = []
+
+	Ошибки
+
+		[2019-08-09 13:19:34,661: WARNING/Worker-2] cache
+		[2019-08-09 13:19:34,661: WARNING/Worker-2] [<Products: 190177 - Сервер DELL PowerEdge R430 E5-2609v4/4x16Gb RDIMM/H330 PERC/3x1.2TB SAS/2x200GB SAS/ 500W PSU(SpecBuild 2252781)>]
+		[2019-08-09 13:19:34,662: WARNING/Worker-2] all cache product code
+		[2019-08-09 13:19:34,662: WARNING/Worker-2] 190177
+		[2019-08-09 13:19:34,662: WARNING/Worker-2] product_code
+		[2019-08-09 13:19:34,662: WARNING/Worker-2] 190177
+		[2019-08-09 13:19:34,662: WARNING/Worker-2] is exists code in catalog_products
+		[2019-08-09 13:19:34,664: WARNING/Worker-2] False
+
+
+		[2019-08-09 13:19:37,613: WARNING/Worker-2] cache
+		[2019-08-09 13:19:37,622: WARNING/Worker-2] [<Distributions: d155349c-fd61-11e5-93f9-001b21d8d330-Материнские платы : c94d7955-83dd-11e7-80c9-6805ca44419c-М/плата ASRock J4205-ITX, GLan/VGA/
+		DVI/HDMI, mini-ITX - False>]
+		[2019-08-09 13:19:37,622: WARNING/Worker-2] all cache distribution product_id
+		[2019-08-09 13:19:37,623: WARNING/Worker-2] 189832
+		[2019-08-09 13:19:37,623: WARNING/Worker-2] code
+		[2019-08-09 13:19:37,624: WARNING/Worker-2] 189832
+		[2019-08-09 13:19:37,624: WARNING/Worker-2] is exists product_id in catalog_products
+		[2019-08-09 13:19:37,628: WARNING/Worker-2] True
+
+
+		[2019-08-09 13:19:48,417: INFO/Worker-2] sync_shop[1ad6e6bb-9493-4b50-b13f-efefe7d9281a]: done sync "snr_new"
+		[2019-08-09 13:19:48,420: INFO/MainProcess] Task sync_shop[1ad6e6bb-9493-4b50-b13f-efefe7d9281a] succeeded in 44.5890488997s: None
+		[2019-08-09 13:19:48,429: INFO/Worker-2] sync_shop[b9beb080-ac91-4823-8d58-81ef1649d102]: run sync "istore"
+
+
+		[2019-08-09 13:19:48,442: WARNING/Worker-1] cache
+		[2019-08-09 13:19:48,442: WARNING/Worker-1] [<Products: 189832 - М/плата ASRock J4205-ITX, GLan/VGA/DVI/HDMI, mini-ITX>]
+		[2019-08-09 13:19:48,443: WARNING/Worker-1] all cache product code
+		[2019-08-09 13:19:48,443: WARNING/Worker-1] 189832
+		[2019-08-09 13:19:48,443: WARNING/Worker-1] product_code
+		[2019-08-09 13:19:48,443: WARNING/Worker-1] 189832
+		[2019-08-09 13:19:48,443: WARNING/Worker-1] is exists code in catalog_products
+		[2019-08-09 13:19:48,445: WARNING/Worker-1] False
+		[2019-08-09 13:19:48,536: INFO/MainProcess] Received task: sync_snr_new[f10d304f-51d4-4177-8f5e-88a47187c0b9]
+		[2019-08-09 13:19:48,611: ERROR/MainProcess] Task sync_shop[9195af5d-e0ef-4a1b-a23f-0ec919ca49c8] raised unexpected: IntegrityError(1062, "Duplicate entry 'c94d7955-83dd-11e7-80c9-6805ca4441
+		9c' for key 'PRIMARY'")
+
+	Итог
+
+		Отключили istore/snr_new после чего синхронизация начала работать нормально.
+
+		Причина наложение тасков.
+
+		Для каждого магазина запускается таск sync_shop.
+
+		Внутри sync_shop выполняется метод sync.
+
+		Внутри метода sync выполняется удаление всех продуктов, затем добавление нужных.
+
+		Затем внутри метода sync выполняется удаление всех distributions, затем добавление нужных.
+
+		Именно в этих местах и происходит наложение тасков.
+
+		Первый таск удалил все продукты и добавил нужные. Второй таск паралельно удалил все продукты, а когда начал вставлять увидель, что уже есть продукт и упал с duplicate entry.
+
+			Products.objects.filter(uid__in=delete_products).exclude(distributions__catalog__type__in=shop_types).delete()
+	        bk_product = BulkCreator(Products)
+	        for add_product_uuid in add_products:
+	            ones_product = ones_products[add_product_uuid]
+	            defaults = {
+	                'uid': add_product_uuid,
+	                'code': ones_product['code'],
+	                'art': ones_product['code'],
+	                'name': ones_product['name'],
+	                'translit': get_translit(ones_product['name']),
+	                'new': ones_product['is_new'],
+	                'create_date': ones_product['create_date']
+	            }
+	            bk_product.create(**defaults)
+	        bk_product.flush()
+
+	    Аналогично с distribution
+
+	    	Distributions.objects.filter(catalog__uid__in=delete_distributions_catalog_uuids).delete()
+	    	bk_distributions = BulkCreator(Distributions, cache_size=1)
+	        for group_uuid in add_distributions_catalog_uuids:
+	            product_uuids = get_product_uuids_for_sale(
+	                ones_distributions[group_uuid],
+	                shop_type=shop_type,
+	                vtb_pks=rules.get(group_uuid, None)
+	            )
+	            _product_uuids = [product_uuid for product_uuid in product_uuids
+	                              if products.has_key(product_uuid)]
+	            bk_distributions.extend([
+	                Distributions(catalog_id=groups[group_uuid]['pk'],
+	                              product_id=products[product_uuid]['code'])
+	                for product_uuid in _product_uuids
+	            ])
+	            added_items.extend([
+	                u'{0} <-> {1} {2}'.format(
+	                    groups[group_uuid]['full_name'], products[product_uuid]['code'],
+	                    products[product_uuid]['name']
+	                ) for product_uuid in _product_uuids
+	            ])
+	        bk_distributions.flush()
+
 
 Продукт пометили в 1с, как "не для магазина", а он всеравно появился на korallmicro
 

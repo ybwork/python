@@ -24,6 +24,8 @@
 
 	Загрузка репозиториев через requirements.txt
 
+	Для работы на production
+
 	Нюансы
 
 Что это
@@ -397,6 +399,35 @@ Gitignore
 			Он задается через собаку
 
 			С помощью #egg=MyProject явно указывается имя проекта.
+
+Для работы на production
+
+	magic/
+	tasks.py
+	models.py
+	...
+
+
+	git status
+
+		tasks
+		models
+
+
+	git stash
+	git stash apply
+
+	vim tasks...
+	vim models...
+	vim my
+
+	git checkout -- my
+
+	vim tasks...
+
+	git reset --hard
+	# git reset == git reset --soft
+	git stash pop
 
 Нюансы
 
