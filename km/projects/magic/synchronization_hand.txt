@@ -1,0 +1,35 @@
+Синхронизация брендов и видов
+
+	from cards.tasks import *
+
+	sync_brands_kinds_in_actual_cards.delay()
+
+Синхронизация выгодных предложений
+
+	Korallmicro
+
+		Для всех акций
+
+			from catalog.tasks import *
+
+			sync_offers_korallmicro.delay()
+
+		Для банера с акциями над выводом продуктов
+
+			from catalog.tasks import *
+
+			sync_korallmicro.delay()
+
+	Snr
+	
+		Для всех акций
+
+			from catalog.tasks import *
+
+			sync_offers_snr.delay()
+
+		Для банера с акциями над выводом продуктов
+
+			from snr.tasks import *
+
+			sync.delay(site_models='sales_base_models.models', shop_type='snr_new')

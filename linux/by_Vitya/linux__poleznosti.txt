@@ -1,0 +1,45 @@
+
+# просмотр процессов постгресса каждые полсекунды
+watch -n 0.5 "ps -aux | grep postgres"
+
+ 
+#--------------------------
+# просмотр логов
+#--------------------------
+ 
+# просмотр логов (-f - в режиме реального времени)
+tail -f /var/log/apache2/access.log   # -n 30 - тридцать строк
+ 
+# просмотр в логах nginx только строк со строкой 'Connection timed out' - ошибкой 504
+tail -f korallmicro-error.log | grep --line-buffered 'Connection timed out'
+ 
+# сигнал на определенном событии в логах
+# определим beep
+beep() { read a || exit; printf "$a\007\n"; beep; }
+# используем команду
+tail -f development.log | grep "something rare" | beep
+
+
+ 
+ 
+# остановить крон (запустить - либо start, restart)
+/etc/init.d/cron stop
+
+ 
+# проверить активность портов
+netstat -lptun
+ 
+# постучаться на порт
+telnet localhost 9000
+ 
+# посмотреть все сервисы
+service --status-all
+ 
+ 
+#----------------------------
+# копирование файлов удаленно
+#----------------------------
+ 
+# scp <откуда> <куда>
+# с 7.14 в 0_projects/... набор файлов
+scp web@192.168.7.14:/home/web/www/magic/media/images/\{11500x500_2.jpg,22500x500_1.jpg,500x500_3.jpg,33500x500_2.jpg,1111000x1000_15.png,1000x1000_32.png,140369_0_20150228_1340.jpg,140369_1_20150228_1340.jpg,140369_2_20150228_1340.jpg,140369_3_20150228_1340.jpg,140369_4_20150228_1340.jpg\} /home/shadowuser/0_projects/python/magic/media/images/

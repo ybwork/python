@@ -2631,6 +2631,46 @@ Unit тесты
 
 	pip install psycopg2
 
+	Меняем структуру проекта
+
+		project_name
+		├── config/
+		│   ├── settings/
+		|	|  		__init__.py
+		|   |		local.py
+		|	|		...
+		│   ├── __init__.py
+		│   ├── urls.py
+		│   └── wsgi.py
+		├── docs/
+		├── project_name/
+		│   ├── media/
+		│   ├── products/
+		│   ├── profiles/
+		│   ├── ratings/
+		│   ├── static/
+		│   └── templates/
+		├── .gitignore
+		├── Makefile
+		├── README.rst
+		├── manage.py
+		└── requirements.txt
+
+		Для корректной работы меняем:
+
+			manage.py
+
+				os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+
+			local.py
+
+				ROOT_URLCONF = 'config.urls'
+
+				WSGI_APPLICATION = 'config.wsgi.application'
+
+		Для запуска:
+
+			./manage.py runserver --settings=config.settings.local
 	
 
 Развёртывание (docker + nginx + gunicorn + django)
