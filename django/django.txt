@@ -116,7 +116,7 @@
 
 	Интерфейс администратора
 
-		Нюансы
+		Нюансы интерфейс администратора
 
 	Shell
 
@@ -128,13 +128,15 @@
 
 		Команды
 
-	Развёртывание (docker + nginx + gunicorn + django)
-
 	Вливание новых данных на проект
 
 	Книги
 
 	Нюансы
+
+	Создание и настройка проекта
+
+	Развёртывание (docker + nginx + gunicorn + django)
 
 Общее
 
@@ -2248,7 +2250,7 @@ QuerySet
 
 Интерфейс администратора
 
-	Нюансы
+	Нюансы интерфейс администратора
 
 		response.context['cl'].queryset - доступ к списку сущности
 
@@ -2428,108 +2430,6 @@ Unit тесты
 		./manage.py test
 
 		./manage.py test app_name/
-
-Развёртывание (docker + nginx + gunicorn + django)
-
-	Local machine
-	
-		cd /etc
-
-		sudo nano hosts
-
-		Add 127.0.0.1 yetbetter
-
-	Nginx (docker)
-
-		docker run -p 80:80 --name nginx -v ~/nginx:/usr/share/nginx/html -d nginx
-
-		docker exec -it container_name bash
-
-			apt-get update
-
-			apt-get install nano
-
-			nano /etc/nginx/nginx.conf
-
-				user  nginx;
-				worker_processes  1;
-
-				error_log  /var/log/nginx/error.log warn;
-				pid        /var/run/nginx.pid;
-
-				events {
-				    worker_connections  1024;
-				}
-
-				http {
-				    access_log  /var/log/nginx/access.log;
-
-				    sendfile on;
-
-				    keepalive_timeout 65;
-
-				    upstream app_servers {
-				        server 172.17.0.1:8000; - ip адрес докера на локальной машине (только через него можно достучаться)
-				    }
-
-				    server {
-				        listen 80;
-				        server_name yetbetter;
-
-				        location / {
-				            root /usr/share/nginx/html; - здесь должен быть путь к нормальной статики django (узнать) 
-				            index index.html index.htm;
-				            proxy_pass http://app_servers;
-				            proxy_set_header Host $host;
-				        }
-				    }
-				}
-
-		http://yetbetter
-
-	Gunicorn + Django (docker)
-
-		docker pull ubuntu
-
-		docker run -i -t -p 8000:8000 --name my_ubuntu ubuntu
-
-		docker start my_ubuntu
-
-		docker exec -it my_ubuntu bash
-
-			apt-get update
-
-			apt-get install -y python3-pip
-
-			pip3 install virtualenv
-
-			pip3 install virtualenvwrapper
-
-			export WORKON_HOME=~/.virtualenvs
-
-			VIRTUALENVWRAPPER_PYTHON='/usr/bin/python3'
-
-			source /usr/local/bin/virtualenvwrapper.sh
-
-			which python3
-
-			mkvirtualenv -p /usr/bin/python3 venv_name
-
-			workon venv_name
-
-			pip3 install django
-
-			cd /home
-
-			mkdir /app
-
-			django-admin startproject project_name
-
-			pip3 install gunicorn
-
-			cd django_project_name
-
-			gunicorn -b 0.0.0.0:8000 project_name.wsgi
 
 Вливание новых данных на проект
 
@@ -2721,7 +2621,119 @@ Unit тесты
 
     		TransactionManagementError("An error occurred in the current transaction. You can't execute queries until the end of the 'atomic' block.",)
 
+Создание и настройка проекта
+
+	virtualenv --python=//usr/bin/python3.6 name_venv
+
+	. name_venv/bin/activate
+
+	pip install django
+
+	pip install psycopg2
+
 	
+
+Развёртывание (docker + nginx + gunicorn + django)
+
+	Local machine
+	
+		cd /etc
+
+		sudo nano hosts
+
+		Add 127.0.0.1 yetbetter
+
+	Nginx (docker)
+
+		docker run -p 80:80 --name nginx -v ~/nginx:/usr/share/nginx/html -d nginx
+
+		docker exec -it container_name bash
+
+			apt-get update
+
+			apt-get install nano
+
+			nano /etc/nginx/nginx.conf
+
+				user  nginx;
+				worker_processes  1;
+
+				error_log  /var/log/nginx/error.log warn;
+				pid        /var/run/nginx.pid;
+
+				events {
+				    worker_connections  1024;
+				}
+
+				http {
+				    access_log  /var/log/nginx/access.log;
+
+				    sendfile on;
+
+				    keepalive_timeout 65;
+
+				    upstream app_servers {
+				        server 172.17.0.1:8000; - ip адрес докера на локальной машине (только через него можно достучаться)
+				    }
+
+				    server {
+				        listen 80;
+				        server_name yetbetter;
+
+				        location / {
+				            root /usr/share/nginx/html; - здесь должен быть путь к нормальной статики django (узнать) 
+				            index index.html index.htm;
+				            proxy_pass http://app_servers;
+				            proxy_set_header Host $host;
+				        }
+				    }
+				}
+
+		http://yetbetter
+
+	Gunicorn + Django (docker)
+
+		docker pull ubuntu
+
+		docker run -i -t -p 8000:8000 --name my_ubuntu ubuntu
+
+		docker start my_ubuntu
+
+		docker exec -it my_ubuntu bash
+
+			apt-get update
+
+			apt-get install -y python3-pip
+
+			pip3 install virtualenv
+
+			pip3 install virtualenvwrapper
+
+			export WORKON_HOME=~/.virtualenvs
+
+			VIRTUALENVWRAPPER_PYTHON='/usr/bin/python3'
+
+			source /usr/local/bin/virtualenvwrapper.sh
+
+			which python3
+
+			mkvirtualenv -p /usr/bin/python3 venv_name
+
+			workon venv_name
+
+			pip3 install django
+
+			cd /home
+
+			mkdir /app
+
+			django-admin startproject project_name
+
+			pip3 install gunicorn
+
+			cd django_project_name
+
+			gunicorn -b 0.0.0.0:8000 project_name.wsgi
 
 
 
