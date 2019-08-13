@@ -33,3 +33,25 @@
 			from snr.tasks import *
 
 			sync.delay(site_models='sales_base_models.models', shop_type='snr_new')
+
+		Для продуктов
+
+			from snr.tasks import *
+
+			sync.delay(site_models='sales_base_models.models', shop_type='snr_new')
+
+Синхронизация карточек товара
+
+	from cards.tasks import *
+
+	from cards.models import *
+
+	card_code_list = ProductCard.objects.get_actual().get_checked().get_verified().filter(date_formed_description__isnull=True).values_list('code', flat=True)
+
+	update_descriptions_and_previews.delay(codes=card_code_list, do_update_description=True, do_upload_preview=True)
+
+Синхронизация шильдов
+
+	Убедиться, что стоят галочки в 1с.
+
+		

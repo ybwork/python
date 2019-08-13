@@ -93,6 +93,11 @@
 		Декорирование представлений классов
 
 
+	Шаблоны
+
+		Архитектура by "two scoops of django"
+
+
 	Валидаторы
 		
 
@@ -129,6 +134,8 @@
 		Команды
 
 	Вливание новых данных на проект
+
+	Перезапуск проекта
 
 	Книги
 
@@ -2145,6 +2152,41 @@ QuerySet
 					class ProtectedView(TemplateView):
 					    template_name = 'secret.html'
 
+Шаблоны
+
+	Ребята из "two scoops of django" предлагают использовать Jinja2.
+
+	Архитектура by "two scoops of django"
+
+		2-ух уровневая
+
+			templates/
+
+				base.html
+
+				profiles/
+
+					profile_detail.html # extends base.html
+
+					profile_form.html # extends base.html
+
+		3-х уровневая
+
+			Подходит для сайтов с совершенно разными макетами для каждой страницы.
+
+			templates/
+
+				base.html
+
+				profiles/
+
+					base_profiles.html # extends base.html
+
+					profile_detail.html # extends base_profiles.html
+
+					profile_form.html # extends base_profiles.html
+
+
 Валидаторы
 
 	Это функции для валидации значений, которые вешаются на поля модели.
@@ -2441,6 +2483,18 @@ Unit тесты
 
 	Если есть изменения в шаблонах, то выполнили collectstatic.
 
+Перезапуск проекта
+
+	кстати, одна из основных причин всякой магии - это кеш
+
+	pyc - кеш виртуалной машины питона
+	кеш, куда кладешь промежуточные значения расчета
+	кеш, куда кладешь полученный ответ от API
+	и т.п.
+	еще как пример - если перезапустить не весь проект, а только, к примеру, gunicorn, без celery, можно до посинения искать, где ж ошибка
+	т.к. код вроде новый, ты видишь, что новый и все в нем хорошо должно работать
+	а в памяти висит процесс, исполняющий СТАРЫЙ код...
+	
 Книги
 
 	Two Scoops of Django 1.11: Best Practices for the Django Web Framework.

@@ -304,6 +304,9 @@ Routing
 		def debug_task(self):
 		    print('Request: {0!r}'.format(self.request))
 
+		@app.task(name='sync_snr_new') - создаём задачу с конкретным именем, при этом запускать будем, как sync.delay, а не sync_snr_new.delay. Такое именование позволяет избежать дублирования имен.
+		def sync():
+
 	В любом приложении создаем файл tasks.py и в нем пишем например это:
 
 		from __future__ import absolute_import, unicode_literals
