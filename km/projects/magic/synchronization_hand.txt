@@ -1,3 +1,13 @@
+Оглавление
+
+	Синхронизация брендов и видов
+
+	Синхронизация выгодных предложений
+
+	Формирование слепков карточки товара
+
+	Синхронизация шильдов
+
 Синхронизация брендов и видов
 
 	from cards.tasks import *
@@ -40,7 +50,7 @@
 
 			sync.delay(site_models='sales_base_models.models', shop_type='snr_new')
 
-Синхронизация карточек товара
+Формирование слепков карточки товара
 
 	from cards.tasks import *
 
@@ -48,10 +58,15 @@
 
 	card_code_list = ProductCard.objects.get_actual().get_checked().get_verified().filter(date_formed_description__isnull=True).values_list('code', flat=True)
 
-	update_descriptions_and_previews.delay(codes=card_code_list, do_update_description=True, do_upload_preview=True)
+	update_description_and_previews_signal.send(sender=ProductCard, filter={'code__in': card_code_list})
+
+	Если забился кэш, то:
+
+		from django.core.cache import cache
+
+		cache.delete('separation_info')
 
 Синхронизация шильдов
 
-	Убедиться, что стоят галочки в 1с.
-
+	...
 		

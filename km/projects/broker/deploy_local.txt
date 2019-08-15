@@ -107,3 +107,13 @@ settings_local
 Из терминала magic
 
 	bin/celery call -A app_celery full_ones_sync_send_signal --queue=system
+
+Заходим в брокер
+
+	http://127.1.1.1:8300/broker/rule/
+
+	Находим и переходим в catalog_korallmicro_sync
+
+	Меняем countdown на 15
+
+	Сохраняем
