@@ -718,3 +718,75 @@
 страна производитель есть в 1С, но нет в magic
 
 	229812
+
+Проблема с синхронизацией
+
+	Падает таск sync_shop.
+
+	Ошибки duplicate entry в таблице catalog_products и constrait foreign key в таблице catalog_distributions.
+
+	Причина - наложение тасков.
+
+	Как это работает?
+
+		Все сигналы посылаются в наш брокер.
+
+		Посылается сигнал full_ones_sync_finish.
+
+			Обработчик сигнала full_ones_to_magic_sync запускает таск sync_db.
+
+		Когда таск sync_db заканчивает свою работу, он посылает сигнал full_ones_to_magic_sync_finish.
+
+			Обработчик catalog_korallmicro_sync запускает таск sync_shop.
+
+			Обработчик catalog_snr_new_sync запускает таск sync_shop.
+
+			Обработчик catalog_istore_sync запускает таск sync_shop.
+
+			Сейчас эти обработчики работают паралельно.
+
+		Когда таск sync_shop заканчивает свою работу (для каждого магазина), он посылает сигналы catalog_korallmicro_sync_finish и catalog_snr_new_sync_finish
+
+			Обработчик site_korallmicro_sync запускает таск sync_korallmicro
+
+			Обработчик site_snr_new_sync запускает таск sync_snr_new
+
+		Таски sync_korallmicro и sync_snr_new внутри себя вызывают метод внутри, которого
+
+			sync_catalogs_and_products()
+		    sync_offers()
+		    sync_tags()
+
+		В методе sync_catalogs_and_products и происходит наложение.
+
+	Решение проблемы
+
+		Вызывать обработчики по цепочке.
+
+		Когда закончил один, тогда запустился другой.
+
+	Вопрос
+
+		Где разруливать локигу, которая запускает следующий обработчик?
+
+			кидаем событие, что я, мол, синк каталогов снр и я завершился
+
+			и добавляем правило что после этого сигнала вызвать во-он тот обработчик
+
+	Реализация
+
+		full_ones_sync_finish -> (обработчик) full_ones_to_magic_sync -> (таск) sync_db
+
+			full_ones_to_magic_sync_finish -> (обработчик) catalog_korallmicro_sync -> (таск) sync_shop
+
+				таск sync_shop посылает сигнал catalog_korallmicro_sync_finish -> (обработчик) catalog_snr_new_sync -> (таск) sync_shop
+
+					таск sync_shop посылает сигнал catalog_snr_new_sync_finish -> (обработчик) catalog_istore_sync -> (таск) sync_shop
+
+
+
+
+
+
+			
+
