@@ -229,6 +229,10 @@
 
 	docker container run -it -p 5000:5000 -v /home/user/folder-i-want-to-read/:/path_in_container bjoffe/openface_flask_v2 /bin/bash
 
+	docker start mysql_5.7 redis rabbit nginx php - запускает сразу несколько контейнеров
+
+	docker stop nginx php - останавливает сразу несколько контейнеров
+
 Docker Engine
 
 	Это клиент серверное приложение

@@ -6,7 +6,35 @@
 
     Проблема с обновлением слепков refs #18150
 
-    Баг: пользователь может привязывать к карточке товара вид-тип у которого нет шаблона, потом когда пользователь заходит и редактирует карточку глючит код внутри метода models/ProductCard/get_filter_values
+    Товары без фото #18127
+
+    Ошибка при синхронизации фильтров #18298
+
+    Валидация карточки товара
+
+    Ошибочные карточки при формировнии кеша ЯМ #18082
+
+    Необходимо получить фото товаров с нашего СДН, по следующим критериям #...
+
+    После подтверждения карточек товара они не появились на боевом #18506
+
+    Пересекающийся товар в неактивных акциях
+
+    Integrity Error в синхронизации между magic и 1c
+
+    Проблема с обработкой изображений с помощью PIL #18128
+
+    Когда карточка становится актуальной
+
+    Выгодные предложения
+
+    Не приходят письма если возникает ошибки при проведении карточек товара
+
+    Проблема с выгодными предложениями magic
+
+    Cтрана производитель есть в 1С, но нет в magic
+
+    Проблема с синхронизацией magic
 
 Общая инфа
 
@@ -304,7 +332,7 @@
 
     Время действие акции "15 лет КМ" не вышло, поэтому и возникала данная проблема.
 
-Integrity Error в синхронизации между magic и 1c.
+Integrity Error в синхронизации между magic и 1c
 
     Падает таск sync_shop.
 
@@ -364,3 +392,312 @@ Integrity Error в синхронизации между magic и 1c.
             1. Упал redis server
 
             2. Нет кэша с таким ключом
+
+Проблема с выгодными предложениями magic
+
+    Какой код падает с duplicate enry?
+
+        190177
+
+    http://magic.km-union.ru/catalog/offertype/172/change/
+
+        https://www.korallmicro.ru/products/offer/172?utm_source=site&utm_medium=banner_mainpage&utm_campaign=category&utm_term=allactions
+
+    http://magic.km-union.ru/catalog/catalog/318144/change/
+
+        https://www.korallmicro.ru/catalog/portativnaya_tekhnika/vneshnie_akkumulyatory
+
+    Коралл берет нужные данные из
+
+        Базы korallmicro
+
+            SELECT * FROM public.catalogs WHERE name = 'Внешние аккумуляторы';
+
+        class CatalogController
+
+            public function indexAction(){
+
+                $renderedProductItems = $product->renderProductItemsByAlias($alias, $renderParams['type'], $renderParams['sort'], $renderParams['is_dealer_provided'], $renderParams['sort_direction']);
+
+                var_dump($alias, $renderParams['type'], $renderParams['sort'], $renderParams['is_dealer_provided'], $renderParams['sort_direction']); die();
+
+    Что записывает туда данные?
+
+        def sync_catalogs_and_products(site_models=SITE_MODELS, shop_type=CURRENT_SHOPPING_TYPE):
+
+    Как правильно вызвать catalog/tasks.py -> def sync?
+
+        from catalog.tasks import *
+
+        sync_shop.delay(shop_type='korallmicro')
+
+    Как узнать на каком продукте падает?
+
+        В /modules/ones/models.py -> def flush поставить это:
+
+        if self._model.__name__ == 'Products' and self._cache and hasattr(self._cache[0], 'code'):
+            my_prod = [product.code for product in self._cache]
+            print my_prod
+
+        Затем в добавить так:
+
+            bk_distributions = BulkCreator(Distributions, cache_size=1)
+
+    Помогло
+
+        Korallmicro
+
+            Для всех акций
+
+                from catalog.tasks import *
+
+                sync_offers_korallmicro.delay()
+
+            Для банера с акциями над выводом продуктов
+
+                from catalog.tasks import *
+
+                sync_korallmicro.delay()
+
+        Snr
+        
+            Для всех акций
+
+                from catalog.tasks import *
+
+                sync_offers_snr.delay()
+
+            Для банера с акциями над выводом продуктов
+
+                from snr.tasks import *
+
+                sync.delay(site_models='sales_base_models.models', shop_type='snr_new')
+
+    Куда смотреть?
+
+        Изменение выгодных предложений
+
+            http://magic.km-union.ru/catalog/offertype/35/change/
+
+        Там должен быть вызов синхронизации выгодных предложений
+
+            sync_offers_korallmicro.delay()
+
+    Как узнать на каком продукте падает?
+
+        def flush(self):
+            from catalog.models import Products as CatalogProduct, Distributions
+            if self._model.__name__ == 'Products' and self._cache and hasattr(self._cache[0], 'code'):
+                print 'cache'
+                print self._cache
+
+                for product in self._cache:
+                    print 'all cache product code'
+                    print product.code
+
+                product_code = self._cache[0].code
+                print 'product_code'
+                print product_code
+
+                print 'is exists code in catalog_products'
+                print CatalogProduct.objects.filter(code=product_code).exists()
+            elif self._model.__name__ == 'Distributions' and self._cache and hasattr(self._cache[0], 'product_id'):
+                print 'cache'
+                print self._cache
+
+                for distribution in self._cache:
+                    print 'all cache distribution product_id'
+                    print distribution.product_id
+
+                product_id = self._cache[0].product_id
+                print 'code'
+                print product_id
+
+                print 'is exists product_id in catalog_products'
+                print CatalogProduct.objects.filter(code=product_id).exists()
+            self._model.objects.bulk_create(self._cache)
+            self.total_created += len(self._cache)
+            self._cache = []
+
+    Ошибки
+
+        [2019-08-09 13:19:34,661: WARNING/Worker-2] cache
+        [2019-08-09 13:19:34,661: WARNING/Worker-2] [<Products: 190177 - Сервер DELL PowerEdge R430 E5-2609v4/4x16Gb RDIMM/H330 PERC/3x1.2TB SAS/2x200GB SAS/ 500W PSU(SpecBuild 2252781)>]
+        [2019-08-09 13:19:34,662: WARNING/Worker-2] all cache product code
+        [2019-08-09 13:19:34,662: WARNING/Worker-2] 190177
+        [2019-08-09 13:19:34,662: WARNING/Worker-2] product_code
+        [2019-08-09 13:19:34,662: WARNING/Worker-2] 190177
+        [2019-08-09 13:19:34,662: WARNING/Worker-2] is exists code in catalog_products
+        [2019-08-09 13:19:34,664: WARNING/Worker-2] False
+
+
+        [2019-08-09 13:19:37,613: WARNING/Worker-2] cache
+        [2019-08-09 13:19:37,622: WARNING/Worker-2] [<Distributions: d155349c-fd61-11e5-93f9-001b21d8d330-Материнские платы : c94d7955-83dd-11e7-80c9-6805ca44419c-М/плата ASRock J4205-ITX, GLan/VGA/
+        DVI/HDMI, mini-ITX - False>]
+        [2019-08-09 13:19:37,622: WARNING/Worker-2] all cache distribution product_id
+        [2019-08-09 13:19:37,623: WARNING/Worker-2] 189832
+        [2019-08-09 13:19:37,623: WARNING/Worker-2] code
+        [2019-08-09 13:19:37,624: WARNING/Worker-2] 189832
+        [2019-08-09 13:19:37,624: WARNING/Worker-2] is exists product_id in catalog_products
+        [2019-08-09 13:19:37,628: WARNING/Worker-2] True
+
+
+        [2019-08-09 13:19:48,417: INFO/Worker-2] sync_shop[1ad6e6bb-9493-4b50-b13f-efefe7d9281a]: done sync "snr_new"
+        [2019-08-09 13:19:48,420: INFO/MainProcess] Task sync_shop[1ad6e6bb-9493-4b50-b13f-efefe7d9281a] succeeded in 44.5890488997s: None
+        [2019-08-09 13:19:48,429: INFO/Worker-2] sync_shop[b9beb080-ac91-4823-8d58-81ef1649d102]: run sync "istore"
+
+
+        [2019-08-09 13:19:48,442: WARNING/Worker-1] cache
+        [2019-08-09 13:19:48,442: WARNING/Worker-1] [<Products: 189832 - М/плата ASRock J4205-ITX, GLan/VGA/DVI/HDMI, mini-ITX>]
+        [2019-08-09 13:19:48,443: WARNING/Worker-1] all cache product code
+        [2019-08-09 13:19:48,443: WARNING/Worker-1] 189832
+        [2019-08-09 13:19:48,443: WARNING/Worker-1] product_code
+        [2019-08-09 13:19:48,443: WARNING/Worker-1] 189832
+        [2019-08-09 13:19:48,443: WARNING/Worker-1] is exists code in catalog_products
+        [2019-08-09 13:19:48,445: WARNING/Worker-1] False
+        [2019-08-09 13:19:48,536: INFO/MainProcess] Received task: sync_snr_new[f10d304f-51d4-4177-8f5e-88a47187c0b9]
+        [2019-08-09 13:19:48,611: ERROR/MainProcess] Task sync_shop[9195af5d-e0ef-4a1b-a23f-0ec919ca49c8] raised unexpected: IntegrityError(1062, "Duplicate entry 'c94d7955-83dd-11e7-80c9-6805ca4441
+        9c' for key 'PRIMARY'")
+
+    Итог
+
+        Отключили istore/snr_new после чего синхронизация начала работать нормально.
+
+        Причина наложение тасков.
+
+        Для каждого магазина запускается таск sync_shop.
+
+        Внутри sync_shop выполняется метод sync.
+
+        Внутри метода sync выполняется удаление всех продуктов, затем добавление нужных.
+
+        Затем внутри метода sync выполняется удаление всех distributions, затем добавление нужных.
+
+        Именно в этих местах и происходит наложение тасков.
+
+        Первый таск удалил все продукты и добавил нужные. Второй таск паралельно удалил все продукты, а когда начал вставлять увидель, что уже есть продукт и упал с duplicate entry.
+
+            Products.objects.filter(uid__in=delete_products).exclude(distributions__catalog__type__in=shop_types).delete()
+            bk_product = BulkCreator(Products)
+            for add_product_uuid in add_products:
+                ones_product = ones_products[add_product_uuid]
+                defaults = {
+                    'uid': add_product_uuid,
+                    'code': ones_product['code'],
+                    'art': ones_product['code'],
+                    'name': ones_product['name'],
+                    'translit': get_translit(ones_product['name']),
+                    'new': ones_product['is_new'],
+                    'create_date': ones_product['create_date']
+                }
+                bk_product.create(**defaults)
+            bk_product.flush()
+
+        Аналогично с distribution
+
+            Distributions.objects.filter(catalog__uid__in=delete_distributions_catalog_uuids).delete()
+            bk_distributions = BulkCreator(Distributions, cache_size=1)
+            for group_uuid in add_distributions_catalog_uuids:
+                product_uuids = get_product_uuids_for_sale(
+                    ones_distributions[group_uuid],
+                    shop_type=shop_type,
+                    vtb_pks=rules.get(group_uuid, None)
+                )
+                _product_uuids = [product_uuid for product_uuid in product_uuids
+                                  if products.has_key(product_uuid)]
+                bk_distributions.extend([
+                    Distributions(catalog_id=groups[group_uuid]['pk'],
+                                  product_id=products[product_uuid]['code'])
+                    for product_uuid in _product_uuids
+                ])
+                added_items.extend([
+                    u'{0} <-> {1} {2}'.format(
+                        groups[group_uuid]['full_name'], products[product_uuid]['code'],
+                        products[product_uuid]['name']
+                    ) for product_uuid in _product_uuids
+                ])
+            bk_distributions.flush()
+
+Cтрана производитель есть в 1С, но нет в magic
+
+    229812
+
+Проблема с синхронизацией magic
+
+    Падает таск sync_shop.
+
+    Ошибки duplicate entry в таблице catalog_products и constrait foreign key в таблице catalog_distributions.
+
+    Причина - наложение тасков.
+
+    Как это работает?
+
+        Все сигналы посылаются в наш брокер.
+
+        Посылается сигнал full_ones_sync_finish.
+
+            Обработчик сигнала full_ones_to_magic_sync запускает таск sync_db.
+
+        Когда таск sync_db заканчивает свою работу, он посылает сигнал full_ones_to_magic_sync_finish.
+
+            Обработчик catalog_korallmicro_sync запускает таск sync_shop.
+
+            Обработчик catalog_snr_new_sync запускает таск sync_shop.
+
+            Обработчик catalog_istore_sync запускает таск sync_shop.
+
+            Сейчас эти обработчики работают паралельно.
+
+        Когда таск sync_shop заканчивает свою работу (для каждого магазина), он посылает сигналы catalog_korallmicro_sync_finish и catalog_snr_new_sync_finish
+
+            Обработчик site_korallmicro_sync запускает таск sync_korallmicro
+
+            Обработчик site_snr_new_sync запускает таск sync_snr_new
+
+        Таски sync_korallmicro и sync_snr_new внутри себя вызывают метод внутри, которого
+
+            sync_catalogs_and_products()
+            sync_offers()
+            sync_tags()
+
+        В методе sync_catalogs_and_products и происходит наложение.
+
+    Решение проблемы
+
+        Вызывать обработчики по цепочке.
+
+        Когда закончил один, тогда запустился другой.
+
+    Вопрос
+
+        Где разруливать локигу, которая запускает следующий обработчик?
+
+            кидаем событие, что я, мол, синк каталогов снр и я завершился
+
+            и добавляем правило что после этого сигнала вызвать во-он тот обработчик
+
+    Реализация
+
+        full_ones_sync_finish -> (обработчик) full_ones_to_magic_sync -> (таск) sync_db
+
+            full_ones_to_magic_sync_finish -> (обработчик) catalog_korallmicro_sync -> (таск) sync_shop
+
+                таск sync_shop посылает сигнал catalog_korallmicro_sync_finish -> (обработчик) catalog_snr_new_sync -> (таск) sync_shop
+
+                    таск sync_shop посылает сигнал catalog_snr_new_sync_finish -> (обработчик) catalog_istore_sync -> (таск) sync_shop
+
+        Выключил
+
+            catalog_istore_sync
+
+            catalog_snr_new_sync
+
+        Добавил
+
+            catalog_korallmicro_sync_finish - обработчик catalog_snr_new_sync
+
+                {"shop_type": "snr_new", "destination_task_params": {"routing_key": "system"}}
+
+            catalog_snr_new_sync_finish - обработчик catalog_istore_sync
+
+                {"shop_type": "istore", "use_confidence_interval": false, "destination_task_params": {"countdown": 15, "routing_key": "system"}}

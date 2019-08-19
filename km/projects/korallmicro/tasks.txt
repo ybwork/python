@@ -1,0 +1,117 @@
+Оглавление
+
+	На сайте отображается товар, который для него не предназначен #19161
+
+	Проблема с отображением акции в каталоге на сайте korallmicro #19160
+
+На сайте отображается товар, который для него не предназначен #19161
+
+	Раньше был товар 26491
+
+	На 19 августа товара 1987
+
+	Галочка "Не для интернет магазина" пишется в поле "НеДляРозницы"
+
+	НеДляРозницы == не для кораллмикро
+
+	Галочка "Не для интернет магазина" == не для кораллмикро
+
+    is_not_for_retail == не для кораллмикро
+
+    'is_for_retail': not ones_nomenclature['is_not_for_retail']
+
+    from raw_processing.models import *
+
+    	Nomenclature.objects.get(code=26491).is_not_for_retail
+
+		products = Nomenclature.objects.filter(is_not_for_retail=True)
+
+		product_code_list = products.values_list('code', flat=True)
+
+		from korallmicro.models import *
+
+		korall_products = Products.objects.filter(id__in=list(product_code_list))
+
+    Можно ли добавить один и тот же продукт в каталоги snr и korallmicro?
+
+        Да, можно.
+
+    Как товар попадает в таблицу product в базе korallmicro?
+
+		from korallmicro.tasks import *
+
+        def sync_catalogs_and_products(
+
+    Как выполнить задачу, которая пишет товар в таблицу product в базе korallmicro?
+
+    	from catalog.tasks import *
+
+    	sync_korallmicro.delay()
+
+   	Какой код берет товара, которого не должно быть?
+
+   		Он берет его из базы magic и таблицы catalog_catalog, поэтому нужно смотреть на выгрузку каталога.
+
+	    new_products_codes = set([i for i, in Products.objects.filter(
+	        distributions__catalog__type=shop_type,
+	        distributions__catalog__is_available=True
+	    ).distinct().values_list('code')])
+
+	    SELECT DISTINCT `catalog_products`.`uid`, `catalog_products`.`code`, `catalog_products`.`art`, `catalog_products`.`name`, `catalog_products`.`translit`, `catalog_products`.`new`, `catalog_products`.`create_date` FROM `catalog_products` INNER JOIN `catalog_distributions` ON (`catalog_products`.`code` = `catalog_distributions`.`product_id`) INNER JOIN `catalog_catalog` ON (`catalog_distributions`.`catalog_id` = `catalog_catalog`.`id`) WHERE (`catalog_catalog`.`type` = korallmicro AND `catalog_catalog`.`is_available` = True)
+
+	Какой код кладет товар в таблицу catalog_products, хотя его там не должно быть?
+
+		from catalog.tasks import *
+
+		sync_shop.delay(shop_type='korallmicro')
+
+		catalog/tasks.py
+
+			sync
+
+			    bk_product = BulkCreator(Products, cache_size=1)
+			    for add_product_uuid in add_products:
+			        ones_product = ones_products[add_product_uuid]
+			        defaults = {
+			            'uid': add_product_uuid,
+			            'code': ones_product['code'],
+			            'art': ones_product['code'],
+			            'name': ones_product['name'],
+			            'translit': get_translit(ones_product['name']),
+			            'new': ones_product['is_new'],
+			            'create_date': ones_product['create_date']
+			        }
+			        bk_product.create(**defaults)
+			    bk_product.flush()
+
+	Когда товары попадают из таблицы Nomenclature в таблицу ones_products?
+
+		ones/tasks/main.py
+
+			def prepare_1c_data(
+
+		для запуска
+
+			from ones.tasks.main import *
+
+			OnesSync().run()
+
+		OnesSync().run() вызывается в sync_db
+
+	Что может быть причиной бага?
+
+		Сначала продукт без галочки "Не для интернет магазина".
+
+		Проходит синхронизация и продукт 
+
+    Отработало, как нужно
+
+        from catalog.tasks import *
+
+	        sync_shop.delay(shop_type='korallmicro')
+
+	        from korallmicro.tasks import sync as korallmicro_shop_sync
+
+	        sync_korallmicro.delay()
+
+Проблема с отображением акции в каталоге на сайте korallmicro #19160

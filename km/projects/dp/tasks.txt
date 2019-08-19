@@ -1,0 +1,307 @@
+Оглавление
+
+	Закрыть возможность создавать пользователей с одинаковым email #19154
+
+	Невозможно отменить заказы #18943
+
+	Проблема с апи MoneyCare #19155
+
+	Исправить отчет с состоянием обработки заказа #19156
+
+Закрыть возможность создавать пользователей с одинаковым email #19154
+
+	create
+
+		url(r'^create/(?P<event_uuid>[0-9a-f|-]+)/$', create_customer, name='api_create_customer')
+
+		http://127.1.0.1:8300/api/customer/create/4097a061-d6ae-4655-9823-84f7e83cbcd9
+
+		dp_package/profile/form.py -> 
+
+			class BaseCreateCustomerForm(RenderFormMixin, DateBirthValidationMixin
+
+				def clean_email(self):
+
+	auth
+
+		url(r'^auth/$', authorization_customer, name='api_auth_customer')
+
+		dp_package/profile/form.py 
+
+			class AuthCustomerForm(RenderFormMixin, forms.Form):
+
+				def clean_email(self):
+
+	request
+
+		import requests
+
+		requests.post('http://127.1.0.1:8300/api/customer/create/4097a061-d6ae-4655-9823-84f7e83cbcd9/', data = {'name': 'Ilya3', 'email': 'KADUK_IA@km-union.ru', 'password': 'asdf1234'})
+
+		def create_customer_handler(post):
+
+			...
+
+			print create_customer_form.errors
+
+	Вопросы:
+
+		Все уже есть, в чем тогда проблема?
+
+	Что
+
+		Валидацию на почту.
+
+		Имя почты одинаковое с верхним регистром, должно выдавать ошибку.
+
+	Как
+
+		Проверяем почту.
+
+		Если есть символы в верхнем регистре, то показываем ошибку.
+
+		Если нет, то разрешаем создать.
+
+	Как
+
+		re.findall(r'[A-ZА-Я]', a)
+
+Посадочная страница
+
+	- все, что они хотят размесить согласовать Зелюков Анатолий
+
+	- если все ок, мы берем в работу
+
+	- создать задачу в мега плане
+
+	- подключить Виктора
+
+Невозможно отменить заказы #18943
+
+	У дилера из Ленинградской есть два заказа которые он не может отменить.
+
+	dp пишет ошибку, что нельзя завершить уже завершенный заказ.
+
+		По логике все верно.
+
+	В админке в заказах статус "Завершено", а отображается в "необходимо связаться с покупателем".
+
+	Смотреть на признак need_to_call.
+
+	Вопросы:
+
+		Где должны отображаться заказы со статусом "Отменен"?
+
+			В разделе "Все заказы".
+
+	orders_order - id - 157172
+
+	Причина возникновения бага:
+
+		Завершенный заказ не может быть завершен, пока диллер не нажал кнопку "Созвонились".
+
+		Дмитрий Малашыхин говорит, что это ненормальное поведение и что возможно они когда то давно при тестировании допустили косяк.
+
+		Сейчас этот косяк нужно исправить и давать возможность диллеру отменять заказ даже если он не созвонился с заказчиком.
+
+	orders/urls/__init__.py
+
+		wrapper_need_to_call_orders_view
+
+	orders/views/arm.py
+
+		NeedToCallOrdersView
+
+Проблема с апи MoneyCare, 17835
+
+	def check_status_order_in_money_care():
+
+	    for mc_order in money_care_orders:
+	        order = mc_order.order
+	        response = requests.get(
+	            url.format(settings.MONEY_CARE_URL, mc_order.mc_id),
+	            headers=auth_header
+	        )
+	        print reponse
+	        print auth_header
+
+	Все ок.
+
+	Сервер где находится https://mc1.moneycare.su установил сертификат.
+
+	Dp делает запрос, получает в ответ сертификат, проверяется его в центре.
+
+	Если не валидные выкидывает ошибку.
+
+		Из модуля requests
+
+			"Requests verifies SSL certificates for HTTPS requests, just like a web browser. By default, SSL verification is enabled, and Requests will throw a SSLError if it’s unable to verify the certificate"
+
+Исправить отчет с состоянием обработки заказа #18349
+
+	Заказы диллера
+
+		http://127.1.0.1:8300/orders/?dealer_site=67
+
+	Состояние заказа
+
+		http://127.1.0.1:8300/dpa/orders/orderprocessstate/123372/change/?_changelist_filters=q%3D146308
+
+	Отчет
+
+		http://127.1.0.1:8300/reports/
+
+	Название отчета
+
+		"Отчет об ошибках" или "Отчет об ошибках по заказам" (более подробный).
+
+	Поддомен
+
+		stavropol.korallmicro.ru
+
+	Время
+
+		с 14 по 18 февраля 2019
+
+	В коде
+
+		modules/report/views.py
+
+			class Report(FormView):
+				def form_valid(self, form):
+					REPORT_MAPPER.get(report_type)
+
+						total-orders-errors
+
+							modules/report/views.py
+
+								'total-orders-errors': reports.OrderErrorByClientReport,
+
+									class OrderErrorByClientReport(BaseReport, SimpleHeaderMixin):
+										def _render_data(self, block_render, report_options):
+
+											...
+
+											error_times_dict = OrderProcessState.objects
+										
+	Вопросы Малашихина:
+
+		Ставится ли стоп, когда диллер нажал "не дозвонился"?
+
+		А если через 3 дня нажал "дозвонился" то как считается время?
+
+	Проверка
+
+		163821
+
+		http://127.1.0.1:8300/dpa/orders/order/163821/change/
+
+		http://127.1.0.1:8300/dpa/orders/orderprocessstate/?q=163821
+
+		http://127.0.1.1:8200/orders/?dealer_site=67
+
+		В pgadmin
+
+			SELECT * FROM public.orders_order WHERE id = 163821;
+
+			SELECT * FROM public.orders_orderprocesstime WHERE state_id = 140844;
+
+			-----------
+
+			SELECT * FROM public.orders_order WHERE id = 166361;
+
+			SELECT * FROM public.orders_orderprocessstate WHERE order_id = 166361;
+
+			SELECT * FROM public.orders_orderprocesstime WHERE state_id = 143375;
+
+			SELECT * FROM public.orders_historicalorder WHERE id = 166361;
+
+			166463 
+
+		Сброс времени начала обработки
+
+			from orders.models import *
+
+			ord_process_state = OrderProcessState.objects.get(order_id=163821)
+
+			ord_process_state - 140844
+
+			ord_process_time = OrderProcessTime.objects.get(state_id=ord_process_state.pk)
+
+			ord_process_time.end_time=None
+
+			ord_process_time.reason_for_finish=None
+
+			ord_process_time.save()
+
+		Cброс статуса заказа
+
+			ord = Order.objects.get(pk=163821)
+
+			ord.state='New'
+
+			ord.save()
+
+	Какой статус получает заказ при создании?
+
+		New
+
+	В какой раздел попадает заказ со статусом New?
+
+		В раздел "Заказ сформирован".
+
+			class NewOrdersView(OrdersBaseView):
+
+	Что такое OrderProcessState?
+
+		Это таблица, где фиксируется статус заказа.
+
+		По умолчанию заказ создается, как неошибочный. То есть поля error_start_time и error_end_time пустые, а has_error равно False.
+
+	Что такое OrderProcessTime?
+
+		Это таблица для учета времени обработки заказа.
+
+	Когда начинается учет времени обработки заказа?
+
+		from orders.views import *
+
+		from orders.signals import start_order_process_time
+
+		from orders.models import *
+
+        start_order_process_time.send(Order, order_id=166467, reason_alias='ORDER_CREATED')
+
+        	Обработчик:
+
+        		start_order_process_time.connect(start_process_time_handler)
+
+        		def start_process_time_handler(
+
+    Когда останавливается учет времени обработки заказа?
+
+    	from orders.views import *
+
+		from orders.signals import end_order_process_time
+
+        end_order_process_time.send(Order, order_id=order.id, reason_alias='NEED_TO_CALL')
+
+    	Обработчик: 
+
+    		end_order_process_time.connect(end_process_time_handler)
+
+    		def end_process_time_handler(
+
+    	Учет времени может остановиться если закончилось время работы магазина. Для обработки таких ситуация работает крон.
+
+    		check_time_order_processing
+
+    Как протестить
+
+    	Создать через dpa заказ
+
+    	start_order_process_time.send(Order, order_id=76626, reason_alias='ORDER_CREATED')
+
+    	ord_process_state = OrderProcessState.objects.get(order_id=76626)
+
+    	print OrderProcessTime.objects.get(state_id=ord_process_state.pk)

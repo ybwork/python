@@ -82,9 +82,11 @@
 
 		HTTP ответы
 
-		Представления классы -
+		Представления классы
 
 		Встроенные (generic) представления классы -
+
+		Методы для расширения представлений классов -
 
 		Обработка форм в представлениях классах -
 
@@ -2077,9 +2079,7 @@ QuerySet
 
 		Все классы представления наследуют класс View.
 
-		Класс View обрабатывает привязку представления с соответствующими урлу, анализ методов GET, POST, вызов нужных методов в зависимости от метода запроса и т.д.
-
-		Представления, основанные на классах, позволяют реагировать на различные методы HTTP запроса различными методами объекта, а не городить ветвление внутри одной функции.
+		Класс View обрабатывает привязку представления с соответствующими урлу и вызывает нужные методы в зависимости от метода запроса не делая ветвление внутри одной функции.
 
 			# пример, когда нужно городить проверки методов
 			def my_view(request):
@@ -2095,9 +2095,79 @@ QuerySet
 
 			В нём создаётся экземпляр вашего класса и вызывается метод dispatch(), в котором определяется тип запроса (GET, POST и др.) и вызывается соответствующий метод. Если такового не нашлось, то происходит исключение HttpResponseNotAllowed.
 
+		Можно переопределять или устанавливать свои атрибуты.
+
+			class MorningGreetingView(GreetingView):
+    			greeting = "Morning"
+
+    		url(r'^about/', GreetingView.as_view(greeting="day"))
+
 	Встроенные (generic) представления классы
 
+		Это представления для решения наиболее часто встречаемых задач.
+
+		Можно расширять. 
+
 		Попытка скрестить более чем один обобщённый класс, например, ProcessFormView и ListView, не будет работать так, как вы ожидаете.
+
+		TemplateView
+
+			Обрабатывает заданный шаблон.
+
+			class HomePageView(TemplateView):
+			    template_name = "home.html"
+
+			    # можно передать дополнительные данные в шаблон
+			    def get_context_data(self, **kwargs):
+			        context = super().get_context_data(**kwargs)
+			        context['latest_articles'] = Article.objects.all()[:5]
+			        return context
+
+		RedirectView
+
+			Редирект на заданный URL.
+
+			Если переданный URL равен None, Django вернет исключение HttpResponseGone (410).
+
+			class ArticleCounterRedirectView(RedirectView):
+				# должно ли перенаправление быть постоянным
+			    permanent = False
+
+			    # передавать ли строку GET запроса в новую локацию
+			    query_string = True
+
+			    # название URL-шаблона на который перенаправлять
+			    pattern_name = 'article-detail'
+
+		ListView
+
+			Берет из бд и отображает список объектов.
+
+			class PublisherList(ListView):
+    			model = Publisher
+    			template_name = "books/publisher_list.html"
+
+    			# имя list объектов для доступа в шаблоне
+    			context_object_name = 'my_favorite_publishers'
+
+    		При обработке шаблона, будет использоваться контекст, содержащий переменную object_list. Это переменная хранит список всех объектов издателей.
+
+    			В дополнение к стандартному значению object_list содержит то же самое значение в publisher_list (имя модели в нижнем регистре + list).
+
+    	DetailView
+
+    		Берет из бд и отображает детальную информацию одного объекта.
+
+    		class PublisherDetail(DetailView):
+			    model = Publisher
+
+			    # можно передать дополнительные данные в шаблон
+			    def get_context_data(self, **kwargs):
+			        context = super().get_context_data(**kwargs)
+			        context['book_list'] = Book.objects.all()
+			        return context
+
+	Методы для расширения представлений классов
 
 	Обработка форм в представлениях классах
 
@@ -2122,7 +2192,29 @@ QuerySet
 
 		Миксины - это классы для повторного использования общего кода.
 
+		Например, в Django есть примесь под названием TemplateResponseMixin, основной задачей которой является определение метода render_to_response(). 
+
+			Когда она будет объединена с поведением базового класса View, получится класс TemplateView, который обрабатывает запрос соответствующим методом (реализация находится в классе View), а затем передаётся в render_to_response(), который, используя атрибут template_name, возвращает объект TemplateResponse (реализовано в TemplateResponseMixin).
+
 		Чем больше реализация методов будет размазана по примесям, тем сложнее будет читать дочерний класс и понимать что же он всё-таки делает, какие методы откуда берутся и какие методы уже перекрыты в родительских классах.
+
+	Обработка форм с помощью представлений классов
+
+		class MyFormView(View):
+		    form_class = MyForm
+		    initial = {'key': 'value'}
+		    template_name = 'form_template.html'
+
+		    def get(self, request, *args, **kwargs):
+		        form = self.form_class(initial=self.initial)
+		        return render(request, self.template_name, {'form': form})
+
+		    def post(self, request, *args, **kwargs):
+		        form = self.form_class(request.POST)
+
+		        if form.is_valid():
+		            return HttpResponseRedirect('/success/')
+		        return render(request, self.template_name, {'form': form})
 
 	Декорирование представлений классов
 
