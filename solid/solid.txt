@@ -32,6 +32,8 @@
 
 	При такой зависимости мы не можем менять экземпляр класса в зависимости от работы программы.
 
+	Если в языке программирования нет интерфейсов, то лучше реализовывать через конструктор или сеттер.
+
 	Пример:
 
 		Допустим, мы разработали класс TextReceiver, который принимает по какому-либо каналу связи текст и расшифровывает его. 
@@ -39,6 +41,37 @@
 		При этом TextReceiver реализуется посредством класса TextDecription. То есть внутри TextReceiver создается экземпляр класса TextDecription.
 
 		Все работает замечательно до тех пор, пока не появится необходимость поддерживать несколько алгоритмов шифрования и заменять один алгоритм на другой во время выполнения программы.
+
+	Пример кода:
+
+		class Speaker {
+		    private SpeechWriter writer;
+		    
+		    public Speaker(SpeechWriter writer) {
+		        this.writer = writer;
+		    }
+		    
+		    // через сеттер
+		    // void setWriter(SpeechWriter writer) {
+		    //    this.writer = writer;
+		    // }
+		    
+		    public void spead() {
+		        System.out.println(writer.getSpeech());
+		}
+
+		class HelloSpeechWriter {
+		    public String getSpeech() {
+		        return "Hello guys!";
+		    }
+		}
+		
+		class GoSpeechWriter {
+		    public String getSpeech() {
+		        return "Go go go!";
+		    }
+		}
+
 
 Принцип открытости/закрытости (Open-closed)
 

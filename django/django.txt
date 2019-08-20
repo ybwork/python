@@ -27,7 +27,7 @@
 
 		Несколько баз данных
 
-		Табличные пространства -
+		Табличные пространства
 
 		Нюансы бд
 
@@ -889,6 +889,24 @@ django-admin и manage.py
 		В настоящее время Django не предоставляет поддержки для внешних ключей и связей многие-ко-многим между множеством баз данных.
 
 	Табличные пространства
+
+		Использовать, когда действительно ничего больше не помогает. Например репликация.
+
+		Общая парадигма для оптимизации производительности в системах баз данных заключается в использовании tablespaces для распределения данных по дискам.
+
+		Django не создаёт табличные пространства для вас. Пожалуйста, обратитесь к документации на вашу базу данных насчёт подробностей по созданию и управлению табличными пространствами. То есть если в настройках бд используются табличные пространства, то в Django можно привязать к ним.
+
+			PostgreSQL и Oracle поддерживают табличные пространства. SQLite и MySQL не поддерживают.
+
+			При использовании бэкэнда, который не обеспечивает поддержку табличных пространств, Django будет игнорировать все атрибуты для табличных пространств.
+
+		Для таблицы, созданной по модели, может быть указано табличное пространство с помощью атрибута db_tablespace внутри класса Meta.
+
+			Вы можете использовать параметр конфигурации DEFAULT_TABLESPACE для указания значения по-умолчанию для атрибута db_tablespace.
+
+		Вы можете передать атрибут db_tablespace в конструктор Field, чтобы указать табличное пространство для индекса данного поля.
+
+			Вы можете использовать параметр конфигурации DEFAULT_INDEX_TABLESPACE для указания значения по-умолчанию для атрибута db_tablespace.
 
 	Нюансы бд
 
@@ -2110,18 +2128,27 @@ QuerySet
 
 		Попытка скрестить более чем один обобщённый класс, например, ProcessFormView и ListView, не будет работать так, как вы ожидаете.
 
+		Общие CBV автоматически создают класс ModelForm при работе с моделями. 
+
+			Если указано значение атрибута model, то будет использоваться этот класс модели.
+
+			models.py
+
+				class Author(models.Model):
+    				name = models.CharField(max_length=200)
+
+    		views.py
+
+				class AuthorCreate(CreateView):
+				    model = Author
+				    fields = ['name']
+
 		TemplateView
 
 			Обрабатывает заданный шаблон.
 
 			class HomePageView(TemplateView):
 			    template_name = "home.html"
-
-			    # можно передать дополнительные данные в шаблон
-			    def get_context_data(self, **kwargs):
-			        context = super().get_context_data(**kwargs)
-			        context['latest_articles'] = Article.objects.all()[:5]
-			        return context
 
 		RedirectView
 
@@ -2139,6 +2166,12 @@ QuerySet
 			    # название URL-шаблона на который перенаправлять
 			    pattern_name = 'article-detail'
 
+		Аргумент model, определяющий модель базы данных, с которой работает данное представление, доступен во всех общих представлениях-классах, которые предназначены для отображения единичного объекта или списка объектов.
+
+			Тем не менее, аргумент model это не единственный способ, указать представлению с какими данными оно должно работать и можно использовать queryset.
+
+			queryset = Publisher.objects.all() == model = Publisher
+
 		ListView
 
 			Берет из бд и отображает список объектов.
@@ -2154,6 +2187,15 @@ QuerySet
 
     			В дополнение к стандартному значению object_list содержит то же самое значение в publisher_list (имя модели в нижнем регистре + list).
 
+    		Другой часто встречающейся задачей является необходимость отфильтровать список объектов по переданному в URL ключу. Ранее мы жестко прописывали имя издателя в URLconf, но что если нам необходимо написать представление, отображающее все книги некоторого произвольного издателя?
+
+    			class PublisherBookList(ListView):
+				    template_name = 'books/books_by_publisher.html'
+
+				    def get_queryset(self):
+				        self.publisher = get_object_or_404(Publisher, name=self.args[0])
+				        return Book.objects.filter(publisher=self.publisher)
+
     	DetailView
 
     		Берет из бд и отображает детальную информацию одного объекта.
@@ -2161,11 +2203,109 @@ QuerySet
     		class PublisherDetail(DetailView):
 			    model = Publisher
 
-			    # можно передать дополнительные данные в шаблон
-			    def get_context_data(self, **kwargs):
-			        context = super().get_context_data(**kwargs)
-			        context['book_list'] = Book.objects.all()
-			        return context
+		FormView
+
+			Для работы с формой (инициализирующий GET запрос, POST с верными данными неверными данными).
+
+			forms.py
+
+				from django import forms
+
+				class ContactForm(forms.Form):
+				    name = forms.CharField()
+				    message = forms.CharField(widget=forms.Textarea)
+
+			views.py
+
+				class ContactView(FormView):
+				    template_name = 'contact.html'
+				    form_class = ContactForm
+				    success_url = '/thanks/'
+
+		CreateView
+
+			Для создания объекта.
+
+			Если вы указали и fields и form_class, будет вызвано исключение ImproperlyConfigured.
+
+			class AuthorCreate(CreateView):
+			    model = Author
+
+			    # поля формы
+			    fields = ['name']
+
+			Пример с использованием AJAX
+
+				views.py
+
+					class AjaxableResponseMixin(object):
+					    def form_invalid(self, form):
+					        response = super(AjaxableResponseMixin, self).form_invalid(form)
+					        if self.request.is_ajax():
+					            return JsonResponse(form.errors, status=400)
+					        else:
+					            return response
+
+					    def form_valid(self, form):
+					        response = super(AjaxableResponseMixin, self).form_valid(form)
+					        if self.request.is_ajax():
+					            data = {
+					                'pk': self.object.pk,
+					            }
+					            return JsonResponse(data)
+					        else:
+					            return response
+
+					class AuthorCreate(AjaxableResponseMixin, CreateView):
+					    model = Author
+					    fields = ['name']
+
+		UpdateView
+
+			Для редактирования объекта.
+
+			Если вы указали и fields и form_class, будет вызвано исключение ImproperlyConfigured.
+
+			class AuthorUpdate(UpdateView):
+			    model = Author
+
+			    # поля формы
+			    fields = ['name']
+
+		DeleteView
+
+			Для удаления объекта.
+
+			Если вы указали и fields и form_class, будет вызвано исключение ImproperlyConfigured.
+
+			reverse_lazy используется, потому что urls не загружаются при импорте файла.
+
+			class AuthorDelete(DeleteView):
+			    model = Author
+			    success_url = reverse_lazy('author-list')
+
+		Как выполнить дополнительную работу до или после вызова общего представления класса
+
+			class AuthorDetailView(DetailView):
+			    queryset = Author.objects.all()
+
+			    # это метод, который получает и возвращает рабочий объект представления
+			    def get_object(self):
+			        object = super().get_object()
+			        object.last_accessed = timezone.now()
+			        object.save()
+			        return object
+
+		Поддержка других методов HTTP
+
+			class BookListView(ListView):
+			    model = Book
+
+			    def head(self, *args, **kwargs):
+			        last_book = self.get_queryset().latest('publication_date')
+			        response = HttpResponse('')
+			        response['Last-Modified'] = last_book.publication_date.strftime('%a, %d %b %Y %H:%M:%S GMT')
+			        return response
 
 	Методы для расширения представлений классов
 
@@ -2197,6 +2337,28 @@ QuerySet
 			Когда она будет объединена с поведением базового класса View, получится класс TemplateView, который обрабатывает запрос соответствующим методом (реализация находится в классе View), а затем передаётся в render_to_response(), который, используя атрибут template_name, возвращает объект TemplateResponse (реализовано в TemplateResponseMixin).
 
 		Чем больше реализация методов будет размазана по примесям, тем сложнее будет читать дочерний класс и понимать что же он всё-таки делает, какие методы откуда берутся и какие методы уже перекрыты в родительских классах.
+
+		class AjaxableResponseMixin(object):
+		    def form_invalid(self, form):
+		        response = super(AjaxableResponseMixin, self).form_invalid(form)
+		        if self.request.is_ajax():
+		            return JsonResponse(form.errors, status=400)
+		        else:
+		            return response
+
+		    def form_valid(self, form):
+		        response = super(AjaxableResponseMixin, self).form_valid(form)
+		        if self.request.is_ajax():
+		            data = {
+		                'pk': self.object.pk,
+		            }
+		            return JsonResponse(data)
+		        else:
+		            return response
+
+		class AuthorCreate(AjaxableResponseMixin, CreateView):
+		    model = Author
+		    fields = ['name']
 
 	Обработка форм с помощью представлений классов
 
