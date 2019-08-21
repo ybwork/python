@@ -22,7 +22,7 @@
 
     from raw_processing.models import *
 
-    	Nomenclature.objects.get(code=26491).is_not_for_retail
+    	Nomenclature.objects.get(code=1987).is_not_for_retail
 
 		products = Nomenclature.objects.filter(is_not_for_retail=True)
 
@@ -48,7 +48,7 @@
 
     	sync_korallmicro.delay()
 
-   	Какой код берет товара, которого не должно быть?
+   	Какой код берет товар, которого не должно быть?
 
    		Он берет его из базы magic и таблицы catalog_catalog, поэтому нужно смотреть на выгрузку каталога.
 
@@ -58,6 +58,10 @@
 	    ).distinct().values_list('code')])
 
 	    SELECT DISTINCT `catalog_products`.`uid`, `catalog_products`.`code`, `catalog_products`.`art`, `catalog_products`.`name`, `catalog_products`.`translit`, `catalog_products`.`new`, `catalog_products`.`create_date` FROM `catalog_products` INNER JOIN `catalog_distributions` ON (`catalog_products`.`code` = `catalog_distributions`.`product_id`) INNER JOIN `catalog_catalog` ON (`catalog_distributions`.`catalog_id` = `catalog_catalog`.`id`) WHERE (`catalog_catalog`.`type` = korallmicro AND `catalog_catalog`.`is_available` = True)
+
+	Какой код выгружает каталог в таблицу catalog_catalog?
+
+		
 
 	Какой код кладет товар в таблицу catalog_products, хотя его там не должно быть?
 
@@ -84,25 +88,17 @@
 			        bk_product.create(**defaults)
 			    bk_product.flush()
 
-	Когда товары попадают из таблицы Nomenclature в таблицу ones_products?
+	На 21 августа
 
-		ones/tasks/main.py
+		В catalog_distributions две связанные записи по продукту с кодом 1987.
 
-			def prepare_1c_data(
+		Одна запись для коралла, вторая для снр.
 
-		для запуска
+		Соответсвенно и в таблице catalog_catalog тоже.
 
-			from ones.tasks.main import *
+		Поэтому, когда в таске sync_shop для коралла идет выборка продуктов на добавление, не нужный продукт выгружается в базу коралла.
 
-			OnesSync().run()
-
-		OnesSync().run() вызывается в sync_db
-
-	Что может быть причиной бага?
-
-		Сначала продукт без галочки "Не для интернет магазина".
-
-		Проходит синхронизация и продукт 
+		Вопрос, как этот товар попал в catalog_catalog и catalog_distributions?
 
     Отработало, как нужно
 
@@ -113,5 +109,11 @@
 	        from korallmicro.tasks import sync as korallmicro_shop_sync
 
 	        sync_korallmicro.delay()
+
+	Где посмотреть текущеее состояние товара в 1с?
+
+		В бд 1_c_8_raw, таблица "Номенклатура".
+
+		SELECT * FROM 1C_8_RAW.Номенклатура where Код = 1987;
 
 Проблема с отображением акции в каталоге на сайте korallmicro #19160

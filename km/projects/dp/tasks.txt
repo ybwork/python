@@ -324,9 +324,9 @@
 
 	Как протестировать разархивирование по одному?
 
-		NomenclatureAddByCode().apply_async(args=(file_name, uuid))
-		RemainAdd().apply_async(args=(file_name, uuid))
-		PriceAdd().apply_async(args=(file_name, uuid))
+		bin/manage shell
+
+		from main.tasks.remains_and_dealer_prices import *
 
 		синхронизация номенклатуры
 
@@ -338,22 +338,22 @@
 	        	file_path='/home/ilya/work/projects/dealer_price/csv/nomenclature_(63516090-a52d-11e4-80d4-001b21d8d330).zip', agreement_uuid='63516090-a52d-11e4-80d4-001b21d8d330'
 	        )
 
-        синхронизация остатков
-
-			unzip_uploaded_files.delay(
-				file_path='/home/ilya/work/projects/dealer_price/csv/price_(63516090-a52d-11e4-80d4-001b21d8d330).zip', save_file_path='/home/ilya/work/projects/dealer_price/csv/price_(63516090-a52d-11e4-80d4-001b21d8d330).zip'
-			)
-
-	        RemainAdd().delay(
-	        	file_path='/home/ilya/work/projects/dealer_price/csv/remain_(63516090-a52d-11e4-80d4-001b21d8d330).zip', agreement_uuid='63516090-a52d-11e4-80d4-001b21d8d330'
-	        )
-
-	    синхронизация цен
+	   	синхронизация остатков
 
 			unzip_uploaded_files.delay(
 				file_path='/home/ilya/work/projects/dealer_price/csv/remain_(63516090-a52d-11e4-80d4-001b21d8d330).zip', save_file_path='/home/ilya/work/projects/dealer_price/csv/remain_(63516090-a52d-11e4-80d4-001b21d8d330).zip'
 			)
 			
+	        RemainAdd().delay(
+	        	file_path='/home/ilya/work/projects/dealer_price/csv/remain_(63516090-a52d-11e4-80d4-001b21d8d330).zip', agreement_uuid='63516090-a52d-11e4-80d4-001b21d8d330'
+	        )
+
+        синхронизация цен
+
+			unzip_uploaded_files.delay(
+				file_path='/home/ilya/work/projects/dealer_price/csv/price_(63516090-a52d-11e4-80d4-001b21d8d330).zip', save_file_path='/home/ilya/work/projects/dealer_price/csv/price_(63516090-a52d-11e4-80d4-001b21d8d330).zip'
+			)
+
 	        PriceAdd().delay(
 	        	file_path='/home/ilya/work/projects/dealer_price/csv/price_(63516090-a52d-11e4-80d4-001b21d8d330).zip', agreement_uuid='63516090-a52d-11e4-80d4-001b21d8d330'
 	        )	

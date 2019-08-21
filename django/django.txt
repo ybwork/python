@@ -16,7 +16,9 @@
 		django-admin и manage.py
 
 
-	Архитектура проекта
+	Структура проекта
+
+		Кейс из Two scoops of Django
 
 
 	Базы данных
@@ -34,6 +36,10 @@
 
 	Миграции
 
+		Основы работы
+
+		Тестирование работы в бою
+
 
 	ORM
 
@@ -44,6 +50,10 @@
 		Атрибуты
 
 		Методы
+
+		Менеджеры orm -
+
+		Queryset-ы orm -
 
 
 	QuerySet
@@ -84,20 +94,20 @@
 
 		Представления классы
 
-		Встроенные (generic) представления классы -
+		Встроенные (generic) представления классы
 
-		Методы для расширения представлений классов -
+		Обработка форм в представлениях классах
 
-		Обработка форм в представлениях классах -
-
-		Миксины -
+		Миксины
 
 		Декорирование представлений классов
 
 
 	Шаблоны
 
-		Архитектура by "two scoops of django"
+		Структура by "two scoops of django"
+
+		Контекст
 
 
 	Валидаторы
@@ -612,7 +622,7 @@ django-admin и manage.py
 
 		https://docs.djangoproject.com/en/2.2/ref/django-admin/
 
-Архитектура проекта
+Структура проекта
 	
 	Кейс из Two scoops of Django
 
@@ -924,35 +934,49 @@ django-admin и manage.py
 
 Миграции
 
-	Создали и описали модель.
+	Основы работы
 
-	Выполнили ./manage.py makemigrations
+		Создали и описали модель.
 
-	В приложении в директории migrations создался файл.
+		Выполнили ./manage.py makemigrations
 
-	Выполнили ./manage.py migrate
+		В приложении в директории migrations создался файл.
 
-	В базе создались таблицы.
+		Выполнили ./manage.py migrate
 
-	Добавили в модель новое поле.
+		В базе создались таблицы.
 
-	Выполнили ./manage.py makemigrations
+		Добавили в модель новое поле.
 
-	В приложении в директории migrations создался новый файл.
+		Выполнили ./manage.py makemigrations
 
-	Выполнили ./manage.py migrate
+		В приложении в директории migrations создался новый файл.
 
-	В базе в нужной таблице создалось поле, которое добавили в модель.
+		Выполнили ./manage.py migrate
 
-	Удалили новое поле из модели.
+		В базе в нужной таблице создалось поле, которое добавили в модель.
 
-	Выполнили ./manage.py makemigrations
+		Удалили новое поле из модели.
 
-	В приложении в директории migrations создался еще один файл. При этом предыдущие два остались.
+		Выполнили ./manage.py makemigrations
 
-	Выполнили ./manage.py migrate
+		В приложении в директории migrations создался еще один файл. При этом предыдущие два остались.
 
-	В базе в нужной таблице удалилось поле, которое удалили из модели.
+		Выполнили ./manage.py migrate
+
+		В базе в нужной таблице удалилось поле, которое удалили из модели.
+	
+	Тестирование работы в бою
+
+		Заливаем актуальный дамп в бд.
+
+		Создаем новое поле в модели.
+
+		Выполняем ./manage.py makemigrations
+
+		Выполняем ./manage.py migrate
+
+		Должно успешно создасться новое поле в бд.	
 
 ORM
 
@@ -1277,7 +1301,7 @@ ORM
 
 	Менеджеры доступны только через класс модели, они не доступны в экземплярах (объектах) модели.
 
-Методы
+Методы orm
 
 	__str__ - возращает строковое представление объекта
 
@@ -1344,6 +1368,24 @@ ORM
 		https://djbook.ru/rel1.9/ref/models/fields.html#model-field-types
 
 		https://docs.djangoproject.com/en/2.2/ref/models/fields/#field-types
+
+Менеджеры orm
+
+	...
+
+Queryset-ы orm
+
+	Queryset-ы модели более гибче, чем менеджеры модели и похожи на фильтры. 
+
+	Используются не вместо Book.objects, а вместе с Book.objects.queryset_method()
+
+		class ProductCardQuerySet:
+			def get_actual(self):
+				return 'actual'
+
+		objects = ProductCardQuerySet.as_manager()
+
+	В кастомном queryset-е не переопределяется метод get_queryset, только в кастомном менеджере.
 
 QuerySet
 
@@ -2150,6 +2192,10 @@ QuerySet
 			class HomePageView(TemplateView):
 			    template_name = "home.html"
 
+			Методы для расширения:
+
+				get_context_data
+
 		RedirectView
 
 			Редирект на заданный URL.
@@ -2165,6 +2211,10 @@ QuerySet
 
 			    # название URL-шаблона на который перенаправлять
 			    pattern_name = 'article-detail'
+
+			Методы для расширения:
+
+				get_redirect_url
 
 		Аргумент model, определяющий модель базы данных, с которой работает данное представление, доступен во всех общих представлениях-классах, которые предназначены для отображения единичного объекта или списка объектов.
 
@@ -2196,12 +2246,26 @@ QuerySet
 				        self.publisher = get_object_or_404(Publisher, name=self.args[0])
 				        return Book.objects.filter(publisher=self.publisher)
 
+			Методы для расширения:
+
+				get_context_data
+
+				get_queryset
+
     	DetailView
 
     		Берет из бд и отображает детальную информацию одного объекта.
 
     		class PublisherDetail(DetailView):
 			    model = Publisher
+
+			Методы для расширения:
+
+				get_context_data
+
+				get_queryset
+
+				get_object
 
 		FormView
 
@@ -2221,6 +2285,12 @@ QuerySet
 				    template_name = 'contact.html'
 				    form_class = ContactForm
 				    success_url = '/thanks/'
+
+			Методы для расширения:
+
+				form_valid
+
+				form_invalid
 
 		CreateView
 
@@ -2307,7 +2377,39 @@ QuerySet
 			        response['Last-Modified'] = last_book.publication_date.strftime('%a, %d %b %Y %H:%M:%S GMT')
 			        return response
 
-	Методы для расширения представлений классов
+	Generic date views
+
+		Существуют общие классы представления для работы с датами (см. api).
+
+	Миксины классов представлений
+
+		Для более подробной информации см. api.
+
+		ContextMixin
+
+		TemplateResponseMixin
+
+		SingleObjectMixin
+
+		SingleObjectTemplateResponseMixin
+
+		MultipleObjectMixin
+
+		MultipleObjectTemplateResponseMixin
+
+		FormMixin
+
+		ModelFormMixin
+
+		ProcessFormView
+
+		DeletionMixin
+
+	Api
+
+		https://djbook.ru/rel1.9/ref/class-based-views/index.html
+
+		https://docs.djangoproject.com/en/2.2/ref/class-based-views/
 
 	Обработка форм в представлениях классах
 
@@ -2410,7 +2512,7 @@ QuerySet
 
 	Ребята из "two scoops of django" предлагают использовать Jinja2.
 
-	Архитектура by "two scoops of django"
+	Структура by "two scoops of django"
 
 		2-ух уровневая
 
@@ -2439,6 +2541,18 @@ QuerySet
 					profile_detail.html # extends base_profiles.html
 
 					profile_form.html # extends base_profiles.html
+
+	Контекст
+
+		from django.template import Template, Context
+
+		tmpl = 'Country: {{ my }}'
+
+		context = {'my': 'myvar'}
+
+		Template(tmpl).render(Context(context))
+
+		Выведет 'Country: myvar'
 
 
 Валидаторы
