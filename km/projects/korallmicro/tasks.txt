@@ -2,8 +2,6 @@
 
 	На сайте отображается товар, который для него не предназначен #19161
 
-	Проблема с отображением акции в каталоге на сайте korallmicro #19160
-
 На сайте отображается товар, который для него не предназначен #19161
 
 	Раньше был товар 26491
@@ -48,9 +46,13 @@
 
     	sync_korallmicro.delay()
 
-   	Какой код берет товар, которого не должно быть?
+    Как выполнить задачу, которая пишет товар в таблицу product в базе snr?
 
-   		Он берет его из базы magic и таблицы catalog_catalog, поэтому нужно смотреть на выгрузку каталога.
+        from snr.tasks import *
+
+    	sync.delay(site_models='sales_base_models.models', shop_type='snr_new')
+
+   	Какой код берет товар, которого не должно быть?
 
 	    new_products_codes = set([i for i, in Products.objects.filter(
 	        distributions__catalog__type=shop_type,
@@ -59,34 +61,77 @@
 
 	    SELECT DISTINCT `catalog_products`.`uid`, `catalog_products`.`code`, `catalog_products`.`art`, `catalog_products`.`name`, `catalog_products`.`translit`, `catalog_products`.`new`, `catalog_products`.`create_date` FROM `catalog_products` INNER JOIN `catalog_distributions` ON (`catalog_products`.`code` = `catalog_distributions`.`product_id`) INNER JOIN `catalog_catalog` ON (`catalog_distributions`.`catalog_id` = `catalog_catalog`.`id`) WHERE (`catalog_catalog`.`type` = korallmicro AND `catalog_catalog`.`is_available` = True)
 
-	Какой код выгружает каталог в таблицу catalog_catalog?
+	    Он берет продукты через связь каталога и продукта, которая находиться в таблице catalog_distributions.
 
-		
+	    На 22 августа 2019 в этой таблице есть 2 записи. Первая связывает данный продукт с магазином кораллмикро, а вторая с снр.
 
-	Какой код кладет товар в таблицу catalog_products, хотя его там не должно быть?
+	    В этом и есть ошибка, поэтому нужно смотреть в сторону синхронизации magic - 1с, а именно создание связи catalog_distributions.
 
-		from catalog.tasks import *
-
-		sync_shop.delay(shop_type='korallmicro')
+	Какой код выгружает данные в таблицы catalog_products, catalog_catalog, catalog_distributions?
 
 		catalog/tasks.py
 
-			sync
+			def sync(
 
-			    bk_product = BulkCreator(Products, cache_size=1)
-			    for add_product_uuid in add_products:
-			        ones_product = ones_products[add_product_uuid]
-			        defaults = {
-			            'uid': add_product_uuid,
-			            'code': ones_product['code'],
-			            'art': ones_product['code'],
-			            'name': ones_product['name'],
-			            'translit': get_translit(ones_product['name']),
-			            'new': ones_product['is_new'],
-			            'create_date': ones_product['create_date']
-			        }
-			        bk_product.create(**defaults)
-			    bk_product.flush()
+		Для запуска
+
+			from catalog.tasks import *
+
+			sync_shop.delay(shop_type='korallmicro')
+
+	Откуда код выгружает данные  таблицы catalog_products, catalog_catalog, catalog_distributions?
+
+		Из таблицы ones_products
+
+	Разбор метода sync
+
+		В таблице ones_products действительно нет данного продукта.
+
+			ones_products = dict([
+		        (i['uid'], i) for i in OProducts.objects.get_for_sale_and_retail(
+		            shop_type=shop_type
+		        ).values('code', 'uid', 'name','is_new', 'create_date')
+		    ])
+
+		Синхронизация каталога
+
+			Здесь нас интересует только обновление, потому uid каталога нет для других операций.
+
+			Обновления прошли успешно.
+
+		Синхронизация продукта
+
+			В таблице catalog_products этот продукт есть
+
+				products = dict([
+			        (i['uid'], i) for i in Products.objects.all().values('code', 'uid',
+			                                                             'name', 'new')
+			    ])
+			    products_uuids = set(products.keys())
+
+			Таким образом данный продукт помечен на удаление из таблицы catalog_products
+
+				'636b3a53-b1fd-11e2-93f1-002655df3ac1' in delete_products = True
+
+			Удаление продукта из таблицы catalog_products проходит успешно.
+
+			Добавление и изменение продукта нас не интересуют, потому что его uid нет для этих операция
+
+				'636b3a53-b1fd-11e2-93f1-002655df3ac1' in add_products = False
+
+				'636b3a53-b1fd-11e2-93f1-002655df3ac1' in change_products = False
+
+		Синхронизация distributions
+
+			Удаление работает неверно, потому что из таблицы catalog_distributions не удаляется связь catalog_id - product_id, и получается что товар привязан к каталогу коралла и снр, хотя должен быть привязан только к снр.
+
+			Соответсвенно при синхронизации magic - korall, когда выполняется таск sync_korallmicro, товар попадает в бд korallmicro.
+
+			Запрос, который удаляет связи из catalog_distributions:
+
+				Distributions.objects.filter(catalog__uid__in=delete_distributions_catalog_uuids).delete()
+
+				Искать, как catalog__uid__in=delete_distributions_catalog_uuids).delete()
 
 	На 21 августа
 
@@ -97,8 +142,6 @@
 		Соответсвенно и в таблице catalog_catalog тоже.
 
 		Поэтому, когда в таске sync_shop для коралла идет выборка продуктов на добавление, не нужный продукт выгружается в базу коралла.
-
-		Вопрос, как этот товар попал в catalog_catalog и catalog_distributions?
 
     Отработало, как нужно
 
@@ -116,4 +159,10 @@
 
 		SELECT * FROM 1C_8_RAW.Номенклатура where Код = 1987;
 
-Проблема с отображением акции в каталоге на сайте korallmicro #19160
+	Как поменять галочку без 1с?
+
+		Подключить локально базу 1_c_8_raw.
+
+		from raw_processing.models import *
+
+		Nomenclature.objects.using('1c_8_raw').filter(code=1987, is_not_for_retail=True, is_not_for_snr=False).update(is_not_for_retail=False)
