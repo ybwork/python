@@ -133,26 +133,6 @@
 
 				Искать, как catalog__uid__in=delete_distributions_catalog_uuids).delete()
 
-	На 21 августа
-
-		В catalog_distributions две связанные записи по продукту с кодом 1987.
-
-		Одна запись для коралла, вторая для снр.
-
-		Соответсвенно и в таблице catalog_catalog тоже.
-
-		Поэтому, когда в таске sync_shop для коралла идет выборка продуктов на добавление, не нужный продукт выгружается в базу коралла.
-
-    Отработало, как нужно
-
-        from catalog.tasks import *
-
-	        sync_shop.delay(shop_type='korallmicro')
-
-	        from korallmicro.tasks import sync as korallmicro_shop_sync
-
-	        sync_korallmicro.delay()
-
 	Где посмотреть текущеее состояние товара в 1с?
 
 		В бд 1_c_8_raw, таблица "Номенклатура".
@@ -166,3 +146,27 @@
 		from raw_processing.models import *
 
 		Nomenclature.objects.using('1c_8_raw').filter(code=1987, is_not_for_retail=True, is_not_for_snr=False).update(is_not_for_retail=False)
+
+	Как проверить изменения галочки в 1с?
+
+		Запустить полную синхронизацию 1c - magic.
+
+		Должен быть запущен наш локальный брокер и magic.
+
+		Из magic посылаем сигнал - bin/celery call -A app_celery full_ones_sync_send_signal --queue=system
+
+	На 21 августа
+
+		В catalog_distributions две связанные записи по продукту с кодом 1987.
+
+		Одна запись для коралла, вторая для снр.
+
+		Соответсвенно и в таблице catalog_catalog тоже.
+
+		Поэтому, когда в таске sync_shop для коралла идет выборка продуктов на добавление, не нужный продукт выгружается в базу коралла.
+
+	На 23 августа
+
+		При смене галочки НеДляРозницы (не для коралла), после таска sync_db не у продукта не обновляется поле is_for_retail (не для коралла) в таблице ones_products, то есть одно должно стать 0, а стоит 1.
+
+		Причина пока не найдена.
