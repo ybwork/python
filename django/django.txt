@@ -658,18 +658,59 @@ django-admin и manage.py
 		├── README.rst
 		├── manage.py
 		└── requirements.txt
+		└── package.json
 
 		Для корректной работы меняем:
-
-			manage.py
-
-				os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
 			local.py
 
 				ROOT_URLCONF = 'config.urls'
 
 				WSGI_APPLICATION = 'config.wsgi.application'
+
+		Запуск и встроенные команды
+
+			Теперь к каждой команде добавляем файл с настоойками.
+
+				./manage.py runserver --settings=config.settings.local
+
+		Bootstrap и другие js/css либы
+
+			Ставим через npm и package.json
+
+			В итоге в корне проекта появляется директория node_modules
+
+			При деплое руками переносим нужные файлы в директорию static, потому что команда ./manage collectstatic расчитана только на приложения django, а bootstrapp, jquery и т.д. относятся ко всему проекту, а не к конкретному приложению.
+
+		Установка через npm
+
+			В корне проекта создаем package.json
+
+				У него четкой правил по структуре, поэтому можно не добавлять много.
+
+				{
+				  "name": "project_name",
+				  "version": "1.0.0",
+				  "private": true,
+				  "dependencies": {
+				    "bootstrap": "",
+				    "jquery": "",
+				    "popper.js": ""
+				  }
+				}
+
+			В терминале выполняем команду npm i
+
+			Для просмотра установленных пакетов в терминале выполняем npm ls
+
+		Подключение общей статики в шаблонах
+
+			Добавляет путь к общей статике в STATICFILES_DIRS
+
+				STATICFILES_DIRS = [
+				    os.path.join(PROJECT_ROOT, 'node_modules')
+				]
+
 
 Базы данных
 

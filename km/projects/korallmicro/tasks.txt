@@ -83,6 +83,14 @@
 
 		Из таблицы ones_products
 
+	Как данные попадают в таблицу ones_products?
+
+		После выполнения таска sync_db
+
+	Как запустить таск sync_db?
+
+		sync_db
+
 	Разбор метода sync
 
 		В таблице ones_products действительно нет данного продукта.
@@ -155,18 +163,65 @@
 
 		Из magic посылаем сигнал - bin/celery call -A app_celery full_ones_sync_send_signal --queue=system
 
+	Как удалить и вернуть лишнюю связь из catalog_distributions?
+
+		from catalog.models import *
+
+		Distributions.objects.filter(product_id=1987, catalog_id=281904).delete()
+
+		Distributions.objects.create(product_id=1987, catalog_id=281904, manual=True)
+
+	Как удалить все связи по продуктам и поиграться с галочками в 1с?
+
+		from catalog.models import *
+
+		Distributions.objects.filter(product_id=1987, catalog_id__in=[281904, 318326]).delete()
+
+		Catalog.objects.filter(pk__in=[281904, 318326]).delete()
+
+		Products.objects.filter(code=1987).delete()
+
+
+		from ones.models import *
+		Products.objects.filter(code=1987).delete()
+
+
+		from korallmicro.models import *
+
+		Products.objects.filter(id=1987).delete()
+
+
+		from sales_base_models.models import *
+
+		Products.objects.filter(id=1987).delete()
+
 	На 21 августа
 
 		В catalog_distributions две связанные записи по продукту с кодом 1987.
 
 		Одна запись для коралла, вторая для снр.
 
-		Соответсвенно и в таблице catalog_catalog тоже.
-
 		Поэтому, когда в таске sync_shop для коралла идет выборка продуктов на добавление, не нужный продукт выгружается в базу коралла.
 
 	На 23 августа
 
-		При смене галочки НеДляРозницы (не для коралла), после таска sync_db не у продукта не обновляется поле is_for_retail (не для коралла) в таблице ones_products, то есть одно должно стать 0, а стоит 1.
+		При смене галочки НеДляРозницы (не для коралла), после таска sync_db у продукта не обновляется поле is_for_retail (не для коралла) в таблице ones_products, то есть одно должно стать 0, а стоит 1.
 
 		Причина пока не найдена.
+
+	На 26 августа
+
+		При смене галочки НеДляРозницы (не для коралла), после таска sync_db у продукта обновляется поле is_for_retail (не для коралла) в таблице ones_products, но продукт всеравно попадает в базу коралла.
+
+		Это происходит потому что в бд magic в таблице catalog_distributions не удаляется одна из связанных записей по продукту с кодом 1987, которая принадлежит каталогу коралла.
+
+	Варианты решения
+
+		1. Применить новую, последовательную синхронизацию, удалить связь в таблице catalog_distributions и посмотреть, что будет.
+
+		2. Изменить логику удаление из таблицы catalog_distributions.
+
+	На 27 августа
+
+		Когда в 1c_8_raw "НеДляРозницы" и "НеДляСнр" равно 0, то 
+

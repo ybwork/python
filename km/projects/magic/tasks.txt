@@ -34,7 +34,9 @@
 
     Cтрана производитель есть в 1С, но нет в magic
 
-    Проблема с синхронизацией magic
+    Проблема с синхронизацией
+
+    Проблема с офферами и сегментом
 
 Общая инфа
 
@@ -622,7 +624,7 @@ Cтрана производитель есть в 1С, но нет в magic
 
     229812
 
-Проблема с синхронизацией magic
+Проблема с синхронизацией
 
     Падает таск sync_shop.
 
@@ -701,3 +703,29 @@ Cтрана производитель есть в 1С, но нет в magic
             catalog_snr_new_sync_finish - обработчик catalog_istore_sync
 
                 {"shop_type": "istore", "use_confidence_interval": false, "destination_task_params": {"countdown": 15, "routing_key": "system"}}
+
+Проблема с офферами и сегментом
+
+    Виктор, добрый день!
+
+    Возникла проблема с офферами.
+
+    КораллМикро:
+
+        В этом оффере был сегмент, я его в пятницу отключил, но в magic показывается что он есть и более того выгружается на сайт
+
+            http://magic.km-union.ru/catalog/offertype/239/change/
+
+        А вот новый оффер, которому был привязан сегмент из предыдущего оффера и он тоже применился и есть на сайте
+
+            http://magic.km-union.ru/catalog/offertype/250/change/
+
+    SNR:
+
+        Старый
+
+            http://magic.km-union.ru/catalog/offertype/239/change/
+
+        Новый
+
+            http://magic.km-union.ru/catalog/offertype/250/change/
