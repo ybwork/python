@@ -1,9 +1,237 @@
-Слой бизнес логики должен быть оформлен в виде отдельных методов, которые просо принимают набор параметров, например в формате json и ничего не знают о том, где эти параметры берутся.
+Оглавление
 
-	Например в приложении django создаем файле create_order.py
+	Бизнес логика
 
-	В этом файле описываем бизнес логику создания заказа.
+	Книга Роберта Мартина "Чистая архитектура"
 
-	Эта логика может быть завязана на конкретный фреймворк, но тем не менее она вынесена и легко может быть переписана на любой другой язык.
+Бизнес логика
 
-	Также с таким подходом очень легко поменять фреймворк, а файл с бизнес логикой оставить и немного исправить.
+	Под бизнес логикой понимается например функционал создание заказа в интеренет магазине.
+
+		Пользователь добавляет товары и они попадают в корзину.
+
+		Пользователь может перейти в корзину и увидить все добавленные товары.
+
+		Находясь в корзине пользователь может удалить некоторые товары или увеличить кол-во какого то конкретного товара.
+
+		Когда все товары выбраны пользователь нажимает кнопку "оформить" или "купить" и создается заказ.
+
+		Таким образом весь описанный выше функционал относится к функционалу создание заказа.
+
+	Слой бизнес логики должен быть вынесен отдельно и оформлен в виде методов, которые просто принимают набор параметров и ничего не знают о том, как и где эти параметры берутся.
+
+		Это делается для того, чтобы при смене технологий или языка, можно было легко перенсти всю бизнес логику, а не переписывать всё заново.
+
+			Вариант, когда бизнес логика жестко связана с фреймворком (названия и код условный)
+
+				BasketController.php
+
+					class BasketController(request) {
+						// здесь вся логика с помощью которой происходит работа с созданием заказа
+
+						// условно говоря тут много строк кода, пусть даже и обернутого в методы и сделанного по красоте
+					}
+
+			Вариант, когда бизнес логика вынесена
+
+				BasketController.php
+
+					class BasketController(request) {
+						// здесь специально написано без инверсии зависимостей, чтобы не тратить время
+
+						json = {
+							'request': request,
+							'action': 'add'
+						}
+						CreateOrder(json)
+					}
+
+				create_order.php
+
+					class CreateOrder() {
+						public function construct($params) {
+							$this->dispatch($params)
+						}
+
+						public function dispatch($params) {
+							// этот метод, как роутер разруливает какой набор действий сделать (в зависимости от переданных параметров)
+						}
+
+						public function add_to_card() {
+							// здесь логика добавления продукта в корзину (важно! зависит от фрейворка)
+						}
+
+						public function remove_from_card() {
+							// здесь логика удаления продукта из корзины (важно! зависит от фрейворка)
+						}
+					}
+
+				Важно! В показаном выше примере всеравно есть зависимости от фреймворка. К сожалению совсем не зависить не получится, но с таким подходом легко получится перенести функционал добавления на другой фреймворк и язык.
+
+				Представим, что теперь мы на python и django переходим.
+
+				Мои шаги:
+
+					- открыл файл create_order.php
+
+					- создал файл create_order.py
+
+					- смотря в файл create_order.php написал всё тоже самое на питоне
+
+					- в контроллере django собрал тот же json, с тем же набором параметров, что и в laravel и послал в CreateOrder.
+
+				А если бы всё было в одном контроллере, то я бы заебался разбираться, что там происходит и мне пришлось бы тратить время для продумывания логики и написания с нуля. Пример из проекта км, который был написан на zend framework.
+
+				    public function doneAction(){
+				        try{
+				            $this->checkBasket(3);
+				        } catch (EmptyBasketException $e){
+				            $this->_redirect($e->getUrl());
+				        } catch (SelectedStageException $e) {
+				            $this->_redirect($e->getUrl());
+				        }
+				        $this->setTitle('Ваш заказ оформлен, спасибо! - "КораллМикро"');
+				        $stages = $this->_basket->getStages($this->_dealer);
+				        if ($this->_debug) $this->_logger->log($stages);
+				        
+				        //  определяем стоимость заказа
+				        $this->_basket->fillProducts($this->_dealer);
+				        $this->view->totalCost = $this->_basket->getTotalCost() + (int)$stages['selectDelivery']['delivery_cost'];
+
+				        //  save items before clear basket
+				        $items = array();
+				        $names = array('code', 'name', 'price', 'count');
+				        foreach ($this->_basket->getItemsForBasket() as $value) {
+				            if ($value['not_availabled']) continue;
+
+				            $result = array();
+				            $dealer = Dealer::getInstance();
+				            foreach($names as $name) {
+				                $result[$name] = $value[$name];
+				            }
+				            $result['cost'] = $result['count'] * $result['price'];
+				            $result['url'] = $dealer->getUrl($value['url']);
+				            $items[] = $result;
+				        }
+				        $this->view->e_commerce_items = $items;
+
+				        // для retail rocket
+				        $this->view->site_id = $this->_dealer->getSiteId();
+				        $this->view->subdomain = $this->_dealer->getSubdomain();
+				        $this->view->is_customer_auth = $this->_customer->isAuth();
+				        $this->view->customer_email_notice = $this->_customer->getCustomerField('email_notice');
+				        $this->view->customer_caption = $this->_customer->getCustomerField('caption');
+
+				        $ymapsGeolocation = Zend_Json::decode($this->getRequest()->getCookie('ymaps_geolocation'));
+				        Primitives::removeCookie('ymaps_geolocation');
+				        
+				        $result = $this->_basket->createOrder($this->_customer, $this->_dealer, $ymapsGeolocation);
+				        if ($this->_debug) $this->_logger->log($result);
+
+				        $this->view->success = $result['status'];
+				        if ($result['status'] === true) {
+
+				            // определяем, все ли товары обеспечены
+				            $ids = [];
+				            foreach($items as $v) $ids[$v['code']] = $v['count'];
+				            $deliveryDates = $this->_dealer->getDeliveryDates($ids);
+
+				            $ftoStatusTextArr = Zend_Json::decode($this->_basket->getForTheOrderStatusText());
+				            $ftoStatusText = '';
+				            $fto = 0;
+				            foreach ($deliveryDates as $v) {
+				                if ($v['delivery'] === null && $v['pickup'] === null) $fto++;
+				            }
+				            if ($fto === 0) $ftoStatusText = $ftoStatusTextArr['all'];
+				            else if ($fto === count($deliveryDates)) $ftoStatusText = $ftoStatusTextArr['none'];
+				            else $ftoStatusText = $ftoStatusTextArr['part'];
+
+				            $tmpl = new Mustache_Engine;
+				            $ftoStatusHtmlEmailStyle = 'background-color: #f2f2f2; border: 1px solid #eaeaea; padding: 10px; margin-top: 20px; margin-bottom: 20px;';
+				            $ftoStatusHtmlDoneStyle = 'border: 1px solid #eaeaea; padding: 10px; margin: 5px;';
+				            $ftoWrapperEmailStyle = 'margin: 0 0 -5px 0;';
+				            $ftoWrapperDoneStyle = 'margin: 0 0 -5px 0; padding: 10px;';
+				            $ftoStatusHtml =
+				                '<div class="for-the-order-wrapper" style="{{wrapper-style}}">
+				                    <div class="for-the-order-container" style="{{style}}">
+				                        <div class="fto-text" style="color: red; margin-bottom: 7px;">{{text}}</div>
+				                        <div class="fto-small-text" style="font-size: 9px;">В некоторых случаях для выполнения поставки заказанного Вами товара может потребоваться предоплата заказа.</div>
+				                    </div>
+				                </div>';
+				            $this->view->ftoStatusHtml = ($ftoStatusText) ? $tmpl->render(
+				                $ftoStatusHtml,
+				                array(
+				                    'text' => $ftoStatusText,
+				                    'style' => $ftoStatusHtmlDoneStyle,
+				                    'wrapper-style' => $ftoWrapperDoneStyle
+				                )
+				            ) : '';
+
+
+				            $delivery = 'Доставим';
+				            if ($stages['selectDelivery']['delivery_method'] == 'PICKUP'){
+				                $delivery = 'Сможете забрать';
+				            }
+				            //  ТК не дают конкретных дат
+				            if (!$stages['helpInfo']['max_delivery_date'] && !$this->isDeliveryByTK($stages['selectDelivery']['delivery_method'])) {
+				                $delivery_date_caption = sprintf('<strong>%s</strong>', $stages['helpInfo']['max_delivery_date_caption']);
+				            }else{
+				                $delivery_date_caption = sprintf('<strong>%s:</strong> <span>%s</span>', $delivery, $stages['helpInfo']['max_delivery_date_caption']);
+				            }
+
+				            // для юрлиц отдельная текстовка, для самовывоза, доставки по городу и доставки через ТК
+				            // также изменено в basket.js
+				            if ($stages['selectPayment']['payment_method'] == 'NON CASH') {
+				                $delivery_date_caption = sprintf('<strong>%s:</strong> <span>%s</span>', $delivery, 'После оплаты в согласованное с оператором время');
+				                // для доставки от ТК юрлицам
+				                if ($this->isDeliveryByTK($stages['selectDelivery']['delivery_method'])) {
+				                    $delivery_date_caption = sprintf('<strong>%s:</strong> <span>%s</span>', $delivery, 'После оплаты в согласованные с оператором сроки');
+				                }
+				            }
+				            $this->view->help = array_merge(
+				                $stages['helpInfo'],
+				                $this->_dealer->getConf()->toArray(),
+				                array(
+				                    'delivery_date_caption' => $delivery_date_caption,
+				                    'delivery_cost' => $stages['selectDelivery']['delivery_cost']
+				                ),
+				                $stages['confirm'],
+				                array(
+				                    'is_legal' => $stages['selectPayment']['is_legal'],
+				                    'payment_method' => $stages['selectPayment']['payment_method'],
+				                    'use_corp_price' => $stages['use_corp_price'] === true,
+				                    'margin_on_non_cash_payment' => $stages['use_corp_price'] === true ? $this->_dealer->getMarginOnNonCashPayment() : null
+				                )
+				            );
+
+				            $this->view->isOnlineCredit = Primitives::isOnlineCredit($stages['selectPayment']['payment_method']);
+				            $this->view->isOnlinePayment = Primitives::isOnlinePayment($stages['selectPayment']['payment_method']);
+				            $this->view->isPickup = $stages['selectPayment']['payment_method'] == 'PICKUP';
+				            $this->view->orderPk = $result['order_pk'];
+
+				        }else{
+				            //  send email if get fail or nothing
+				            $err_msg = sprintf("<h1>Параметры заказа:</h1>\n<pre>%s</pre>\n
+				                                <h1>Состояние корзины: </h1>\n<pre>%s</pre>\n
+				                                <h1>Ответ от backend'a:</h1>\n<pre>%s</pre>",
+				                                    print_r($stages, true),
+				                                    print_r($this->_basket->getItemsForBasket(), true),
+				                                    print_r($result, true)
+				                                );
+				            $this->_dealer->sendEmail(
+				                array('operator', $this->_dealer->getEmailManager()),
+				                'Ошибка при формировании заказа',
+				                Primitives::getTemplate('email', 'system.htm'),
+				                array('message' => $err_msg),
+				                true
+				            );
+				        }
+				    }
+
+Книга Роберта Мартина "Чистая архитектура"
+
+ 	стр. 63 (Инверсия зависимости) - 65
+
+ 	стр. 100 - 104
+
+	стр. 203 - 209
