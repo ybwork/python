@@ -169,6 +169,8 @@
 
 		Distributions.objects.filter(product_id=1987, catalog_id=281904).delete()
 
+		Distributions.objects.filter(catalog_id=281904).delete()
+
 		Distributions.objects.create(product_id=1987, catalog_id=281904, manual=True)
 
 	Как удалить все связи по продуктам и поиграться с галочками в 1с?
@@ -194,6 +196,15 @@
 		from sales_base_models.models import *
 
 		Products.objects.filter(id=1987).delete()
+
+	Как добавить нужную связь категории с продуктом в бд 1C_8_RAW?
+
+		from raw_processing.models import *
+
+		DistributionOnlineStore.objects.using('1c_8_raw').create(
+			group_online_store_uid='658915e3-f8c6-11e1-908d-002655df3ac1',
+			nomenclature_uid='636b3a53-b1fd-11e2-93f1-002655df3ac1'
+		)
 
 	На 21 августа
 
@@ -221,7 +232,45 @@
 
 		2. Изменить логику удаление из таблицы catalog_distributions.
 
-	На 27 августа
+	На 28 августа
 
-		Когда в 1c_8_raw "НеДляРозницы" и "НеДляСнр" равно 0, то 
+		Группы и каталоги это одно и тоже.
+
+		GroupsOnlineStore == КаталогиИнтернетМагазина
+
+	На 29 августа
+
+		Каталога ('658915e3-f8c6-11e1-908d-002655df3ac1') светильники для кораллмикро нет в синхронизации если в ones_products стоит is_for_retail = 0, потому что он уже есть в catalog_distributions
+
+		Если удалить все связанные записи по каталогу ('658915e3-f8c6-11e1-908d-002655df3ac1') светильники, то католог появится в синхронизации
+
+		Продукта с uid '636b3a53-b1fd-11e2-93f1-002655df3ac1' нет в:
+
+			ones_distributions[group_uuid]
+
+			product_uuids = get_product_uuids_for_sale(
+	            ones_distributions[group_uuid],
+	            shop_type=shop_type,
+	            vtb_pks=rules.get(group_uuid, None)
+	        )
+
+	    В бд 1C_8_RAW нет связи категории с продуктом.
+
+			SELECT 
+
+				* 
+
+			FROM 
+
+				1C_8_RAW.СвязиКаталоговИнтернетМагазина 
+
+			WHERE 
+
+				КаталогИнтернетМагазина = '658915e3-f8c6-11e1-908d-002655df3ac1' 
+
+			AND 
+
+				Номенклатура = '636b3a53-b1fd-11e2-93f1-002655df3ac1';
+
+		В связи с этим после синхронизации в magic остается связь категория - продукт и он попадает на коралл. При этом не срабатывает функционал с галочкой.
 
