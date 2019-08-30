@@ -12,6 +12,8 @@
 
 		- привязать номенклатуру к каталогу в 1с
 
-		- в бд magic удалить из таблицы catalog_distributions связь catalog_id/product_id
+		- сообщить о проблеме в web сектор, передав артикулы продуктов
+
+		- в бд magic удалить из таблицы catalog_distributions связь catalog_id/product_id, где product_id == артикул продукта
 
 		- подождать пока пройдет полная синхронизаци magic с 1с
