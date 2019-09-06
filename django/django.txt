@@ -110,6 +110,9 @@
 		Контекст
 
 
+	Url-ы
+
+
 	Валидаторы
 		
 
@@ -2594,6 +2597,62 @@ QuerySet
 		Template(tmpl).render(Context(context))
 
 		Выведет 'Country: myvar'
+
+Url-ы
+
+	Two scoops of Django
+
+		app_name/views.py
+
+			class UpdateView(UpdateView):
+				model = Tasting
+
+		app_name/urls.py
+
+			1.11
+
+				urlpatterns = [
+					path(
+						route='update/',
+						view=views.UpdateView.as_view(),
+						name='update'
+					)
+				]
+
+			2.2
+			
+				app_name = 'main'
+				urlpatterns = [
+					path(
+						route='update/',
+						view=views.UpdateView.as_view(),
+						name='update'
+					)
+				]
+
+		config/urls.py
+
+			1.11
+
+				urlpatterns = [
+					path(
+						route='app_name/', 
+						include(
+							'app_name.urls', 
+							namespace='app_name'
+						)
+					),
+				]
+
+			2.2
+
+				urlpatterns = [
+					path(route='app_name/', include('app_name.urls'))
+				]
+
+		templates/app_name/index.html
+
+			<form action="{% url 'app_name:update' %}" method='POST'>
 
 
 Валидаторы
