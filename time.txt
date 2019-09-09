@@ -134,5 +134,5 @@
 
 5 сентября 2019
 
-	14:00 - infinite loop in group, magic, (), Не списал
+	14:00 - 18:30 - infinite loop in group, magic, (4,5), Не списал
 
