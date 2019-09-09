@@ -196,19 +196,13 @@
 
 		163821
 
-		http://127.1.0.1:8300/dpa/orders/order/163821/change/
+		/dpa/orders/order/163821/change/
 
-		http://127.1.0.1:8300/dpa/orders/orderprocessstate/?q=163821
+		/dpa/orders/orderprocessstate/?q=163821
 
-		http://127.0.1.1:8200/orders/?dealer_site=67
+		/orders/?dealer_site=67
 
 		В pgadmin
-
-			SELECT * FROM public.orders_order WHERE id = 163821;
-
-			SELECT * FROM public.orders_orderprocesstime WHERE state_id = 140844;
-
-			-----------
 
 			SELECT * FROM public.orders_order WHERE id = 166361;
 
@@ -217,8 +211,6 @@
 			SELECT * FROM public.orders_orderprocesstime WHERE state_id = 143375;
 
 			SELECT * FROM public.orders_historicalorder WHERE id = 166361;
-
-			166463 
 
 		Сброс времени начала обработки
 
@@ -307,6 +299,33 @@
     	ord_process_state = OrderProcessState.objects.get(order_id=76626)
 
     	print OrderProcessTime.objects.get(state_id=ord_process_state.pk)
+
+    На 9.09.19
+
+    	Нажимаем создать заказ
+
+    	{'url': r'^submit/(?P<order_id>\d+)/(?P<action>[\w_]+)/$',
+     	'wrapper_view': wrapper_order_submit_view}
+
+     	class OrderSubmitView(
+
+     		def process(
+
+     			order.process()
+
+    	def create_order(
+
+    		result = create_order_handler(request.POST)
+
+		        start_order_process_time.send(
+		            Order,
+		            order_id=order.pk,
+		            reason_alias='ORDER_CREATED',
+		            # передаем, если найдем, параметры по контрольной закупке Я.Маркета
+		            params_control_purchase=order.get_control_purchase_ya_market()
+		        )
+
+		Как вызвать def create_order?
 
 Проблема с распаковкой zip архивов с ценами, номенклатурой и остатками диллера
 
