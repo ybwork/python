@@ -8,6 +8,8 @@
 
 	Проблема с выгодными предложениями
 
+	Проблема с количеством товара на сайте
+
 Галочка "Не для интернет магазина"
 
 	В 1с товару поставили галочку "Не для интернет магазина", но он всеравно отображается на сайте
@@ -193,3 +195,210 @@
 	Если обе акции активны и вних есть одинаковые товары, то они будут пересекаться. Это нормально поведение.
 
 	Доносим эту мысль человеку, который сообщил об ошибке.
+
+Проблема с количеством товара на сайте
+
+	По мнению ответсвенных за интернет-магазины на сайтах korallmicro, snr и istore должно быть больше товаров чем есть на данный момент.
+
+	Изначально продукты создаются в 1с.
+
+	Из 1с продукты выгружаются в бд 1c_8_raw.
+
+	Из бд 1c_8_raw продукты выгружаются в бд magic, таблица ones_products.
+
+	Из таблицы ones_products продукты выгружаются в catalog_products, catalog_catalog и создаются связи в catalog_distributions согласно правилам из catalog_rules.
+
+	Из бд magic продукты попадают в бд конкретных сайтов (korallmicro, snr, istore).
+
+	Условия по которым продукт считается пригодным для выгрузки:
+
+		НеДляПродажи = 0
+
+		НеДляРозницы = 0
+
+		_ПометкаУдаления = 0
+
+		# созданные минимум 12 часов назад
+		ДатаСоздания <= date_add(now(),interval -12 hour)
+
+	Korallmicro
+
+		Выгрузка товаров из 1с в 1c_8_raw
+
+			SELECT 
+				COUNT(*)
+			FROM 
+				1C_8_RAW.Номенклатура
+			WHERE
+				uid IN (
+					SELECT 
+						Номенклатура
+					FROM
+						1C_8_RAW.СвязиКаталоговИнтернетМагазина
+					WHERE
+						КаталогИнтернетМагазина IN (
+							SELECT
+								uid
+							FROM
+								1C_8_RAW.КаталогиИнтернетМагазина
+							WHERE
+								ПланОбмена = (
+									SELECT 
+										uid
+									FROM 
+										1C_8_RAW.ПланОбмена
+									WHERE
+										Наименование = 'Korallmicro'
+								)
+							AND
+								_ПометкаУдаления = 0
+						)
+				)
+			AND
+				НеДляПродажи = 0
+			AND
+				НеДляРозницы = 0
+			AND
+				_ПометкаУдаления = 0
+			AND
+				ДатаСоздания <= date_add(now(),interval -12 hour);
+
+			>>> 25065
+
+		Выгрузка товаров из 1c_8_raw в magic
+
+			SELECT
+				COUNT(*)
+			FROM
+				magic.catalog_products as p
+			JOIN
+				magic.catalog_distributions as d
+			ON
+				d.product_id = p.code
+			JOIN
+				magic.catalog_catalog as c
+			ON
+				c.id = d.catalog_id
+			WHERE
+				c.type = 'korallmicro';
+
+			>>> 23152
+
+		Находим разницу не выгруженныйх товаров из 1с в magic
+
+			SELECT 
+				COUNT(*)
+			FROM 
+				1C_8_RAW.Номенклатура
+			WHERE
+				uid IN (
+					SELECT 
+						Номенклатура
+					FROM
+						1C_8_RAW.СвязиКаталоговИнтернетМагазина
+					WHERE
+						КаталогИнтернетМагазина IN (
+							SELECT
+								uid
+							FROM
+								1C_8_RAW.КаталогиИнтернетМагазина
+							WHERE
+								ПланОбмена = (
+									SELECT 
+										uid
+									FROM 
+										1C_8_RAW.ПланОбмена
+									WHERE
+										Наименование = 'Korallmicro'
+								)
+							AND
+								_ПометкаУдаления = 0
+						)
+				)
+			AND
+				НеДляПродажи = 0
+			AND
+				НеДляРозницы = 0
+			AND
+				_ПометкаУдаления = 0
+			AND
+				ДатаСоздания <= date_add(now(),interval -12 hour)
+			AND
+				Код NOT IN (
+					SELECT
+						p.code
+					FROM
+						magic.catalog_products as p
+					JOIN
+						magic.catalog_distributions as d
+					ON
+						d.product_id = p.code
+					JOIN
+						magic.catalog_catalog as c
+					ON
+						c.id = d.catalog_id
+					WHERE
+						c.type = 'korallmicro';
+				)
+
+			>>> 1958
+
+		Смотрим конкретную карточку товара в каталогах, продуктах и связях magic
+
+			SELECT 
+			    *
+			FROM
+			    magic.catalog_products
+			WHERE
+			    code = 213787;
+
+			>>> Есть
+
+			------
+
+			SELECT 
+			    *
+			FROM
+			    magic.catalog_distributions
+			WHERE
+			    product_id = 213787;
+
+			>>> Есть
+
+			------
+
+			SELECT 
+			    *
+			FROM
+			    magic.catalog_catalog
+			WHERE
+			    id = 318290;
+
+			>>> Привязан только к каталогу типа snr_new и это косяк, а в 1c_8_raw все четко
+
+		Смотрим остатки
+
+			SELECT 
+			    *
+			FROM
+			    1C_8_RAW.Остатки
+			WHERE
+			    Номенклатура = '0978b6c9-cbb4-11e8-80d7-6805ca44419c';
+
+		Смотрим наличие карточки товара в magic и стоит ли date_formed_description
+
+			SELECT 
+			    *
+			FROM
+			    magic.cards_productcard
+			WHERE
+				code = 213787;
+
+		Смотрим есть ли слепок карточки товара
+
+			SELECT 
+			    *
+			FROM
+			    magic.cards_productcarddescription
+			WHERE
+				card_id = 60627;

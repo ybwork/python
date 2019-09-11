@@ -6,6 +6,8 @@
 
 	Заливка бэкапа
 
+	Полезные функции
+
 	Нюансы
 
 Docker
@@ -61,6 +63,10 @@ Docker
 	/etc/mysql/conf.d
 
 	mysql -u username -p database_name < file.sql
+
+Полезные функции
+
+	ДатаСоздания <= date_add(now(), interval -12 hour)
 
 Нюансы
 
