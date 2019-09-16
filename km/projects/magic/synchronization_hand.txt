@@ -6,7 +6,11 @@
 
 	Формирование слепков карточки товара
 
+	Синхронизация каталогов, продуктов и их связей
+
 	Синхронизация шильдов
+
+	Ошибки
 
 Синхронизация брендов и видов
 
@@ -65,6 +69,12 @@
 		from django.core.cache import cache
 
 		cache.delete('separation_info')
+
+Синхронизация каталогов, продуктов и их связей
+
+    from catalog.tasks import *
+
+    sync_shop.delay(shop_type='korallmicro')
 
 Синхронизация шильдов
 

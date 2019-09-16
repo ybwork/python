@@ -154,6 +154,8 @@
 
 		Команды
 
+	Логгирование
+
 	Вливание новых данных на проект
 
 	Перезапуск проекта
@@ -1762,7 +1764,7 @@ QuerySet
 
 			# проверка на вхождение, как Like
 			Entry.objects.filter(headline__contains='Lennon')
-
+			
 			# знак % экранировать не нужно
 			Entry.objects.filter(headline__contains='%')
 
@@ -2987,6 +2989,34 @@ Unit тесты
 		./manage.py test
 
 		./manage.py test app_name/
+
+Логгирование
+
+	Логгирование от Two scoops of Django
+
+		Делить логи на уровни.
+
+		Использовать traceback при логгировании. logger.exception(e).
+
+		В каждом новом модуле импортировать новый логгер, потому что если захочу поменять систему логирования в одном модуле не затрагивая другой, это не получится.
+
+		Логи уровня INFO лучше писать в файл и хранить на диске, а уровня ERROR отправлять админам проекта на почту (по default в django).
+
+	Если DEBUG равна True:
+
+		django, который перенаправляет все сообщения уровня INFO и выше в консоль.
+
+		Логгер py.warnings, который обрабатывает сообщения от warnings.warn(), отправляет их на консоль.
+
+	Если DEBUG установлен в False:
+
+		По умолчанию логгер django отравляет все сообщения уровня ERROR или CRITICAL в AdminEmailHandler.
+
+	import logging
+
+	logger = logging.getLogger(__name__)
+
+	logger.error('Something went wrong!')
 
 Вливание новых данных на проект
 
