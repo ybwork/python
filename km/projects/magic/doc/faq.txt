@@ -8,6 +8,8 @@
 
 	Проблема с выгодными предложениями
 
+	Проблема с количеством товара на сайте
+
 Галочка "Не для интернет магазина"
 
 	В 1с товару поставили галочку "Не для интернет магазина", но он всеравно отображается на сайте
@@ -193,3 +195,439 @@
 	Если обе акции активны и вних есть одинаковые товары, то они будут пересекаться. Это нормально поведение.
 
 	Доносим эту мысль человеку, который сообщил об ошибке.
+
+Проблема с количеством товара на сайте
+
+	На 17.08.19 проблемы на этапах:
+
+		1c - вид-подвид
+
+		новинки - не распределяется
+
+			нет Приоритетная группа
+
+			телевизоры и проекторы
+			
+				232483
+
+			самораживал остатки под новый год
+
+		dp - синки
+
+	По мнению ответсвенных за интернет-магазины на сайтах korallmicro, snr и istore должно быть больше товаров чем есть на данный момент.
+
+	Изначально продукты создаются в 1с.
+
+	Из 1с продукты выгружаются в бд 1c_8_raw.
+
+	Из бд 1c_8_raw продукты выгружаются в бд magic, таблица ones_products.
+
+	Из таблицы ones_products продукты выгружаются в catalog_products, catalog_catalog и создаются связи в catalog_distributions согласно правилам из catalog_rules.
+
+	Из бд magic продукты попадают в бд конкретных сайтов (korallmicro, snr, istore).
+
+	Условия по которым продукт считается пригодным для выгрузки:
+
+		СнятаСПродажи = 0/1
+
+		НеДляПродажи = 0
+
+		НеДляРозницы = 0
+
+		_ПометкаУдаления = 0
+
+		# созданные минимум 12 часов назад
+		ДатаСоздания <= date_add(now(),interval -12 hour)
+
+	Из 1с в magic идет выгрузка в таблицы из модуля ones в таске sync_db.
+
+	Затем для каждого магазина запускается таск sync_shop.
+
+	Внутри таска sync_shop сначала идет распределение продуктов в magic по таблицам catalog_products, catalog_catalog и catalog_distributions c помощью метода sync, а затем уже в бд конкретного магазина.
+
+	Korallmicro
+
+		Выгрузка товаров из 1с в 1c_8_raw
+
+			SELECT 
+				COUNT(*)
+			FROM 
+				1C_8_RAW.Номенклатура
+			WHERE
+				uid IN (
+					SELECT 
+						Номенклатура
+					FROM
+						1C_8_RAW.СвязиКаталоговИнтернетМагазина
+					WHERE
+						КаталогИнтернетМагазина IN (
+							SELECT
+								uid
+							FROM
+								1C_8_RAW.КаталогиИнтернетМагазина
+							WHERE
+								ПланОбмена = (
+									SELECT 
+										uid
+									FROM 
+										1C_8_RAW.ПланОбмена
+									WHERE
+										Наименование = 'Korallmicro'
+								)
+							AND
+								_ПометкаУдаления = 0
+						)
+				)
+			AND
+				НеДляПродажи = 0
+			AND
+				НеДляРозницы = 0
+			AND
+				_ПометкаУдаления = 0
+			AND
+				ДатаСоздания <= date_add(now(),interval -12 hour);
+
+			>>> 25101
+
+		Выгрузка товаров из 1c_8_raw в magic
+
+			SELECT
+				COUNT(*)
+			FROM
+				magic.catalog_products as p
+			JOIN
+				magic.catalog_distributions as d
+			ON
+				d.product_id = p.code
+			JOIN
+				magic.catalog_catalog as c
+			ON
+				c.id = d.catalog_id
+			WHERE
+				c.type = 'korallmicro';
+
+			>>> 23202
+
+		Те у которых нет связи с каталогом korallmicro
+
+			SELECT 
+				COUNT(*)
+			FROM 
+				1C_8_RAW.Номенклатура
+			WHERE
+				uid IN (
+					SELECT 
+						Номенклатура
+					FROM
+						1C_8_RAW.СвязиКаталоговИнтернетМагазина
+					WHERE
+						КаталогИнтернетМагазина IN (
+							SELECT
+								uid
+							FROM
+								1C_8_RAW.КаталогиИнтернетМагазина
+							WHERE
+								ПланОбмена = (
+									SELECT 
+										uid
+									FROM 
+										1C_8_RAW.ПланОбмена
+									WHERE
+										Наименование = 'Korallmicro'
+								)
+							AND
+								_ПометкаУдаления = 0
+						)
+				)
+			AND
+				НеДляПродажи = 0
+			AND
+				НеДляРозницы = 0
+			AND
+				_ПометкаУдаления = 0
+			AND
+				ДатаСоздания <= date_add(now(),interval -12 hour)
+			AND
+				Код NOT IN (
+					SELECT
+						p.code
+					FROM
+						magic.catalog_products as p
+					JOIN
+						magic.catalog_distributions as d
+					ON
+						d.product_id = p.code
+					JOIN
+						magic.catalog_catalog as c
+					ON
+						c.id = d.catalog_id
+					WHERE
+						c.type = 'korallmicro'
+				)
+			ORDER BY ДатаСоздания DESC
+
+			>>> 1943
+
+		Провереям, что у 1943 продуктов нет связи с каталогом korallmicro, а должна быть
+
+			SELECT 
+			    p.code, c.type
+			FROM
+			    magic.catalog_products AS p
+			        JOIN
+			    magic.catalog_distributions AS d ON d.product_id = p.code
+			        JOIN
+			    magic.catalog_catalog AS c ON c.id = d.catalog_id
+			WHERE
+			    p.code IN (
+			        219587,
+			        203907
+			    );
+
+		Провереям, что у 1943 продуктов есть связи с каталогом korallmicro в 1с_8_raw
+
+			SELECT
+				count(*)
+				product.Код,
+				category_product.КаталогИнтернетМагазина
+			FROM
+			    1C_8_RAW.Номенклатура AS product
+			        JOIN
+			    1C_8_RAW.СвязиКаталоговИнтернетМагазина AS category_product ON category_product.Номенклатура = product.uid
+					JOIN
+				1C_8_RAW.КаталогиИнтернетМагазина AS category ON category.uid = category_product.КаталогИнтернетМагазина
+			WHERE
+				category.ПланОбмена = (
+					SELECT
+						plan.uid
+					FROM
+						1C_8_RAW.ПланОбмена AS plan
+					WHERE
+						plan.Наименование = 'korallmicro'
+				)
+				AND
+					product.Код IN (
+						213787, 
+						206999,
+					);
+
+		Термины
+
+			номенклатура == продукт
+
+			каталог == категория
+
+			связь продукта с категорией == СвязиКаталоговИнтернетМагазина == catalog_distributions
+
+		Смотрим продукт 1с - magic
+
+			SELECT 
+			    *
+			FROM
+			    1C_8_RAW.Номенклатура
+			WHERE
+				Код = 184512;
+
+			------
+
+			SELECT 
+			    *
+			FROM
+			    magic.catalog_products
+			WHERE
+			    code = 213787;
+
+		Смотрим связь продукта с категорией 1с - magic
+
+			SELECT 
+			    *
+			FROM
+			    1C_8_RAW.СвязиКаталоговИнтернетМагазина
+			WHERE
+				Номенклатура = '33ebd596-a479-11e9-80e1-6805ca44419c';
+
+			------
+
+			SELECT 
+			    *
+			FROM
+			    magic.catalog_distributions
+			WHERE
+			    product_id = 213787;
+
+		Смотрим категории 1с - magic
+
+			SELECT 
+			    КаталогиИнтернетМагазина.uid,
+			    КаталогиИнтернетМагазина.Наименование,
+			    ПланОбмена.Наименование
+			FROM
+			    1C_8_RAW.КаталогиИнтернетМагазина
+			        JOIN
+			    1C_8_RAW.ПланОбмена ON КаталогиИнтернетМагазина.ПланОбмена = ПланОбмена.uid
+			WHERE
+			    КаталогиИнтернетМагазина.uid IN (
+					'61863006-f59c-11e1-82bc-002655df3ac1',
+			        '801059df-1fbd-11e9-80d9-6805ca44419c',
+			        'bd15d28a-2714-11e5-80d9-001b21d8d330',
+			        'd155349c-fd61-11e5-93f9-001b21d8d330'
+				);
+
+			-------
+
+			SELECT
+				full_name,
+				type
+			FROM
+				magic.catalog_catalog
+			WHERE
+				id IN (318290);
+
+		Смотрим наличие карточки товара в magic и стоит ли date_formed_description
+
+			SELECT 
+			    *
+			FROM
+			    magic.cards_productcard
+			WHERE
+				code = 213787;
+
+		Смотрим есть ли слепок карточки товара
+
+			SELECT 
+			    *
+			FROM
+			    magic.cards_productcarddescription
+			WHERE
+				card_id = 60627;
+
+		Смотрим остатки 1с - dp
+
+			SELECT 
+			    *
+			FROM
+			    1C_8_RAW.Остатки
+			WHERE
+			    Номенклатура = '0978b6c9-cbb4-11e8-80d7-6805ca44419c';
+
+			------
+
+			SELECT 
+				* 
+			FROM 
+				public.remains 
+			WHERE 
+				pid=197416;
+
+			------
+
+			from sales_base_models.models import * 
+
+			Remains.objects.filter(sid=Site.objects.get(subdomain='www').pk, pid=184512)
+
+		Смотрим наличие цены 1с - dp
+
+			SELECT 
+			    *
+			FROM
+			    1C_8_RAW.Цены
+			WHERE
+			    Номенклатура = '21609ef0-3b93-11e7-80c7-6805ca44419c';
+
+			------
+
+			SELECT 
+				*  
+			FROM 
+				public.prices 
+			WHERE 
+				pid=197416;
+
+			------
+
+			from sales_base_models.models import * 
+
+			Prices.objects.filter(sid=Site.objects.get(subdomain='www').pk, pid=184512)
+
+		Смотрим наличие продукта в базе магазина
+
+			SELECT 
+				* 
+			FROM 
+				public.products 
+			WHERE 
+				id=197416;
+
+		Вид-тип-бренд и каталог
+
+			Нет нужной связи в catalog_distributions и она не может сформироваться, потому что product_uuids = get_product_uuids_for_sale, не берет нужный продукт из-за отсутсвия нужной связи вид-типа-бренда и каталога
+
+				SELECT 
+				    *
+				FROM
+				    magic.catalog_rules;
+
+			Где взять vtb_id
+
+				SELECT 
+				    vtb_id
+				FROM
+				    magic.ones_products
+				WHERE
+					code = 225550;
+
+			Цепочка
+
+				184512, 228869, 197416
+
+					Номенклатура
+
+						Нет пометок
+
+						SELECT 
+						    *
+						FROM
+						    1C_8_RAW.Номенклатура
+						WHERE
+							Код = 197416;
+
+					Распределение каталогов сайтов
+
+						"Иерархия объектов обмена"
+
+						Не указал папку
+
+						Не указал правильный вид-подвид
+
+						Вид-подвид не соответсвовал группе
+
+						Папка и бери из неё все
+
+					Мэджик каталоги
+
+						Если видит, то супер
+
+					Мэджик карточка
+
+						Фото, валидация
+
+					В dp "цены и остатки"
+
+						korallmicro
+
+						поиск по всем каталогам
+
+						смотрю папку в иерархии dp
+
+						есть тип цены, но он не влияет на выгрузку
+
+							инэт магаз
+
+							по акции
+
+							ррц рекомендуемая розничная цена производителя
+
+					Закупка кладет товар в папку
+
+						"Если решили переложить в другую папку, то он просто пропадает"
+

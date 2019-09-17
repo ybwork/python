@@ -1,0 +1,584 @@
+# -*- coding: utf-8 -*-
+import os
+
+CONF_PATH = os.path.dirname(__file__)
+LOG_FILENAME = '/home/devel/log/magic-configurator.log'
+
+BASE_URL= 'http://magic.km-union.ru'
+
+DEBUG = False
+TEMPLATE_DEBUG = DEBUG
+LOGIN_URL= '/login/'
+# Адреса для доступа к debug-tool-bar если debug=True
+INTERNAL_IPS = (
+    '192.168.2.96',
+)
+
+
+ALLOW_IPS_FOR_API = ['127.0.0.1', '192.168.7.3']
+
+ADMINS = (
+    ('Alex', 'alexandr_angilenko@km-union.ru'),
+    ('Senchenko_VS', 'senchenko_vs@km-union.ru'),
+    ('Kaduk_IA', 'kaduk_ia@km-union.ru'),
+    #('Ikudza', 'kudashin_ii@km-union.ru'),
+    #('Arsen', 'abakarov_ag@km-union.ru'),
+    #('Dima BO', 'Bondarenko_DA@km-union.ru'),
+)
+
+MANAGERS = (
+    ('Alexandr', 'alexander_glubokov@km-union.ru'),
+    ('Vlad', 'vlad_vaholsky@km-union.ru')
+)
+
+ALLOWED_HOSTS = [
+    'magic.km-union.ru',
+]
+
+LOCAL_DATABASES = {
+
+    'default': {
+        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '',                      # Or path to database file if using sqlite3.
+        'USER': '',                      # Not used with sqlite3.
+        'PASSWORD': '',                  # Not used with sqlite3.
+        'HOST': 'new-mysql.km-union.ru',             # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+
+        # для mysql лучше принудительно указать движок InnoDB
+        # во избежание проблем с ForeignKey, constraint и т.п.
+        'OPTIONS': {
+            'read_default_file': os.path.join(CONF_PATH, 'my.cnf'),
+            'init_command': 'SET default_storage_engine=INNODB',
+        }
+    },
+
+    'online_shop_info': {
+        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        #        'NAME': '',                      # Or path to database file if using sqlite3.
+        #        'USER': '',                      # Not used with sqlite3.
+        #        'PASSWORD': '',                  # Not used with sqlite3.
+        'HOST': 'new-mysql.km-union.ru',                   # Set to empty string for localhost. Not used with sqlite3.
+        #        'PORT': '',
+        'OPTIONS': {
+            'read_default_file': os.path.join(CONF_PATH, 'online_shop_info.cnf'),
+        }
+    },
+
+    'korallmicro': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'korallmicro',
+        'PASSWORD': 'korallmicro',
+        'USER': 'korallmicro',
+        'HOST': '192.168.7.9',
+        'PORT': '5432'
+    },
+
+    'istore': {
+        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        #        'NAME': '',                      # Or path to database file if using sqlite3.
+        #        'USER': '',                      # Not used with sqlite3.
+        #        'PASSWORD': '',                  # Not used with sqlite3.
+        'HOST': 'new-mysql.km-union.ru',                      # Set to empty string for localhost. Not used with sqlite3.
+        #        'PORT': '',
+        'OPTIONS': {
+            'read_default_file': os.path.join(CONF_PATH, 'istore.cnf'),
+        }
+    },
+
+    'snr_new': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'HOST': '192.168.7.9',
+        'PORT': '5432',
+        'NAME': 'snr',
+        'USER': 'korallmicro',
+        'PASSWORD': 'korallmicro',
+    },
+
+
+    'sales_base_models': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'HOST': '192.168.7.9',
+        'PORT': '5432',
+        'NAME': 'snr',
+        'USER': 'korallmicro',
+        'PASSWORD': 'korallmicro',
+    },
+
+    # TODO: Используется ли?
+    '1c': {
+        'ENGINE': 'django.db.backends.mysql',  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        #        'NAME': '',                      # Or path to database file if using sqlite3.
+        #        'USER': '',                      # Not used with sqlite3.
+        #        'PASSWORD': '',                  # Not used with sqlite3.
+        'HOST': 'new-mysql.km-union.ru',  # Set to empty string for localhost. Not used with sqlite3.
+        #        'PORT': '',
+        'OPTIONS': {
+            'read_default_file': os.path.join(CONF_PATH, '1c.cnf'),
+        }
+    },
+
+    'goods_office': {
+        'ENGINE': 'django.db.backends.mysql',  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        #        'NAME': '',                      # Or path to database file if using sqlite3.
+        #        'USER': '',                      # Not used with sqlite3.
+        #        'PASSWORD': '',                  # Not used with sqlite3.
+        'HOST': 'new-mysql.km-union.ru',  # Set to empty string for localhost. Not used with sqlite3.
+        #        'PORT': '',
+        'OPTIONS': {
+            'read_default_file': os.path.join(CONF_PATH, 'goods_office.cnf'),
+        }
+    },
+
+    '1c_8_raw': {
+        'ENGINE': 'django.db.backends.mysql',  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        #        'NAME': '',                      # Or path to database file if using sqlite3.
+        #        'USER': '',                      # Not used with sqlite3.
+        #        'PASSWORD': '',                  # Not used with sqlite3.
+        'HOST': 'new-mysql.km-union.ru',  # Set to empty string for localhost. Not used with sqlite3.
+        #        'PORT': '',
+        'OPTIONS': {
+            'read_default_file': os.path.join(CONF_PATH, '1c_8_raw.cnf'),
+        }
+    }
+}
+
+
+ROUTERS = {}
+
+ROUTERS['raw_processing'] = {
+    'db_for_read': '1c_8_raw',
+    'allow_syncdb': False
+}
+
+ROUTERS['istore'] = {
+    'db_for_read': 'istore',
+    'db_for_write': 'istore',
+    'allow_syncdb': False
+}
+
+# Make this unique, and don't share it with anybody.
+SECRET_KEY = '@v{Z6qxAsD/j*jD<qq4@o,?L[5@ALP#REVo881"Q3Y7~*2k|'
+
+# Наши счастиливчики
+KMCLIENT_NOTIFICATION_EMAILS = (
+#    'koledennix@gmail.com', # Коледин
+#    'dik@mailsms.mobicomk.ru', # Матюнин
+    'dealer@km-union.ru', # Мелконян
+    'zueva@km-union.ru', # Зуева
+    'vyacheslav_gorbanev@km-union.ru', # Вячеслав Горбанев
+    'irina_zvezdunova@km-union.ru', # Ирина Звездунова
+    'nikolenko_denis@km-union.ru', # И кончено же Денис Николенко
+    'timur@skidan.su', # Тимур Скидан
+)
+
+# A sample logging configuration. The only tangible logging
+# performed by this configuration is to send an email to
+# the site admins on every HTTP 500 error.
+# See http://docs.djangoproject.com/en/dev/topics/logging for
+# more details on how to customize your logging configuration.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'handlers': {
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler'
+        }
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'cards.tasks': {
+            'handlers': ['mail_admins'], 
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    }
+}
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'ex-dag-01.km-union.ru'
+SERVER_EMAIL = 'magic@error'
+
+#celery
+CELERY_ACKS_LATE = True
+CELERYD_PREFETCH_MULTIPLIER = 2
+CELERY_SEND_TASK_ERROR_EMAILS = True
+
+# параметр нужен для работы мониторинга типа celery flower
+# дабы не загружать сеть, т.к. мы его не используем, выключаем
+CELERY_SEND_EVENTS = False
+
+
+BROKER_URL = [
+    "amqp://web:web_password@192.168.7.76:5672/magic",
+    "amqp://web:web_password@192.168.7.77:5672/magic"
+]
+
+BROKER_TARGET_URL = [
+    "amqp://web:web_password@192.168.7.76:5672/broker",
+    "amqp://web:web_password@192.168.7.77:5672/broker"
+]
+
+
+CELERY_ACCEPT_CONTENT = ['json', 'pickle']
+
+# задежрка в часах для выгрузки из 1С товара для magic
+DELAY_HOURS_FOR_UNLOADING_FROM_1C = 12
+
+# Величина разброса (в процентах) количества распределенных товаров
+DISPERSION_LEFT_VALUE_OF_DISTRIBUTED_PRODUCT_IN_PERCENT = 2
+DISPERSION_RIGHT_VALUE_OF_DISTRIBUTED_PRODUCT_IN_PERCENT = 5
+SYNCHRONIZATION_NOTIFICATION_PHONE_NUMBERS = ['79043444247', '79085130033', '79897127472', '79888907888', '79188979218', '79185931552']
+ATOMPARK_SECRET_KEY = '584bb2475622b5f9'
+
+SYSTEM_NOTIFICATION_EMAIL_GROUPS = ['alexandr_angilenko@km-union.ru', 'senchenko_vs@km-union.ru', 'kaduk_ia@km-union.ru']
+FRIENDS_FROM_1C_EMAIL_GROUPS = []
+FRIENDS_FROM_INTEGRATOR_EMAIL_GROUPS = ['aslanyan_sh@km-union.ru']
+
+CONTENT_MANAGER_NOTIFICATION_EMAIL_GROUPS = {
+    'korallmicro': ['alexander_glubokov@km-union.ru', 'vlad_vaholsky@km-union.ru', 'senchenko_vs@km-union.ru', 'kaduk_ia@km-union.ru'],
+    'istore': ['alexander_glubokov@km-union.ru', 'Azevich_EM@km-union.ru'],
+    'snr_new': ['alexander_glubokov@km-union.ru', 'vlad_vaholsky@km-union.ru', 'senchenko_vs@km-union.ru', 'kaduk_ia@km-union.ru'],
+}
+
+REVIEW_CHECKER_NOTIFICATION_EMAIL_GROUPS = ['aleksey_lomakin@km-union.ru']
+OFFERS_CHECKER_NOTIFICATION_EMAIL_GROUPS = ['folvarkov@mail.ru', 'alexandrcms@gmail.com', 'skvooz@gmail.com']
+UNIQUE_FULL_ALIAS_CHECKER_NOTIFICATION_EMAIL_GROUPS = ['alexandrcms@gmail.com', 'aleksey_lomakin@km-union.ru', 'alexander_glubokov@km-union.ru']
+ACTUAL_CHECKER_NOTIFICATION_EMAIL_GROUPS = ['svetlana_koroleva@km-union.ru', 'tatyana_zakharova@km-union.ru', 'senchenko_vs@km-union.ru', 'kaduk_ia@km-union.ru']
+
+
+# когда перейдем к cdn
+SFTP_MEDIA_URL = 'http://cdn2.km-union.ru/magic/'
+PATH_TO_KORALLMICRO = '/media/storage/korallmicro/images/'
+PATH_TO_ISTORE = '/media/storage/istore/images/'
+PATH_TO_SNR = '/media/storage/snr/images/'
+PATH_TO_STORAGE = '/media/storage/magic/'
+
+KORALLMICRO_DEALER_UUID = 'cd5cc581-70b4-11e4-80ce-001b21d8d330'
+
+DILER_PRICE_TYPE = 'aa1aecce-b99d-4f9b-ae1e-b10e8bd5c555'
+STORE_UID = '1bab7b05-b1fc-11e2-93f1-002655df3ac1'
+
+# Группа для рассылки статистики по конфигуратору
+CONFIGURATOR_ANALITICS = ['fastunova_va@km-union.ru']
+
+KORALLMICRO_SITE_ID = 49
+
+# crontab
+#from celery.schedules import crontab
+#CELERYBEAT_SCHEDULE = {
+#
+#    #####################
+#    ## for configurator #
+#    #####################
+#
+#    'configurator_analitics': {
+#    'task': 'configurator_analitics',
+#        'schedule': crontab(day_of_month='10', minute='0', hour='8'),
+#        'options': {
+#            'routing_key': 'default'
+#        }
+#    },
+#
+#    #####################
+#    ##### for magic #####
+#    #####################
+#
+#    # синхронизация производителей из справочника в 1С
+#    'task_sync_brands': {
+#        'task': 'sync_brands',
+#        'schedule': crontab(minute='5', hour='7'),
+#        'options': {
+#            'routing_key': 'system'
+#        }
+#    },
+#
+#    # проверка на актуальность, соответствие значения производитель и вид-подвид
+#    # в карточках товара и значений в 1С
+#    'task_sync_brands_kinds_in_actual_cards': {
+#        'task': 'sync_brands_kinds_in_actual_cards',
+#        'schedule': crontab(minute='10', hour='7'),
+#        'options': {
+#            'routing_key': 'system'
+#        }
+#    },
+#
+#    # синхронизация баллов для бонус клуба розницы "Офисный мир КМ"
+#    'task_sync_bonusclub': {
+#        'task': 'sync_bonusclub',
+#        'schedule': crontab(minute='0', hour='8-20'),
+#        'options': {
+#            'routing_key': 'system'
+#        }
+#    },
+#
+#    # рассылка сообщений об окончании выгодных предложений
+#    'task_offers_email_report': {
+#        'task': 'offers_email_report',
+#        'schedule': crontab(minute='30', hour='8-17'),
+#        'options': {
+#            'routing_key': 'system'
+#        }
+#    },
+#
+#    # сброс признака "Опубликовано" для элементов карусель
+#    'task_unpublicate_carousel_items': {
+#        'task': 'unpublicate_carousel_items',
+#        'schedule': crontab(minute='0', hour='8'),
+#        'options': {
+#            'routing_key': 'system'
+#        }
+#    },
+#
+#    # подготовка кеша с описаниями для Яндекс.Маркета
+#    'task_create_and_remember_yandex_market_description': {
+#        'task': 'create_and_remember_yandex_market_description',
+#        'schedule': crontab(minute='0', hour='8'),
+#        'options': {
+#            'routing_key': 'description'
+#        }
+#    },
+#
+#    #####################
+#    ##### for sites #####
+#    #####################
+#
+#    # при изменении времени синхронизаций korallmicro, istore, snr
+#    # изменять задачу по крону ротации индексов для sphinx (7.23)
+#
+#    # синхронизация с 1С
+#    'simple_ones_sync_morning': {
+#        'task': 'simple_ones_sync',
+#        'schedule': crontab(minute='*/15', hour='0-7'),
+#        'options': {
+#            'routing_key': 'system'
+#        }
+#    },
+#    'task_sync_db': {
+#        'task': 'sync_db',
+#        'schedule': crontab(minute='6,36', hour='8-20'),
+#        'options': {
+#            'routing_key': 'system'
+#        }
+#    },
+#    'simple_ones_sync_evening': {
+#        'task': 'simple_ones_sync',
+#        'schedule': crontab(minute='*/15', hour='21-23'),
+#        'options': {
+#            'routing_key': 'system'
+#        }
+#    },
+#
+#    # синхронизация с кораллмикро (catalog)
+#    'task_sync_shop_korallmicro': {
+#        'task': 'sync_shop',
+#        'schedule': crontab(minute='15,45', hour='8-20'),
+#        'args': ('korallmicro',),
+#        'options': {
+#            'routing_key': 'system'
+#        }
+#    },
+#
+#    # синхронизация с кораллмикро (на сайт)
+#    'task_sync_korallmicro': {
+#        'task': 'sync_korallmicro',
+#        'schedule': crontab(minute='16,46', hour='8-20'),
+#        'options': {
+#            'routing_key': 'system'
+#        }
+#    },
+#
+#    # синхронизация фильтров для сайта кораллмикро
+#    'task_sync_filter_korallmicro': {
+#        'task': 'sync_filter_korallmicro',
+#        'schedule': crontab(minute='0', hour='8-20'),
+#        'options': {
+#            'routing_key': 'system'
+#        }
+#    },
+#
+#    # синхронизация с айстор (catalog)
+#    'task_sync_shop_istore': {
+#        'task': 'sync_shop',
+#        'schedule': crontab(minute='49', hour='8-20'),
+#        'args': ('istore',),
+#        'options': {
+#            'routing_key': 'system'
+#        }
+#    },
+#
+#    # синхронизация с айстор (на сайт)
+#    'task_sync_istore': {
+#        'task': 'sync_istore',
+#        'schedule': crontab(minute='50', hour='8-20'),
+#        'options': {
+#            'routing_key': 'system'
+#        }
+#    },
+#
+#    # синхронизация с new_snr (catalog)
+#    'task_sync_shop_snr_new': {
+#        'task': 'sync_shop',
+#        'schedule': crontab(minute='5', hour='8-20'),
+#        'args': ('snr_new', False,),
+#        'options': {
+#            'routing_key': 'system'
+#        }
+#    },
+#
+#    # синхронизация с new_snr (сайт)
+#    'task_sync_snr_new': {
+#        'task': 'sync_snr_new',
+#        'schedule': crontab(minute='10', hour='8-20'),
+#        'options': {
+#            'routing_key': 'system'
+#        }
+#    },
+#
+#    # ежемесячный отчет для Саши Глубокова для korallmicro
+#    'send_report_korallmicro': {
+#        'task': 'send_report_korallmicro',
+#        'schedule': crontab(day_of_month=1, minute=0, hour=1),
+#        'kwargs': {
+#            'methods': [
+#                'site_products_report',
+#                'incorrect_full_alias_report'
+#            ],
+#        }
+#    },
+#
+#    # ежемесячный отчет для Саши Глубокова для SNR
+#    'send_report_snr': {
+#        'task': 'send_report_snr',
+#        'schedule': crontab(day_of_month=1, minute=0, hour=1),
+#        'kwargs': {
+#            'methods': [
+#                'site_products_report',
+#                'incorrect_full_alias_report'
+#            ],
+#            # для всех поддоменов - [], пример конкректных - ['www', 'anapa']
+#            "subdomains": [],
+#        }
+#    },
+#
+#
+#}
+
+SITE_PRODUCTS_REPORT_EMAILS = ['alexander_glubokov@km-union.ru', 'abakarov_ag@km-union.ru', 'angilenko_aa@km-union.ru', 'senchenko_vs@km-union.ru', 'kaduk_ia@km-union.ru']
+
+CRITICAL_ERROR_EMAIL_GROUPS = {
+    'phones': [79043444247, 79185931552],
+    'emails': [
+        'vlad_vaholsky@km-union.ru',
+        'alexander_glubokov@km-union.ru',
+        'aleksey_lomakin@km-union.ru',
+        'malashikhin_da@km-union.ru',
+        'mihail_shinkarenko@km-union.ru',
+        'alexandr_angilenko@km-union.ru',
+        'senchenko_vs@km-union.ru',
+        'kaduk_ia@km-union.ru',
+    ]
+}
+
+from kombu.common import Exchange, Queue
+# Определяет параметры работы пакета esb_events. Если установлен, то обязан
+# содержать минимальный набор параметров
+exchange = Exchange('magic', 'fanout')
+
+ESB_EVENTS_CONFIG = {
+    'BROKER_URL': [
+        'amqp://web:web_password@192.168.7.76:5672/esb_events',
+        'amqp://web:web_password@192.168.7.77:5672/esb_events'
+    ],
+    'CELERY_QUEUES': (
+        Queue('dp', exchange),
+    ),
+    'CELERY_DEFAULT_QUEUE': 'dp'
+}
+
+
+EXTERN_SITE_CONFIG = {
+    'korallmicro': {
+        'main_site_id': 49,     # id основного сайта
+    },
+    'snr_new': {
+        'main_site_id': 16,      # id основного сайта
+        'sites': {
+            1: {                # Краснодар
+                'stores': {     # Склады
+                    'f5c8676c-2563-11e5-80d9-001b21d8d330': u'SNR-Коммунаров (ячеистый склад)',
+                    'bee7a5c8-249c-11e5-80d9-001b21d8d330': u'SNR-Коммунаров 268 Витрина',
+                    'dddf5e4d-249c-11e5-80d9-001b21d8d330': u'SNR-Красных Партизан',
+                    'd024f27e-249c-11e5-80d9-001b21d8d330': u'SNR-Лузана',
+                    '6e5b36dc-4c85-11e5-93f1-001b21d8d330': u'SNR-Производство ВТ',
+                    'ec34c5eb-249c-11e5-80d9-001b21d8d330': u'SNR-Тургенева',
+                },
+                'prices': {     # Цены
+                    'd0941d18-92d6-4ffa-9498-b977014ce84e': u'Интернет СНР',
+                    '5e2b2da4-cbf7-4793-b6ad-a40bf98aa497': u'Розничная Краснодар'
+                }
+            },
+            2: {                # Анапа
+                'stores': {     # Склады
+                    'f996fb5c-249c-11e5-80d9-001b21d8d330': u'SNR-Анапа',
+                },
+                'prices': {     # Цены
+                    'd0941d18-92d6-4ffa-9498-b977014ce84e': u'Интернет СНР',
+                    'c28e46e0-c74e-4f67-a868-631edda27a61': u'Розничная Анапа'
+                }
+            },
+        },
+    }
+}
+
+# Склад КМ
+STORE_UUID = '1bab7b05-b1fc-11e2-93f1-002655df3ac1'
+
+# глобальная и групповая наценка для синхронизации с istore
+ADDITIONAL_COST_FOR_ISTORE = {
+    'global': 7.0,
+    'group': {
+        #/programmy_i_literatura/produkty_firmy_askon/
+        '0064d6f8-743c-11e6-9400-001b21d8d330': 0.0,
+    },
+    'rrs': [
+        # камеры GoPro
+        160344, 191242, 191240, 175920, 191241, 192055,
+        # ФОТОКАМЕРА CANON EOS 1300D + EF-S 18-55 DС III
+        180247,
+        # ФОТОКАМЕРА CANON PowerShot SX430 IS Black
+        181076,
+    ]
+}
+
+#CACHES = {
+#    'default': {
+#        'BACKEND': 'memcached.MemcachedCacheWithOptions',
+#        'LOCATION': '192.168.7.23:11211',
+#        'OPTIONS': {
+#            'server_max_value_length': 1024 * 1024 * 4
+#        }
+#    },
+#    'filebased': {
+#        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+#        'LOCATION': os.path.join(PROJECT_PATH, 'cache'),
+#    },
+#}
+
+
+COUNT_ITERATED = 10
+
+
+
+
+
