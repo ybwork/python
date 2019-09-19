@@ -384,6 +384,7 @@
 	SELECT *  FROM public.remains WHERE pid=197416;
 	SELECT *  FROM public.prices WHERE pid=197416;
 	SELECT *  FROM public.products WHERE id=197416;
+
 	gps-навигатор
 	из тех, что должен быть
 	в базе сайта есть, published=true
@@ -393,3 +394,40 @@
 	копаю тут
 	new messages
 	товар без цен и остатков не отображается на сайте
+
+	Ошибка таска:
+
+		Task sync with id a0dc4413-814a-49dd-985a-9643631aca4e raised exception:
+		'AttributeError("\'NoneType\' object has no attribute \'uploaded_profile_id\'",)'
+
+		Task was called with args: [] kwargs: {}.
+
+		The contents of the full traceback was:
+
+		Traceback (most recent call last):
+		  File "/home/web/www/dealer_price-env/local/lib/python2.7/site-packages/celery/app/trace.py", line 240, in trace_task
+		    R = retval = fun(*args, **kwargs)
+		  File "/home/web/www/dealer_price-env/local/lib/python2.7/site-packages/celery/app/trace.py", line 438, in __protected_call__
+		    return self.run(*args, **kwargs)
+		  File "/home/web/www/dealer_price/modules/task_block/models.py", line 72, in _inner
+		    result = func(self, *args, **kwargs)
+		  File "/home/web/www/dealer_price/modules/main/tasks/__init__.py", line 25, in sync
+		    autoupload_changed_profiles.si()
+		  File "/home/web/www/dealer_price-env/local/lib/python2.7/site-packages/celery/canvas.py", line 181, in apply
+		    return self.type.apply(args, kwargs, **options)
+		  File "/home/web/www/dealer_price-env/local/lib/python2.7/site-packages/celery/app/builtins.py", line 302, in apply
+		    last and (last.get(), ),
+		  File "/home/web/www/dealer_price-env/local/lib/python2.7/site-packages/celery/result.py", line 874, in get
+		    raise self.result
+		AttributeError: 'NoneType' object has no attribute 'uploaded_profile_id'
+
+	Место, где падает:
+
+		@app.task(name='compute_product_charge', routing_key='sync')
+		@transaction.atomic
+		@loger_decorator
+		def compute_product_charge(uuids, profile_id=None):
+
+	Запуск всей цепочки:
+
+		bin/celery call -A app_celery sync --queue=default

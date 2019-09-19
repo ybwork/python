@@ -2671,6 +2671,10 @@ Url-ы
 
 Статика
 
+	Описанное ниже подходит только для локальной разработки при DEBUG = True.
+
+	Для production используем nginx.
+
 	Убедитесь что django.contrib.staticfiles добавлено INSTALLED_APPS.
 
 	STATIC_URL = '/static/'
@@ -3012,11 +3016,35 @@ Unit тесты
 
 		По умолчанию логгер django отравляет все сообщения уровня ERROR или CRITICAL в AdminEmailHandler.
 
-	import logging
+	Подключение
 
-	logger = logging.getLogger(__name__)
+		import logging
 
-	logger.error('Something went wrong!')
+		logger = logging.getLogger(__name__)
+
+		logger.error('Something went wrong!')
+
+	Для настройки логгирования используется настройка LOGGING
+
+		Если ключ disable_existing_loggers в параметре конфигурации LOGGING установлен в True (по умолчанию это так), тогда все логгеры стандартной конфигурации отключаются.
+
+		Вместо этого, вы можете установить disable_existing_loggers в False и переопределить некоторые или все стандартные логгеры.
+
+		Через параметр email_backend класса AdminEmailHandler, можно переопределить бекенд отправки email. По умолчанию используется экземпляр класса, указанного в EMAIL_BACKEND.
+
+	Пример простой конфигурации
+
+		LOGGING = {
+		    'version': 1,
+		    'disable_existing_loggers': False,
+		    'handlers': {
+		        'mail_admins': {
+		            'level': 'ERROR',
+		            'class': 'django.utils.log.AdminEmailHandler',
+		            'email_backend': 'django.core.mail.backends.filebased.EmailBackend'
+		        }
+		    }
+		}
 
 Вливание новых данных на проект
 
