@@ -21,6 +21,9 @@
 		Кейс из Two scoops of Django
 
 
+	Приложения проекта
+
+
 	Базы данных
 
 		Настройка
@@ -110,6 +113,12 @@
 		Контекст
 
 
+	Url-ы
+
+
+	Статика
+
+
 	Валидаторы
 		
 
@@ -144,6 +153,8 @@
 		Нюансы
 
 		Команды
+
+	Логгирование
 
 	Вливание новых данных на проект
 
@@ -711,6 +722,13 @@ django-admin и manage.py
 				    os.path.join(PROJECT_ROOT, 'node_modules')
 				]
 
+Приложения проекта
+
+	Two scoops of Django
+
+		Приложения должны делать только одну вещь и делать её хорошо.
+
+		Приложения могут быть взаимосвязанны между собой.
 
 Базы данных
 
@@ -1746,7 +1764,7 @@ QuerySet
 
 			# проверка на вхождение, как Like
 			Entry.objects.filter(headline__contains='Lennon')
-
+			
 			# знак % экранировать не нужно
 			Entry.objects.filter(headline__contains='%')
 
@@ -2595,6 +2613,100 @@ QuerySet
 
 		Выведет 'Country: myvar'
 
+Url-ы
+
+	Two scoops of Django
+
+		app_name/views.py
+
+			class UpdateView(UpdateView):
+				model = Tasting
+
+		app_name/urls.py
+
+			1.11
+
+				urlpatterns = [
+					path(
+						route='update/',
+						view=views.UpdateView.as_view(),
+						name='update'
+					)
+				]
+
+			2.2
+			
+				app_name = 'main'
+				urlpatterns = [
+					path(
+						route='update/',
+						view=views.UpdateView.as_view(),
+						name='update'
+					)
+				]
+
+		config/urls.py
+
+			1.11
+
+				urlpatterns = [
+					path(
+						route='app_name/', 
+						include(
+							'app_name.urls', 
+							namespace='app_name'
+						)
+					),
+				]
+
+			2.2
+
+				urlpatterns = [
+					path(route='app_name/', include('app_name.urls'))
+				]
+
+		templates/app_name/index.html
+
+			<form action="{% url 'app_name:update' %}" method='POST'>
+
+Статика
+
+	Описанное ниже подходит только для локальной разработки при DEBUG = True.
+
+	Для production используем nginx.
+
+	Убедитесь что django.contrib.staticfiles добавлено INSTALLED_APPS.
+
+	STATIC_URL = '/static/'
+
+		Путь до каталога со статическими файлами.
+
+	STATIC_ROOT = os.path.join(PROJECT_ROOT, 'project_name/static')
+
+		Абсолютный путь к каталогу, в который collectstatic соберет все статические файлы.
+
+		Это должен быть пустой каталог, куда будут скопированы все статические файлы командой collectstatic.
+
+		Вы должны создавать статические файлы в каталогах, которые будут найдены модулями поиска статических файлов. 
+
+			По умолчанию это подкаталоги 'static/' в приложениях и каталоги, указанные в STATICFILES_DIRS.
+
+	STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+
+		Каталоги, которые проверяются на наличие статических файлов.
+
+		Нужно для работы с общей статикой, которая не относится ни к одному из приложений.
+
+	Сохраните статические файлы в каталоге static вашего приложения. 
+
+		Например my_app/static/my_app/css
+
+		Если после static не создать каталог my_app, то Django использует первый найденный по имени файл и, если есть файлы с одинаковым названием в разных приложениях, то не будет возможности использовать оба.
+
+	Загрузим шаблонный тэг, который строит url для статики
+
+		{% load static %}
+		<img src="{% static "my_app/example.jpg" %}
 
 Валидаторы
 
@@ -2881,6 +2993,58 @@ Unit тесты
 		./manage.py test
 
 		./manage.py test app_name/
+
+Логгирование
+
+	Логгирование от Two scoops of Django
+
+		Делить логи на уровни.
+
+		Использовать traceback при логгировании. logger.exception(e).
+
+		В каждом новом модуле импортировать новый логгер, потому что если захочу поменять систему логирования в одном модуле не затрагивая другой, это не получится.
+
+		Логи уровня INFO лучше писать в файл и хранить на диске, а уровня ERROR отправлять админам проекта на почту (по default в django).
+
+	Если DEBUG равна True:
+
+		django, который перенаправляет все сообщения уровня INFO и выше в консоль.
+
+		Логгер py.warnings, который обрабатывает сообщения от warnings.warn(), отправляет их на консоль.
+
+	Если DEBUG установлен в False:
+
+		По умолчанию логгер django отравляет все сообщения уровня ERROR или CRITICAL в AdminEmailHandler.
+
+	Подключение
+
+		import logging
+
+		logger = logging.getLogger(__name__)
+
+		logger.error('Something went wrong!')
+
+	Для настройки логгирования используется настройка LOGGING
+
+		Если ключ disable_existing_loggers в параметре конфигурации LOGGING установлен в True (по умолчанию это так), тогда все логгеры стандартной конфигурации отключаются.
+
+		Вместо этого, вы можете установить disable_existing_loggers в False и переопределить некоторые или все стандартные логгеры.
+
+		Через параметр email_backend класса AdminEmailHandler, можно переопределить бекенд отправки email. По умолчанию используется экземпляр класса, указанного в EMAIL_BACKEND.
+
+	Пример простой конфигурации
+
+		LOGGING = {
+		    'version': 1,
+		    'disable_existing_loggers': False,
+		    'handlers': {
+		        'mail_admins': {
+		            'level': 'ERROR',
+		            'class': 'django.utils.log.AdminEmailHandler',
+		            'email_backend': 'django.core.mail.backends.filebased.EmailBackend'
+		        }
+		    }
+		}
 
 Вливание новых данных на проект
 

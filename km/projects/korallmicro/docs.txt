@@ -2,6 +2,8 @@
 
     Продукт
 
+    Как проверить должен товар находиться на сайте или нет
+
 Продукт
 
     id продукта равен коду карточки товара из magic.
@@ -15,3 +17,11 @@
         есть на остатках (таблица remains)
 
     Описанные выше значения искать в базе korallmicro (postgresql).
+
+Как проверить должен товар находиться на сайте или нет
+
+	select * from public.products where id = 1987;
+
+	select * from public.prices where pid = 1987;
+
+	select * from public.remains where pid = 1987;

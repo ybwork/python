@@ -1,0 +1,179 @@
+Системные пакеты
+
+    Перед развертыванием убедиться, что в системе установлены:
+
+    postgresql 9.5
+
+    mysql 5.7
+
+    rabbitmq
+
+    rabbitmq management
+
+    python-mysqldb
+
+    libxml2-dev
+
+    libxslt-dev
+
+    python-dev
+
+Получение проекта
+
+    Если настроен ssh, то git clone git@gitlab0.km-union.ru:python/magic.git
+
+    Если не настроен ssh, то git clone http://gitlab0.km-union.ru/python/magic.git
+
+Окружение и зависимости
+
+    Автоматическое создание
+
+        Переходим в корень проекта и в terminal:
+
+            chmod +x local_deploy.sh
+
+            ./local_deploy.sh
+
+2. Ручное создание
+
+    Переходим в корень проекта и в terminal:
+
+        python create_bootstrap.py → в корне проекта должен создасться bootstrap.py
+
+        python bootstrap.py → рядом с директорией проекта должна создасться директория с виртуальным окружением magic-env и в корневой директории проекта
+        должна создасться директория bin
+
+        bin/pip install -r requirements.txt → убедиться, что все пакеты установились без ошибок
+
+    Переходим в директорию conf, открываем файл settings_local.py.template, копируем все
+
+    В директории conf создаем файл settings_local.py и вставляем все скопированное из settings_local.py.template
+
+    Создаем в корне проекта директорию change_log и в ней директории korallmicro и snr.
+
+Settings local
+
+    Для корректной работы информирования установить EMAIL_DEFAULT_FROM='magic_local@error.com'
+
+Базы данных
+
+    Должен быть установлен docker server.
+
+    PostgreSQLВ директории conf создаем файл settings_local.py и вставляем все скопированное из settings_local.py.template
+
+    Создаем в корне проекта директорию change_log и в ней директории korallmicro и snr.
+
+        Создаем директории для точек монтирования на локальной машине от имени суперпользователя:
+
+            sudo mkdir ~/your_path/volumes/postgres_9.5/config
+
+            sudo mkdir ~/your_path/volumes/postgres_9.5/data
+
+        Создаем docker контейнер:
+
+            sudo docker run \            
+            --name postgres_9.5 \
+            -v ~/your_path/volumes/postgres_9.5/config:/etc/postgresql \
+            -v ~/your_path/volumes/postgres_9.5/data:/var/lib/postgresql/data \
+            -p 5432:5432 \
+            -e POSTGRES_PASSWORD=asdf1234 \
+            -d postgres:9.5
+
+    MySQL
+
+        Создаем директории для точек монтирования на локальной машине от имени суперпользователя:
+
+            sudo mkdir ~/your_path/volumes/postgres_9.5/config
+
+            sudo mkdir ~/your_path/volumes/postgres_9.5/data
+
+        Создаем docker контейнер:
+
+            sudo docker run \            
+            --name mysql_5.7 \
+            -v ~/your_path/volumes/mysql_5.7/config:/etc/mysql/conf.d \
+            -v ~/your_path/volumes/mysql_5.7/data:/var/lib/mysql \
+            -p 3306:3306 \
+            -e MYSQL_ROOT_PASSWORD=asdf1234 \
+            -d mysql:5.7
+
+        В каждом из контейнеров создаём нужные базы данных.
+
+Миграции
+
+    Переходим в /magic/modules/configurator/admin.py и комментируем следующий код:
+
+        # Создаем формы конфигураторов для тестов
+        configurators = {}
+        for configurator in Configurator.objects.all():
+            configurators[configurator.pk] = type(
+                'Configurator_{0}'.format(configurator.pk),
+                (BaseConfiguratorFormFactory,),
+                {'configurator_name': configurator.name})
+
+
+    В корневой директории проекта из консоли выполняем:
+
+        bin/manage migrate
+
+    В /magic/modules/configurator/admin.py и убираем комментарии у следующего кода:
+
+        # Создаем формы конфигураторов для тестов
+        configurators = {}
+        for configurator in Configurator.objects.all():
+            configurators[configurator.pk] = type(
+                'Configurator_{0}'.format(configurator.pk),
+                (BaseConfiguratorFormFactory,),
+                {'configurator_name': configurator.name})
+
+Дампы бд
+
+    Список нужных дампов: magic, online_shop_info, goods_office, korallmicro, snr.
+
+    Дампы можно взять так:
+
+        sudo mount -t nfs 10.10.100.211:/nfs-backups /mnt/backups/
+
+        mc
+
+        alt + c
+
+        /mnt
+
+        заходим в backups
+
+        ищем последнюю дату и заходим в эту директорию
+
+        находим нужный бэкап в формате bz2 и в названии должно быть sql
+
+        f5
+
+Брокер
+
+    В качестве брокера выступает RabbitMQ.
+
+    Удостовериться, что settings_local.py имеет:
+
+            BROKER_URL = [
+                "amqp://guest:guest@localhost:5672/magic"
+            ]
+
+            BROKER_TARGET_URL = [
+                "amqp://guest:guest@localhost:5672/broker"
+            ]
+
+            guest:guest - это логин и пароль от rabbit
+
+            /magic и /broker - это имена виртуальных хостов rabbit-а, которые должны быть созданы.
+
+Виртуальные хосты можно создать через web морду:
+
+    идем в Admin -> Virtual Hosts -> Add virtual host
+
+Очередь задач
+
+    В качестве очереди задач используется Celery.
+
+    Для запуска пишем в консоль:
+
+        bin/celery -A app_celery worker -l info -Q default,system,description,image_prepare --purge

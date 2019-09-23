@@ -2,6 +2,10 @@
 
 	Бизнес логика
 
+	Роберт Мартин "Чистая архитектура."
+
+	Крис Ричардсон "Микросервисы. Паттерны разработки и рефакторинга."
+
 Бизнес логика
 
 	Под бизнес логикой понимается например функционал создание заказа в интеренет магазине.
@@ -18,43 +22,31 @@
 
 	Слой бизнес логики должен быть вынесен отдельно и оформлен в виде методов, которые просто принимают набор параметров и ничего не знают о том, как и где эти параметры берутся.
 
-		Это делается для того, чтобы при смене технологий или языка, можно было легко перенсти всю бизнес логику, а не переписывать всё заново.
+		Это делается для того, чтобы при смене технологий или языка, можно было легко перенести всю бизнес логику, а не переписывать всё заново.
 
-			Вариант, когда бизнес логика жестко связана с фреймворком (названия и код условный)
-
-				BasketController.php
-
-					class BasketController(request) {
-						// здесь вся логика с помощью которой происходит работа с созданием заказа
-
-						// условно говоря тут много строк кода, пусть даже и обернутого в методы и сделанного по красоте
-					}
-
-			Вариант, когда бизнес логика вынесена
+			Пример, когда бизнес логика вынесена
 
 				BasketController.php
 
-					class BasketController(request) {
-						// здесь специально написано без инверсии зависимостей, чтобы не тратить время
-
-						json = {
-							'request': request,
-							'action': 'add'
+					class BasketController(Order $order) {
+						function create(request) {
+							json = {
+								'request': request,
+							}
+							$order->add_to_card(json)
 						}
-						CreateOrder(json)
+
+						function delete(request) {
+							json = {
+								'request': request,
+							}
+							order->remove_from_card(json)
+						}
 					}
 
-				create_order.php
+				order.php
 
-					class CreateOrder() {
-						public function construct($params) {
-							$this->dispatch($params)
-						}
-
-						public function dispatch($params) {
-							// этот метод, как роутер разруливает какой набор действий сделать (в зависимости от переданных параметров)
-						}
-
+					class Order() {
 						public function add_to_card() {
 							// здесь логика добавления продукта в корзину (важно! зависит от фрейворка)
 						}
@@ -80,158 +72,482 @@
 
 				А если бы всё было в одном контроллере, то я бы заебался разбираться, что там происходит и мне пришлось бы тратить время для продумывания логики и написания с нуля. Пример из проекта км, который был написан на zend framework.
 
-				    public function doneAction(){
-				        try{
-				            $this->checkBasket(3);
-				        } catch (EmptyBasketException $e){
-				            $this->_redirect($e->getUrl());
-				        } catch (SelectedStageException $e) {
-				            $this->_redirect($e->getUrl());
-				        }
-				        $this->setTitle('Ваш заказ оформлен, спасибо! - "КораллМикро"');
-				        $stages = $this->_basket->getStages($this->_dealer);
-				        if ($this->_debug) $this->_logger->log($stages);
-				        
-				        //  определяем стоимость заказа
-				        $this->_basket->fillProducts($this->_dealer);
-				        $this->view->totalCost = $this->_basket->getTotalCost() + (int)$stages['selectDelivery']['delivery_cost'];
 
-				        //  save items before clear basket
-				        $items = array();
-				        $names = array('code', 'name', 'price', 'count');
-				        foreach ($this->_basket->getItemsForBasket() as $value) {
-				            if ($value['not_availabled']) continue;
+			Пример, когда бизнес логика жестко связана с фреймворком
 
-				            $result = array();
-				            $dealer = Dealer::getInstance();
-				            foreach($names as $name) {
-				                $result[$name] = $value[$name];
-				            }
-				            $result['cost'] = $result['count'] * $result['price'];
-				            $result['url'] = $dealer->getUrl($value['url']);
-				            $items[] = $result;
-				        }
-				        $this->view->e_commerce_items = $items;
+			    public function doneAction(){
+			        try{
+			            $this->checkBasket(3);
+			        } catch (EmptyBasketException $e){
+			            $this->_redirect($e->getUrl());
+			        } catch (SelectedStageException $e) {
+			            $this->_redirect($e->getUrl());
+			        }
+			        $this->setTitle('Ваш заказ оформлен, спасибо! - "КораллМикро"');
+			        $stages = $this->_basket->getStages($this->_dealer);
+			        if ($this->_debug) $this->_logger->log($stages);
+			        
+			        $this->_basket->fillProducts($this->_dealer);
+			        $this->view->totalCost = $this->_basket->getTotalCost() + (int)$stages['selectDelivery']['delivery_cost'];
 
-				        // для retail rocket
-				        $this->view->site_id = $this->_dealer->getSiteId();
-				        $this->view->subdomain = $this->_dealer->getSubdomain();
-				        $this->view->is_customer_auth = $this->_customer->isAuth();
-				        $this->view->customer_email_notice = $this->_customer->getCustomerField('email_notice');
-				        $this->view->customer_caption = $this->_customer->getCustomerField('caption');
+			        $items = array();
+			        $names = array('code', 'name', 'price', 'count');
+			        foreach ($this->_basket->getItemsForBasket() as $value) {
+			            if ($value['not_availabled']) continue;
 
-				        $ymapsGeolocation = Zend_Json::decode($this->getRequest()->getCookie('ymaps_geolocation'));
-				        Primitives::removeCookie('ymaps_geolocation');
-				        
-				        $result = $this->_basket->createOrder($this->_customer, $this->_dealer, $ymapsGeolocation);
-				        if ($this->_debug) $this->_logger->log($result);
+			            $result = array();
+			            $dealer = Dealer::getInstance();
+			            foreach($names as $name) {
+			                $result[$name] = $value[$name];
+			            }
+			            $result['cost'] = $result['count'] * $result['price'];
+			            $result['url'] = $dealer->getUrl($value['url']);
+			            $items[] = $result;
+			        }
+			        $this->view->e_commerce_items = $items;
 
-				        $this->view->success = $result['status'];
-				        if ($result['status'] === true) {
+			        $this->view->site_id = $this->_dealer->getSiteId();
+			        $this->view->subdomain = $this->_dealer->getSubdomain();
+			        $this->view->is_customer_auth = $this->_customer->isAuth();
+			        $this->view->customer_email_notice = $this->_customer->getCustomerField('email_notice');
+			        $this->view->customer_caption = $this->_customer->getCustomerField('caption');
 
-				            // определяем, все ли товары обеспечены
-				            $ids = [];
-				            foreach($items as $v) $ids[$v['code']] = $v['count'];
-				            $deliveryDates = $this->_dealer->getDeliveryDates($ids);
+			        $ymapsGeolocation = Zend_Json::decode($this->getRequest()->getCookie('ymaps_geolocation'));
+			        Primitives::removeCookie('ymaps_geolocation');
+			        
+			        $result = $this->_basket->createOrder($this->_customer, $this->_dealer, $ymapsGeolocation);
+			        if ($this->_debug) $this->_logger->log($result);
 
-				            $ftoStatusTextArr = Zend_Json::decode($this->_basket->getForTheOrderStatusText());
-				            $ftoStatusText = '';
-				            $fto = 0;
-				            foreach ($deliveryDates as $v) {
-				                if ($v['delivery'] === null && $v['pickup'] === null) $fto++;
-				            }
-				            if ($fto === 0) $ftoStatusText = $ftoStatusTextArr['all'];
-				            else if ($fto === count($deliveryDates)) $ftoStatusText = $ftoStatusTextArr['none'];
-				            else $ftoStatusText = $ftoStatusTextArr['part'];
+			        $this->view->success = $result['status'];
+			        if ($result['status'] === true) {
+			            $ids = [];
+			            foreach($items as $v) $ids[$v['code']] = $v['count'];
+			            $deliveryDates = $this->_dealer->getDeliveryDates($ids);
 
-				            $tmpl = new Mustache_Engine;
-				            $ftoStatusHtmlEmailStyle = 'background-color: #f2f2f2; border: 1px solid #eaeaea; padding: 10px; margin-top: 20px; margin-bottom: 20px;';
-				            $ftoStatusHtmlDoneStyle = 'border: 1px solid #eaeaea; padding: 10px; margin: 5px;';
-				            $ftoWrapperEmailStyle = 'margin: 0 0 -5px 0;';
-				            $ftoWrapperDoneStyle = 'margin: 0 0 -5px 0; padding: 10px;';
-				            $ftoStatusHtml =
-				                '<div class="for-the-order-wrapper" style="{{wrapper-style}}">
-				                    <div class="for-the-order-container" style="{{style}}">
-				                        <div class="fto-text" style="color: red; margin-bottom: 7px;">{{text}}</div>
-				                        <div class="fto-small-text" style="font-size: 9px;">В некоторых случаях для выполнения поставки заказанного Вами товара может потребоваться предоплата заказа.</div>
-				                    </div>
-				                </div>';
-				            $this->view->ftoStatusHtml = ($ftoStatusText) ? $tmpl->render(
-				                $ftoStatusHtml,
-				                array(
-				                    'text' => $ftoStatusText,
-				                    'style' => $ftoStatusHtmlDoneStyle,
-				                    'wrapper-style' => $ftoWrapperDoneStyle
-				                )
-				            ) : '';
+			            $ftoStatusTextArr = Zend_Json::decode($this->_basket->getForTheOrderStatusText());
+			            $ftoStatusText = '';
+			            $fto = 0;
+			            foreach ($deliveryDates as $v) {
+			                if ($v['delivery'] === null && $v['pickup'] === null) $fto++;
+			            }
+			            if ($fto === 0) $ftoStatusText = $ftoStatusTextArr['all'];
+			            else if ($fto === count($deliveryDates)) $ftoStatusText = $ftoStatusTextArr['none'];
+			            else $ftoStatusText = $ftoStatusTextArr['part'];
 
+			            $tmpl = new Mustache_Engine;
+			            $ftoStatusHtmlEmailStyle = 'background-color: #f2f2f2; border: 1px solid #eaeaea; padding: 10px; margin-top: 20px; margin-bottom: 20px;';
+			            $ftoStatusHtmlDoneStyle = 'border: 1px solid #eaeaea; padding: 10px; margin: 5px;';
+			            $ftoWrapperEmailStyle = 'margin: 0 0 -5px 0;';
+			            $ftoWrapperDoneStyle = 'margin: 0 0 -5px 0; padding: 10px;';
+			            $ftoStatusHtml =
+			                '<div class="for-the-order-wrapper" style="{{wrapper-style}}">
+			                    <div class="for-the-order-container" style="{{style}}">
+			                        <div class="fto-text" style="color: red; margin-bottom: 7px;">{{text}}</div>
+			                        <div class="fto-small-text" style="font-size: 9px;">В некоторых случаях для выполнения поставки заказанного Вами товара может потребоваться предоплата заказа.</div>
+			                    </div>
+			                </div>';
+			            $this->view->ftoStatusHtml = ($ftoStatusText) ? $tmpl->render(
+			                $ftoStatusHtml,
+			                array(
+			                    'text' => $ftoStatusText,
+			                    'style' => $ftoStatusHtmlDoneStyle,
+			                    'wrapper-style' => $ftoWrapperDoneStyle
+			                )
+			            ) : '';
 
-				            $delivery = 'Доставим';
-				            if ($stages['selectDelivery']['delivery_method'] == 'PICKUP'){
-				                $delivery = 'Сможете забрать';
-				            }
-				            //  ТК не дают конкретных дат
-				            if (!$stages['helpInfo']['max_delivery_date'] && !$this->isDeliveryByTK($stages['selectDelivery']['delivery_method'])) {
-				                $delivery_date_caption = sprintf('<strong>%s</strong>', $stages['helpInfo']['max_delivery_date_caption']);
-				            }else{
-				                $delivery_date_caption = sprintf('<strong>%s:</strong> <span>%s</span>', $delivery, $stages['helpInfo']['max_delivery_date_caption']);
-				            }
+			            $delivery = 'Доставим';
+			            if ($stages['selectDelivery']['delivery_method'] == 'PICKUP'){
+			                $delivery = 'Сможете забрать';
+			            }
 
-				            // для юрлиц отдельная текстовка, для самовывоза, доставки по городу и доставки через ТК
-				            // также изменено в basket.js
-				            if ($stages['selectPayment']['payment_method'] == 'NON CASH') {
-				                $delivery_date_caption = sprintf('<strong>%s:</strong> <span>%s</span>', $delivery, 'После оплаты в согласованное с оператором время');
-				                // для доставки от ТК юрлицам
-				                if ($this->isDeliveryByTK($stages['selectDelivery']['delivery_method'])) {
-				                    $delivery_date_caption = sprintf('<strong>%s:</strong> <span>%s</span>', $delivery, 'После оплаты в согласованные с оператором сроки');
-				                }
-				            }
-				            $this->view->help = array_merge(
-				                $stages['helpInfo'],
-				                $this->_dealer->getConf()->toArray(),
-				                array(
-				                    'delivery_date_caption' => $delivery_date_caption,
-				                    'delivery_cost' => $stages['selectDelivery']['delivery_cost']
-				                ),
-				                $stages['confirm'],
-				                array(
-				                    'is_legal' => $stages['selectPayment']['is_legal'],
-				                    'payment_method' => $stages['selectPayment']['payment_method'],
-				                    'use_corp_price' => $stages['use_corp_price'] === true,
-				                    'margin_on_non_cash_payment' => $stages['use_corp_price'] === true ? $this->_dealer->getMarginOnNonCashPayment() : null
-				                )
-				            );
+			            if (!$stages['helpInfo']['max_delivery_date'] && !$this->isDeliveryByTK($stages['selectDelivery']['delivery_method'])) {
+			                $delivery_date_caption = sprintf('<strong>%s</strong>', $stages['helpInfo']['max_delivery_date_caption']);
+			            }else{
+			                $delivery_date_caption = sprintf('<strong>%s:</strong> <span>%s</span>', $delivery, $stages['helpInfo']['max_delivery_date_caption']);
+			            }
 
-				            $this->view->isOnlineCredit = Primitives::isOnlineCredit($stages['selectPayment']['payment_method']);
-				            $this->view->isOnlinePayment = Primitives::isOnlinePayment($stages['selectPayment']['payment_method']);
-				            $this->view->isPickup = $stages['selectPayment']['payment_method'] == 'PICKUP';
-				            $this->view->orderPk = $result['order_pk'];
+			            if ($stages['selectPayment']['payment_method'] == 'NON CASH') {
+			                $delivery_date_caption = sprintf('<strong>%s:</strong> <span>%s</span>', $delivery, 'После оплаты в согласованное с оператором время');
+			                // для доставки от ТК юрлицам
+			                if ($this->isDeliveryByTK($stages['selectDelivery']['delivery_method'])) {
+			                    $delivery_date_caption = sprintf('<strong>%s:</strong> <span>%s</span>', $delivery, 'После оплаты в согласованные с оператором сроки');
+			                }
+			            }
+			            $this->view->help = array_merge(
+			                $stages['helpInfo'],
+			                $this->_dealer->getConf()->toArray(),
+			                array(
+			                    'delivery_date_caption' => $delivery_date_caption,
+			                    'delivery_cost' => $stages['selectDelivery']['delivery_cost']
+			                ),
+			                $stages['confirm'],
+			                array(
+			                    'is_legal' => $stages['selectPayment']['is_legal'],
+			                    'payment_method' => $stages['selectPayment']['payment_method'],
+			                    'use_corp_price' => $stages['use_corp_price'] === true,
+			                    'margin_on_non_cash_payment' => $stages['use_corp_price'] === true ? $this->_dealer->getMarginOnNonCashPayment() : null
+			                )
+			            );
 
-				        }else{
-				            //  send email if get fail or nothing
-				            $err_msg = sprintf("<h1>Параметры заказа:</h1>\n<pre>%s</pre>\n
-				                                <h1>Состояние корзины: </h1>\n<pre>%s</pre>\n
-				                                <h1>Ответ от backend'a:</h1>\n<pre>%s</pre>",
-				                                    print_r($stages, true),
-				                                    print_r($this->_basket->getItemsForBasket(), true),
-				                                    print_r($result, true)
-				                                );
-				            $this->_dealer->sendEmail(
-				                array('operator', $this->_dealer->getEmailManager()),
-				                'Ошибка при формировании заказа',
-				                Primitives::getTemplate('email', 'system.htm'),
-				                array('message' => $err_msg),
-				                true
-				            );
-				        }
-				    }
+			            $this->view->isOnlineCredit = Primitives::isOnlineCredit($stages['selectPayment']['payment_method']);
+			            $this->view->isOnlinePayment = Primitives::isOnlinePayment($stages['selectPayment']['payment_method']);
+			            $this->view->isPickup = $stages['selectPayment']['payment_method'] == 'PICKUP';
+			            $this->view->orderPk = $result['order_pk'];
 
+			        }else{
+			            $err_msg = sprintf("<h1>Параметры заказа:</h1>\n<pre>%s</pre>\n
+			                                <h1>Состояние корзины: </h1>\n<pre>%s</pre>\n
+			                                <h1>Ответ от backend'a:</h1>\n<pre>%s</pre>",
+			                                    print_r($stages, true),
+			                                    print_r($this->_basket->getItemsForBasket(), true),
+			                                    print_r($result, true)
+			                                );
+			            $this->_dealer->sendEmail(
+			                array('operator', $this->_dealer->getEmailManager()),
+			                'Ошибка при формировании заказа',
+			                Primitives::getTemplate('email', 'system.htm'),
+			                array('message' => $err_msg),
+			                true
+			            );
+			        }
+			    }
 
+Роберт Мартин "Чистая архитектура."
 
-Книга Роберта Мартина "Чистая архитектура"
+	Инверсия зависимости
 
- 	стр. 63 (Инверсия зависимости) - 65
+		Принцип инверсии зависимости утверждает, что наиболее гибкими получаются системы, в которых зависимости в исходном коде направлены на абстракции, а не на конкретные реализации.
 
- 	стр. 100 - 104
+		Исходный код не должен зависеть от модулей с конкретной реализацией.
 
-	стр. 203 - 209
+		Очевидно, что принять эту идею за правило практически невозможно, потому что программные системы должны зависеть от множества конкретных особенностей. Например, String в Java - это конкретный класс и его невозможно сделать абстрактным. С другой стороны, класс String очень стабилен. Изменения в этот класс вносятся крайне редко и жестко контролируются. Мы терпим эти конкретные зависимости, потому что уверенно можем положиться на их постоянство.
+
+		Действительно, хорошие дизайнеры и архитекторы программного обеспечения всеми силами стремятся ограничить изменчивость интерфейсов. Они стараются найти такие пути добавления новых возможностей в реализации, которые не потребуют изменения интерфейсов. Это основа проектирования программного обеспечения.
+
+		"Не ссылайтесь на изменчивые конкретные классы. Ссылайтесь на абстрактные интерфейсы."
+
+		"Не наследуйте изменчивые конкретные классы."
+
+		"Не переопределяйте конкретные функции. Лучше сделайте функцию абстрактной и создать несколько ее реализаций."
+
+		В большинстве объектно-ориентированных языков для управления подобными нежелательными зависимостями можно использовать шаблон "Абстрактная фабрика".
+
+		Пример:
+
+			Допустим, мы разработали класс TextReceiver, который принимает по какому-либо каналу связи текст и расшифровывает его. 
+
+			При этом TextReceiver реализуется посредством класса TextDecrypt. То есть внутри TextReceiver создается экземпляр класса TextDecrypt.
+
+				class TextReceiver:
+					def decrypt(self):
+						a = TextDecrypt()
+
+			При такой зависимости мы не можем менять экземпляр класса в зависимости от работы программы. То есть, создавая объект на основе TextReceiver и вызывая метод decrypt, мы всегда будем получать создание объекта на основе TextDecrypt.
+
+				a = TextReceiver()
+				a.decrypt()
+				# всегда будет отрабатывать a = TextDecrypt()
+
+			Но что если появится необходимость поддерживать несколько алгоритмов шифрования и заменять один алгоритм на другой во время выполнения программы?! Тогда нам на помощь приходит инверсия зависимостей.
+
+				class TextReceiver:
+					def set_algorithm_decrypt(self, algorithm_decrypt):
+						self.algorithm_decrypt = algorithm_decrypt()
+
+				a = TextReceiver()
+				a.set_algorithm_decrypt(algorithm_decrypt=TextDecrypt())
+				a.algorithm_decrypt.decrypt()
+
+		Примечание
+
+			Если в языке программирования нет интерфейсов, то лучше реализовывать через конструктор или сеттер.
+
+			Если в языке программирования есть интерфейсы, то лучше так:
+
+			    public Speaker(SpeechWriter writer) {
+			        this.writer = writer;
+			    }
+
+	Чистая архитектура
+
+		Несмотря на различия в деталях, все архитектуры очень похожи.
+
+		Они делят программу на уровни.
+
+		аждая имеет хотя бы один уровень для бизнес-правил и еще один для пользовательского и системного интерфейсов.
+
+		Каждая из архитектур способствует созданию систем, обладающих следующими характеристиками:
+
+			Независимость от фреймворков
+
+				Достигается с помощью выноса бизнес-логики в отдельные модули.
+
+			Простота тестирования
+
+				Бизнес-правила можно тестировать без пользовательского интерфейса, базы данных, веб-сервера и любых других внешних элементов.
+
+			Независимость от пользовательского интерфейса
+
+				Пользовательский интерфейс можно легко изменять, не затрагивая остальную систему.
+
+			Независимость от базы данных
+
+				Вы можете поменять Oracle или SQLServer на Mongo, BigTable, CouchDB или что-то еще.
+
+				изнес-правила не привязаны к базе данных.
+
+			Независимость от любых внешних агентов
+
+				Ваши бизнес-правила ничего не знают об интерфейсах, ведущих во внешний мир.
+
+		Сущности заключают в себе критические бизнес-правила уровня предприятия. Сущность может быть объектом с методами или набором структур данных и функций.
+
+		Программное обеспечение на уровне вариантов использования содержит бизнес-правила, характерные для приложения. Оно инкапсулирует и реализует все варианты использования системы.
+
+		Данные можно также передавать в вызовы функций через аргументы. Или упаковывать их в ассоциативные массивы или объекты. Важно, чтобы через границы передавались простые, изолированные структуры данных. Не нужно хитрить и передавать объекты сущностей или записи из базы данных. Структуры данных не должны нарушать правило зависимостей. Потому что передав объект бд в слой бизнес-логики мы привязываем его к использованию именно этой бд.
+
+Крис Ричардсон "Микросервисы. Паттерны разработки и рефакторинга."
+
+	Архитектура
+
+		Классическим примером архитектурного стиля является многоуровневая архитектура.
+
+		Каждый уровень имеет четко обозначенный набор обязанностей.
+
+		Уровень может зависеть либо от уровня, находящегося непосредственно под ним, либо от любого нижележащего уровня.
+
+		Многоуровневая архитектура разделяет приложение на следующие уровни:
+
+			Уровень представления - содержит код, реализующий пользовательский интерфейс или внешние API
+
+			Уровень бизнес-логики - содержит бизнес-логику
+
+			Уровень хранения данных - реализует логику взаимодействия с базой данных
+
+		Недостатки:
+
+			Единый уровень представления не учитывает того, что приложение, скорее всего, будет вызываться более чем одной системой.
+
+			Единый уровень хранения данных не учитывает того, что приложение, скорее всего, будет взаимодействовать более чем с одной базой данных.
+
+			Уровень бизнес-логики зависит от уровня хранения данных и теоретически эта зависимость не позволяет тестировать бизнес-логику отдельно от базы данных.
+
+		Рассмотрим альтернативный подход, который позволяет преодолеть эти недостатки, шестигранную архитектуру.
+
+			Она организует логическое представление таким образом, что бизнес-логика оказывается в центре.
+
+			Вместо уровня представления у приложения есть один или несколько входящих адаптеров, которые обрабатывают внешние запросы путем вызова бизнес-логики. 
+
+			Аналогично вместо уровня хранения данных используются один или несколько исходящих адаптеров, которые вызываются бизнес-логикой и обращаются к внешним приложениям. 
+
+			Ключевой характеристикой и преимуществом данной архитектуры является то, что бизнес-логика не зависит от адаптеров.
+
+			Входящий адаптер обрабатывает запросы из внешнего мира, обращаясь к входящему порту
+
+				Входящим адаптером может быть паттерн брокер сообщений или контроллер, где данные передаются с слой бизнес-логики.
+
+				Входящим портом могут быть API (нужно понимать, что API могут быть обычные методы), выставляемый наружу бизнес-логикой и доступный для вызова внешними приложениями.
+
+				Несколько входящих адаптеров могут обращаться к одному и тому же входящему порту.
+
+			Исходящий порт обрабатывает запросы бизнес-логики, обращаясь к исходящему адаптеру 
+
+				Исходящим портом может быть простая функция или класс.
+
+				Исходящим адаптером может быть ORM, сервис по работе с изображениями, сервис по работе с почтой и т.п.
+
+				def create_order(data):
+					# port
+					_create(data)
+
+				def _create(data):
+					# adapter
+					Order.objects.create()
+
+			Важное преимущество шестигранного архитектурного стиля состоит в том, что его адаптеры отделяют бизнес-логику от логики представления и доступа к данным и делают ее независимой.
+
+				Бизнес-логику можно вызывать с помощью разных адаптеров, каждый из которых реализует определенный программный или пользовательский интерфейс. Сама бизнес-логика тоже может обратиться к одному из нескольких адаптеров, вызывающих определенную внешнюю систему.
+
+	Божественные классы
+
+		Это раздутые классы, которые используются в разных частях приложения.
+
+		Обычно они реализуют бизнес-логику для разных аспектов системы и содержат большое количество полей, привязанных к таблицам базы данных с множеством столбцов.
+
+		Отличный пример божественного класса в проекте FTGO - Order.
+
+			Поля и методы класса Order связаны с обработкой заказов, управлением заказами в ресторанах, доставкой и платежами. 
+
+			Кроме того, усложнена модель данных, ведь она отвечает за описание переходов между состояниями в компонентах приложения, никак не связанных друг с другом.
+
+		Одно из решений проблемы - упаковка класса Order в библиотеку и создание центральной базы данных Order. 
+
+			Все сервисы, обрабатывающие заказы, станут использовать эту библиотеку и обращаться к одноименной БД.
+
+			Проблема с данным подходом состоит в том, что любое изменение структуры таблиц Order требует синхронного обновления кода со стороны других команд.
+
+		Еще одно решение связано с инкапсуляцией БД Order в одноименный сервис, который другие сервисы вызывают для получения и обновления заказов.
+
+			Но в результате сервис Order отвечал бы только за данные и имел слабую доменную модель с минимальным количеством бизнес-логики или вовсе без нее.
+
+		Куда более удачным решением будет разбить класс Order на сервисы.
+
+			Например сервис Delivery, который имеет сущности Adress и Courier. В эти сущности мы вынесем часть атрибутов из класса Order (место получения, место доставки, назначение заказа курьеру) и тем самым разгрузим его.
+
+			Или сервис Kitchen, который имеет сущность Ticket в которую мы тоже выносим часть функционала из Order.
+
+	Первый шаг при проектировании
+
+		Первый шаг при проектировании архитектуры приложения - определение системных операций.
+
+		За отправную точку берутся требования к приложению, включая пользовательские истории и связанные с ними сценарии использования.
+
+			Пример:
+
+				Шаг 1
+
+					Order, Restaurant, Delivery
+
+				Функциональные требования
+
+					"Я, как клиент хочу разместить такой-то заказ..."
+
+					"Мы, как ресторан хотим принять заказ, чтобы..."
+
+				Шаг 2
+
+					create_order()
+
+					accept_order()
+
+		Процесс идентификации и определения системных операций состоит из двух шагов:
+
+			На первом шаге создается обобщенная доменная модель, состоящая из ключевых классов.
+
+				Она составляется в основном из имен существительных, взятых из пользовательских историй.
+
+				"Есть клиент, ресторан, адрес/время доставки из этого ресторана, суммарная цена заказа, отвечающая среднему показателю ресторана. Когда клиент размещает заказ, тогда банковская карта клиента авторизуется и создается заказ. После чего заказ привязывается к клиенту и ресторану."
+
+				Имена существительные в этом пользовательском сценарии указывают на существование различных классов, включая Consumer (клиент), Order (заказ), Restaurant (ресторан) и Creditcard (банковская карта).
+
+			На втором шаге на основен обобщенной модели классов и функциональных тербований описываются системные операции.
+
+				Они бывают 2-х видов:
+
+					команды - системные операции для создания, обновления и удаления данных
+
+					запросы - системные операции для чтения (запрашивания) данных
+
+				Хорошей отправной точкой для определения системных команд будет анализ глаголов в пользовательских историях и сценариях.
+
+					Возьмем, к примеру, историю размещения заказа. Она явно указывает на то, что система должна предоставлять операцию создания заказа. Исходя из этого мы понимаем, что должна быть системная операция create_order.
+
+				У системных команд есть спецификация, которая определяет ее входные параметры, возвращаемое значение и поведения в рамках доменной модели.
+
+					Описание поведения состоит из условий двух видов: предварительных и окончательных.
+
+					Предварительные должны выполняться в момент вызова операции, а окончательных после.
+
+					Пример:
+
+						Операция - create_order(id клиента, способ оплаты, адресс доставки, время доставки, id ресторана, позиции заказа).
+
+						Возвращает - order_id.
+
+						Предварительные условия (проверяет операция) - клиент существует и может размещать заказы, позиции заказа соответствуют пунктам меню ресторана, адрес и время доставки выполнимы для ресторана.
+
+						Окончательные условия (выполняет операция) - банковская карта клиента позволила снять сумму заказа, заказ был создан в состоянии PENDING ACCEPTANCE.
+
+				Помимо команд, приложение должно реализовать и запросы.
+
+					find_available_restaurants(delivery_address, delivery_time) извлекает рестораны, которые могут выполнить доставку по заданному адресу в заданное время.
+
+					find_restaurantMenu(id) — извлекает информацию о ресторане, включая блюда в меню.
+
+					Из этих двух запросов findAvailableRestaurants(), наверное, имеет наибольшее архитектурное значение и применяет поиск по местности. Поисковая составляющая запроса возвращает все точки (рестораны), находящиеся неподалеку от адреса доставки. Она также отфильтровывает все рестораны, которые будут закрыты в период подготовки и отправки заказа. Поэтому здесь крайне важна производительность запроса.
+
+				Следующим шагом после определения системных операций будет обозначение сервисов приложения.
+
+Маклафлин, Поллайс, Уэст "Объектно-ориентированный анализ и проектирование"
+
+	Программы для реального мира
+
+		Программы должны работать в реальном, а не в идеальном мире.
+
+		В идеальном мире никто не нажимает на кнопку сто раз подряд и не делает расширение на 200%, но в реальном мире это не так.
+
+		Как убедиться в том, что ваши программы будут нормально работать и не сломаются от столкновения с реальным миром? В этом вам поможет анализ: выявление потенциальных проблем и их решение - еще до того, как ваше приложение попадет в реальный мир.
+
+		Хороший анализ начинается с выявлений потенциальных проблем.
+
+			Пример:
+
+				Есть дверь для входа животных домой.
+
+				Распознаватель лая слышит приближение питомца и открывает дверь.
+
+				И здесь возникает проблема... Распознаватель также воспринимает лай других собак и открывает дверь для них тоже.
+
+		После проведения подобного анализа нужно придумать варианты решения проблемы, сравнить их и выбрать самый лучший.
+
+		После этого проанализировать придуманые решения на предмет потенциальных проблем и если их нет, реализовать.
+
+			Пример:
+
+				Когда питомец говорил "гаф", дверь открывалась и он заходил.
+
+				А когда тот же звук издавали чужие собаки дверь оставалась закрытой.
+
+				А что будет если питомец скажет что то другое? Например "гррр" или "рафф".
+
+		В вариантах использования именам существительным обычно соответствуют классы, а глаголам методы.
+
+		Поиск существительных и глаголов в варианте использования с целью определения классов и методов называется текстологическим анализом.
+
+		Текстологический анализ поможет легко и быстро определить классы и методы в вашей системе.
+
+		Обращайте внимание на существительные в вариантах использования, даже если они не имеют прямых аналогов среди классов вашей системы, потому что они важны для того, чтобы ваша система работала так, как задумано.
+
+			Пример:
+
+				Хозяйская собака это существительное, но не класс.
+
+				"Если лает хозяйская собака, то распознаватель отправляет двери команду открыться."
+
+				При этом если обратить внимание на существительное "хозяйская собака", то мы понимаем, что нужно сделать так, чтобы она заходила, а чужие собаки нет.
+
+		Еще одной важной и удобной вещью являются uml диаграммы классов.
+
+			Они помогают избежать архитектурных ошибок и дают общее представление о системе и её структуре.
+
+﻿Роберт Мартин "Чистая архитектура"
+
+ 	стр. 100 - 104 +
+
+	стр. 203 - 209 +
+
+Крис Ричардсон "Микросервисы. Паттерны разработки и рефакторинга."
+
+	Стр. 68 - 70 +
+
+	Стр. 77 - 82 +
+
+	Стр. 90 - 92 +
+
+Маклафлин, Поллайс, Уэст "Объектно-ориентированный анализ и проектирование"
+
+	Стр. 173 +
+
+Daniel Greenfeld "Two Scoops of Django"
+
+	Обратить внимание на подходы, а НЕ на реализацию связанную с django.
+
+	Гл. 16, 17
+
+Бизнес логика
+
+	Весь файл
+
+В двух словах от Вити
+
+	Весь файл

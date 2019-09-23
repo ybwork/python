@@ -1,0 +1,56 @@
+Оглавление
+	
+	Реинициализация в правильной локали
+
+	Ошибки
+
+Реинициализация в правильной локали
+
+	смотрим системные локали
+	
+		locale
+
+	устанавливаем нужную локаль (в том числе и английскую, а вообще лучше сразу все)
+
+		Если нужно русская, то лучше locale-gen ru_RU.UTF-8
+	
+		apt-get update
+
+		apt-get install -y language-pack-ru
+
+	применяем локали
+	
+		dpkg-reconfigure locales
+
+	удаляем все из кластера
+
+		/var/lib/postgresql/9.5/main (для docker это папка data)
+
+	устанавливаем локаль
+
+		su postgres
+
+		/usr/lib/postgresql/9.5/bin/initdb --locale=ru_RU.utf8 /var/lib/postgresql/9.5/main
+
+		Должно выдать success и вот эту команду:
+
+			/usr/lib/postgresql/9.5/bin/pg_ctl -D /var/lib/postgresql/9.5/main/ -l logfile start
+
+Ошибки
+
+	UnicodeDecodeError: 'ascii' codec can't decode byte 0xd0 in position 0: ordinal not in range(128)
+
+		Возможно проблемы с локалью или она не установленна.
+
+		Решение:
+
+			# добавить руссую локаль
+			sudo locale-gen ru_RU.UTF-8
+			sudo dpkg-reconfigure locales;
+
+			# поствить пакет для поддержки русского языка
+			apt-get install -y language-pack-ru
+
+		Если после установки локали и перезапука pg_admin в поле definition
+
+postgres@746067f07dc0:~/data$ /usr/lib/postgresql/9.5/bin/initdb --locale=ru_RU.UTF-8 /var/lib/postgresql/data/

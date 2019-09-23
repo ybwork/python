@@ -1,16 +1,18 @@
 Оглавление
 
-	Закрыть возможность создавать пользователей с одинаковым email #19154
+	Закрыть возможность создавать пользователей с одинаковым email
 
-	Невозможно отменить заказы #18943
+	Невозможно отменить заказы
 
-	Проблема с апи MoneyCare #19155
+	Проблема с апи MoneyCare
 
-	Исправить отчет с состоянием обработки заказа #19156
+	Исправить отчет с состоянием обработки заказа
 
 	Проблема с распаковкой zip архивов с ценами, номенклатурой и остатками диллера
 
-Закрыть возможность создавать пользователей с одинаковым email #19154
+	Товары без цен и остатков не отображаются на сайте
+
+Закрыть возможность создавать пользователей с одинаковым email
 
 	create
 
@@ -139,7 +141,7 @@
 
 			"Requests verifies SSL certificates for HTTPS requests, just like a web browser. By default, SSL verification is enabled, and Requests will throw a SSLError if it’s unable to verify the certificate"
 
-Исправить отчет с состоянием обработки заказа #18349
+Исправить отчет с состоянием обработки заказа
 
 	Заказы диллера
 
@@ -196,19 +198,13 @@
 
 		163821
 
-		http://127.1.0.1:8300/dpa/orders/order/163821/change/
+		/dpa/orders/order/163821/change/
 
-		http://127.1.0.1:8300/dpa/orders/orderprocessstate/?q=163821
+		/dpa/orders/orderprocessstate/?q=163821
 
-		http://127.0.1.1:8200/orders/?dealer_site=67
+		/orders/?dealer_site=67
 
 		В pgadmin
-
-			SELECT * FROM public.orders_order WHERE id = 163821;
-
-			SELECT * FROM public.orders_orderprocesstime WHERE state_id = 140844;
-
-			-----------
 
 			SELECT * FROM public.orders_order WHERE id = 166361;
 
@@ -217,8 +213,6 @@
 			SELECT * FROM public.orders_orderprocesstime WHERE state_id = 143375;
 
 			SELECT * FROM public.orders_historicalorder WHERE id = 166361;
-
-			166463 
 
 		Сброс времени начала обработки
 
@@ -308,6 +302,33 @@
 
     	print OrderProcessTime.objects.get(state_id=ord_process_state.pk)
 
+    На 9.09.19
+
+    	Нажимаем создать заказ
+
+    	{'url': r'^submit/(?P<order_id>\d+)/(?P<action>[\w_]+)/$',
+     	'wrapper_view': wrapper_order_submit_view}
+
+     	class OrderSubmitView(
+
+     		def process(
+
+     			order.process()
+
+    	def create_order(
+
+    		result = create_order_handler(request.POST)
+
+		        start_order_process_time.send(
+		            Order,
+		            order_id=order.pk,
+		            reason_alias='ORDER_CREATED',
+		            # передаем, если найдем, параметры по контрольной закупке Я.Маркета
+		            params_control_purchase=order.get_control_purchase_ya_market()
+		        )
+
+		Как вызвать def create_order?
+
 Проблема с распаковкой zip архивов с ценами, номенклатурой и остатками диллера
 
 	Где задача, которая разархивирует?
@@ -357,3 +378,56 @@
 	        PriceAdd().delay(
 	        	file_path='/home/ilya/work/projects/dealer_price/csv/price_(63516090-a52d-11e4-80d4-001b21d8d330).zip', agreement_uuid='63516090-a52d-11e4-80d4-001b21d8d330'
 	        )	
+
+Товары без цен и остатков не отображаются на сайте
+
+	SELECT *  FROM public.remains WHERE pid=197416;
+	SELECT *  FROM public.prices WHERE pid=197416;
+	SELECT *  FROM public.products WHERE id=197416;
+
+	gps-навигатор
+	из тех, что должен быть
+	в базе сайта есть, published=true
+	но нет цен и остатков
+	есть ошибки с синками dp
+
+	копаю тут
+	new messages
+	товар без цен и остатков не отображается на сайте
+
+	Ошибка таска:
+
+		Task sync with id a0dc4413-814a-49dd-985a-9643631aca4e raised exception:
+		'AttributeError("\'NoneType\' object has no attribute \'uploaded_profile_id\'",)'
+
+		Task was called with args: [] kwargs: {}.
+
+		The contents of the full traceback was:
+
+		Traceback (most recent call last):
+		  File "/home/web/www/dealer_price-env/local/lib/python2.7/site-packages/celery/app/trace.py", line 240, in trace_task
+		    R = retval = fun(*args, **kwargs)
+		  File "/home/web/www/dealer_price-env/local/lib/python2.7/site-packages/celery/app/trace.py", line 438, in __protected_call__
+		    return self.run(*args, **kwargs)
+		  File "/home/web/www/dealer_price/modules/task_block/models.py", line 72, in _inner
+		    result = func(self, *args, **kwargs)
+		  File "/home/web/www/dealer_price/modules/main/tasks/__init__.py", line 25, in sync
+		    autoupload_changed_profiles.si()
+		  File "/home/web/www/dealer_price-env/local/lib/python2.7/site-packages/celery/canvas.py", line 181, in apply
+		    return self.type.apply(args, kwargs, **options)
+		  File "/home/web/www/dealer_price-env/local/lib/python2.7/site-packages/celery/app/builtins.py", line 302, in apply
+		    last and (last.get(), ),
+		  File "/home/web/www/dealer_price-env/local/lib/python2.7/site-packages/celery/result.py", line 874, in get
+		    raise self.result
+		AttributeError: 'NoneType' object has no attribute 'uploaded_profile_id'
+
+	Место, где падает:
+
+		@app.task(name='compute_product_charge', routing_key='sync')
+		@transaction.atomic
+		@loger_decorator
+		def compute_product_charge(uuids, profile_id=None):
+
+	Запуск всей цепочки:
+
+		bin/celery call -A app_celery sync --queue=default
