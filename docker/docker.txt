@@ -313,7 +313,7 @@ Docker Engine
 
 	cat Dockerfile - показывает содержимое файла
 
-	docker build -t docker-whale . - собирает образ из Dockerfile
+	docker build -t image_name . - собирает образ из Dockerfile
 
 Создание собственных образов
 	

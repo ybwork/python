@@ -1,4 +1,10 @@
-Api
+Оглавление
+
+	Общее
+
+	Two scoops of Django
+
+Общее
 
 	save points
 
@@ -15,3 +21,71 @@ Api
 	нужна версионность и компани объекты
 
 	можно использовать стратегию или адаптер для того, чтобы например отдавать данные в одном формате для react и в другом формате для ios/android
+
+Two scoops of Django
+
+	Основы REST API Design
+
+		Для каждого действия используется свой метод HTTP.
+
+			Create a new resource - POST - INSERT
+
+			Read an existing resource - GET - SELECT
+
+			Update an existing resource - PUT - UPDATE
+
+			Update part of an existing resource - PATCH - UPDATE
+
+			Delete an existing resource - DELETE - DELETE
+
+			Returns same HTTP headers as GET, but no body content - HEAD
+
+			Return the supported HTTP methods for the given URL - OPTIONS
+
+			Echo back the request - TRACE
+
+		Использовать только GET и POST это плохой подход.
+
+		Метод PATCH часто не реализуется. Это нормально если реализован метод PUT.
+
+		В ответ на запрос api возвращает код состояния. Вот список самых основных:
+
+			200 OK - Success - GET, PUT
+
+			201 Created - Success - POST
+
+			204 No Content - Success - PUT, DELETE
+
+			304 Not Modified - Redirect - ALL
+
+			400 Bad Request - Failure - ALL
+
+			401 Unauthorized - Failure - ALL
+
+			403 Forbidden - Failure - ALL
+
+			404 Not Found - Failure - ALL
+
+			405 Method Not Allowed - Failure - ALL
+
+			410 Gone (удален) - Failure - ALL
+
+			429 Too Many Requests (слишком много запросов) - Failure - ALL
+
+	Архитектура REST API
+
+		Именование
+
+			flavors/
+			├── api/
+			│ ├── __init__.py
+			│ ├── authentication.py
+			│ ├── parsers.py
+			│ ├── permissions.py
+			│ ├── renderers.py
+			│ ├── serializers.py
+			│ ├── validators.py
+			│ ├── views.py
+			│ ├── viewsets.py
+
+		Стоп на 226

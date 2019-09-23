@@ -198,6 +198,238 @@
 
 Проблема с количеством товара на сайте
 
+	На 23.09.19
+
+		1с продукты
+
+			25047
+
+		Magic карточки товара
+
+			ProductCard.objects.filter(
+				date_formed_description__isnull=False
+			).exclude(
+				code__exact=None
+			).get_checked().get_actual().get_verified().count()
+			
+				22512
+
+			------
+
+			SELECT
+			    `cards_productcard`.`code`
+			FROM
+			    magic.`cards_productcard`
+			        LEFT OUTER JOIN
+			    magic.`cards_productcardimage` ON (`cards_productcard`.`id` = `cards_productcardimage`.`card_id`)
+			        INNER JOIN
+			    magic.`cards_kind` ON (`cards_productcard`.`kind_id` = `cards_kind`.`id`)
+			        INNER JOIN
+			    magic.`cards_property` ON (`cards_kind`.`id` = `cards_property`.`kind_id`)
+			WHERE
+			    (NOT (`cards_productcard`.`code` IS NULL)
+			        AND `cards_productcard`.`is_checked` = TRUE
+			        AND `cards_productcard`.`is_actual` = TRUE
+			        AND `cards_productcard`.`is_actual` = TRUE
+			        AND `cards_productcard`.`brand_id` IS NOT NULL
+			        AND `cards_productcard`.`code` IS NOT NULL
+			        AND `cards_productcard`.`has_invalid_images` = FALSE
+			        AND `cards_productcard`.`is_ready` = TRUE
+			        AND `cards_productcard`.`is_checked` = TRUE
+			        AND `cards_property`.`id` IS NOT NULL
+			        AND `cards_productcard`.`date_formed_description` IS NOT NULL)
+			GROUP BY `cards_productcard`.`id`
+			HAVING COUNT(`cards_productcardimage`.`id`) > 0
+			ORDER BY `cards_productcard`.`code` ASC
+
+		korallmicro продукты
+
+			select 
+				count(*) 
+			from public.products
+
+				23100
+
+		korallmicro продукты с published = true
+
+			select 
+				count(*) 
+			from 
+				public.products
+			where
+				published = true
+
+				19927
+
+		korallmicro продукты с published = false
+
+			select 
+				count(*)
+			from 
+				public.products
+			where
+				published = false
+
+				3173
+
+		карточки товара в magic из тех, что published = false на коралле
+
+			SELECT 
+			    count(*)
+			FROM
+			    magic.cards_productcard
+			WHERE
+			    code IN (
+			    	86 , 
+			    	249,
+			        251
+			        ...
+			    )
+
+			    609
+
+		карточки товара в magic из тех, что published = false на коралле, которые полностью валидны
+
+			SELECT
+				cards_productcard.code 
+			FROM
+				magic.cards_productcard
+					LEFT OUTER JOIN
+				magic.cards_productcardimage ON cards_productcard.id = cards_productcardimage.card_id
+					INNER JOIN
+				magic.cards_kind ON cards_productcard.kind_id = cards_kind.id
+					INNER JOIN
+				magic.cards_property ON cards_kind.id = cards_property.kind_id
+			WHERE
+				cards_productcard.code IN (
+					86,
+					249,
+					251,
+					...
+				)
+				AND cards_productcard.is_checked = TRUE
+				AND cards_productcard.is_actual = TRUE
+				AND cards_productcard.brand_id IS NOT NULL
+				AND cards_productcard.code IS NOT NULL
+				AND cards_productcard.has_invalid_images = FALSE
+				AND cards_productcard.is_ready = TRUE
+				AND cards_productcard.is_checked = TRUE
+				AND cards_property.id IS NOT NULL
+				AND cards_productcard.date_formed_description IS NOT NULL
+			GROUP BY cards_productcard.id
+			HAVING COUNT(cards_productcardimage.id) > 0
+			ORDER BY cards_productcard.code ASC
+
+				0
+
+		korallmicro цены
+
+			SELECT
+			    distinct
+			    count(*)
+			FROM
+			    public.prices
+			WHERE
+			    pid IN (
+			        select 
+			            id 
+			        from 
+			            public.products
+			        where
+			            published = false
+			    )
+
+			    565
+
+		korallmicro остатки
+
+			SELECT
+			    distinct
+			    count(*)
+			FROM
+			    public.remains
+			WHERE
+			    pid IN (
+			        select 
+			            id 
+			        from 
+			            public.products
+			        where
+			            published = false
+			    )
+
+			    0
+
+	Описание проблемы
+
+		На сайтах korallmicro, snr и istore должно быть больше товаров чем есть на данный момент.
+
+		Особые проблемы наблюдаются в разделе новинки.
+
+		Также ежедневно общее кол-во товаров на сайтах уменьшается.
+
+	Термины
+
+		номенклатура == продукт
+
+		каталог == категория
+
+		СвязиКаталоговИнтернетМагазина == связь продукта с категорией  == catalog_distributions (magic)
+
+	Синхронизация
+
+		В процессе от создания до появления продукта на сайте участвуют системы 1с, magic, dp, sdp.
+
+		Процесс выгрузки данных из одной системы в другую называется синхронизация.
+
+		В целом синхронизация работает так:
+
+			Данные появляются в 1с.
+
+			Из 1с данные выгружаются в бд 1c_8_raw.
+
+			Из 1c_8_raw данные выгружаются в magic.
+
+			Из magic данные попадают на сайты.
+
+			Dp проставляет цены и остатки продуктам, которые попали на сайты.
+
+	Условия 1с при которых номенклатура должна попасть на сайт
+
+		Не стоят галочки "НеДляПродажи", "НеДляРозницы", "_ПометкаУдаления".
+
+		Создан минимум 12 часов назад.
+
+		Привязан к каталогу.
+
+		Правильно заданы вид-подвид (в названии регистр имеет значение).
+
+		Правильно заданы правила распределения.
+
+	Условия magic при которых продукт должен попасть на сайт
+
+		После синхронизации с 1с продукт появился в magic и он привязан к каталогу нужного сайта.
+
+		У каталога к которому привязан продукт стоит галочка "Приоритетная группа". 
+
+		Созданна карточка товара с таким же кодом, как и продукта.
+
+		Карточка товара имеет код, бренд, вид-тип, валидные картинки, заполненное поле "date_formed_description", статус "актуальна", слепок, готова к проверке, проверена.
+
+	Условия dp при которых продукту должны проставиться цены и остатки
+
+		...
+
+	Условия сайта при которых продукт должен отображаться
+
+		Продукт попал в базу сайта.
+
+		Продукт связан с каталогом.
+
+		У каталога к которому привязан продукт стоит галочка "Приоритетная группа".
+
+		У продукта есть остатки и цены.
+
 	На 17.08.19 проблемы на этапах:
 
 		1c
@@ -242,8 +474,6 @@
 		dp
 
 			проблемы с синхронизацией цен и остатков.
-
-	По мнению ответсвенных за интернет-магазины на сайтах korallmicro, snr и istore должно быть больше товаров чем есть на данный момент.
 
 	Изначально продукты создаются в 1с.
 
@@ -439,14 +669,6 @@
 						213787, 
 						206999,
 					);
-
-		Термины
-
-			номенклатура == продукт
-
-			каталог == категория
-
-			связь продукта с категорией == СвязиКаталоговИнтернетМагазина == catalog_distributions
 
 		Смотрим продукт 1с - magic
 
@@ -682,6 +904,8 @@ select * from public.catalogs where gid = 281727;
 
 select * from public.remains where pid = 281727;
 
+	если остатков нет, то нет записи
+
 select * from public.prices where pid = 281727;
 
 
@@ -700,111 +924,6 @@ select * from public.prices where pid = 281727;
 			flat=True
 		)
 	)
-
-	229630,
-	229631,
-	229633,
-	229634,
-	230914,
-	231931,
-	231932,
-	231933,
-	231934,
-	231935,
-	231936,
-	231937,
-	231938,
-	231939,
-	231940,
-	232456,
-	232457,
-	232536,
-	232538,
-	232539,
-	232540,
-	232577,
-	232578,
-	232579,
-	232580,
-	232581,
-	232582,
-	232583,
-	232584,
-	232585,
-	232586,
-	232587,
-	232589,
-	232590,
-	232591,
-	232592,
-	232593,
-	232594,
-	232595,
-	232596,
-	232597,
-	232599,
-	232600,
-	232601,
-	232602,
-	232603,
-	232604,
-	232607,
-	232609,
-	232612,
-	232624,
-	232636,
-	232639,
-	232642,
-	232647,
-	232648,
-	232649,
-	232650,
-	232733,
-	232736,
-	232758,
-	232824,
-	232825,
-	232901,
-	232902,
-	232903,
-	232904,
-	232905,
-	232910,
-	232912,
-	232915,
-	232916,
-	232917,
-	232918,
-	232919,
-	232927,
-	232928,
-	232929,
-	232941,
-	232942,
-	232989,
-	233022,
-	233023,
-	233024,
-	233025,
-	233051,
-	233054,
-	233055,
-	233056,
-	233080,
-	233083,
-	233084,
-	233085,
-	233086,
-	233087,
-	233088,
-	233089,
-	233090,
-	233091,
-	233092,
-	233093,
-	233094,
-	233095,
-	233096
 
 Получим все uid продуктов
 
@@ -828,109 +947,8 @@ select * from public.prices where pid = 281727;
 	WHERE
 	    category_product.Номенклатура IN (
 			'003f2a6a-d2e8-11e9-80e1-6805ca44419c', 
-	        '0c3c8cdc-d2e0-11e9-80e1-6805ca44419c',
-	        '12151795-d2dc-11e9-80e1-6805ca44419c',
-	        '134e6cf4-d2db-11e9-80e1-6805ca44419c',
-	        '13d9260a-d2dd-11e9-80e1-6805ca44419c',
-	        '16fd532e-d60b-11e9-80e1-6805ca44419c',
-	        '1786006a-d49b-11e9-80e1-6805ca44419c',
-	        '1c2beb13-d555-11e9-80e1-6805ca44419c',
-	        '1fbaa7ac-d2de-11e9-80e1-6805ca44419c',
-	        '1fe3f2af-d867-11e9-80e1-6805ca44419c',
-	        '223175d4-d62b-11e9-80e1-6805ca44419c',
-	        '223198d2-d0a8-11e9-80e1-6805ca44419c',
-	        '27192ceb-d546-11e9-80e1-6805ca44419c',
-	        '28922d8d-d2e7-11e9-80e1-6805ca44419c',
-	        '2a1c9abc-d866-11e9-80e1-6805ca44419c',
-	        '2a80f15d-caeb-11e9-80e1-6805ca44419c',
-	        '317e730e-d867-11e9-80e1-6805ca44419c',
-	        '36d9443e-d2db-11e9-80e1-6805ca44419c',
-	        '3727e2c6-d0a9-11e9-80e1-6805ca44419c',
-	        '3a350ddd-d2dc-11e9-80e1-6805ca44419c',
-	        '3c7771a7-d84c-11e9-80e1-6805ca44419c',
-	        '3f4efffd-bf39-11e9-80e1-6805ca44419c',
-	        '4129f39e-d2e6-11e9-80e1-6805ca44419c',
-	        '41d5d871-caeb-11e9-80e1-6805ca44419c',
-	        '43a894ef-d62b-11e9-80e1-6805ca44419c',
-	        '4e569507-d2e0-11e9-80e1-6805ca44419c',
-	        '4e584b86-d2e8-11e9-80e1-6805ca44419c',
-	        '4fdd31c4-d2de-11e9-80e1-6805ca44419c',
-	        '4ff6f7f7-caeb-11e9-80e1-6805ca44419c',
-	        '51446b50-d540-11e9-80e1-6805ca44419c',
-	        '53bff3bf-d546-11e9-80e1-6805ca44419c',
-	        '55091eb6-d541-11e9-80e1-6805ca44419c',
-	        '57175c6c-d2e3-11e9-80e1-6805ca44419c',
-	        '572f88fe-d86a-11e9-80e1-6805ca44419c',
-	        '5c07f811-d867-11e9-80e1-6805ca44419c',
-	        '5d234285-d2e5-11e9-80e1-6805ca44419c',
-	        '61073379-d2dc-11e9-80e1-6805ca44419c',
-	        '61cbb306-d2db-11e9-80e1-6805ca44419c',
-	        '65ffd60d-d62b-11e9-80e1-6805ca44419c',
-	        '6626974f-caeb-11e9-80e1-6805ca44419c',
-	        '664498b1-d84c-11e9-80e1-6805ca44419c',
-	        '6774a794-d54e-11e9-80e1-6805ca44419c',
-	        '697774ff-d499-11e9-80e1-6805ca44419c',
-	        '697fe310-d073-11e9-80e1-6805ca44419c',
-	        '6a73d0e2-d540-11e9-80e1-6805ca44419c',
-	        '6ccb5c50-d3c6-11e9-80e1-6805ca44419c',
-	        '6cffa011-aeb2-11e9-80e1-6805ca44419c',
-	        '7a0291ca-d2de-11e9-80e1-6805ca44419c',
-	        '7d9deac8-d541-11e9-80e1-6805ca44419c',
-	        '7e5ba064-caeb-11e9-80e1-6805ca44419c',
-	        '7f805c12-d3a3-11e9-80e1-6805ca44419c',
-	        '7fa11dc3-d867-11e9-80e1-6805ca44419c',
-	        '84451c6b-d62b-11e9-80e1-6805ca44419c',
-	        '846046b9-d2e3-11e9-80e1-6805ca44419c',
-	        '84b06429-d864-11e9-80e1-6805ca44419c',
-	        '870191c2-d54d-11e9-80e1-6805ca44419c',
-	        '8a74967c-d540-11e9-80e1-6805ca44419c',
-	        '8e354124-d54a-11e9-80e1-6805ca44419c',
-	        '8fded8d6-aeb2-11e9-80e1-6805ca44419c',
-	        '90556586-d072-11e9-80e1-6805ca44419c',
-	        '90bc3e40-d2e8-11e9-80e1-6805ca44419c',
-	        '94926d95-d2dc-11e9-80e1-6805ca44419c',
-	        '9628a192-d2e0-11e9-80e1-6805ca44419c',
-	        '99d9282a-d2e7-11e9-80e1-6805ca44419c',
-	        '9b9b98ac-caea-11e9-80e1-6805ca44419c',
-	        '9ff3a95c-d0a8-11e9-80e1-6805ca44419c',
-	        'a9b2342d-caeb-11e9-80e1-6805ca44419c',
-	        'aa5fdcb3-d2da-11e9-80e1-6805ca44419c',
-	        'ad33f2a4-d867-11e9-80e1-6805ca44419c',
-	        'af1d4ff9-d54a-11e9-80e1-6805ca44419c',
-	        'b0e200a4-d2dd-11e9-80e1-6805ca44419c',
-	        'b0fb1b95-d3a7-11e9-80e1-6805ca44419c',
-	        'b4e95833-d2e3-11e9-80e1-6805ca44419c',
-	        'b9d33a3e-d869-11e9-80e1-6805ca44419c',
-	        'bbf6f9a4-caea-11e9-80e1-6805ca44419c',
-	        'bf742b8a-d2dc-11e9-80e1-6805ca44419c',
-	        'c2e7c31a-d84c-11e9-80e1-6805ca44419c',
-	        'c6c48b7c-aeb2-11e9-80e1-6805ca44419c',
-	        'c926c02d-d2de-11e9-80e1-6805ca44419c',
-	        'ce80b6e4-d54a-11e9-80e1-6805ca44419c',
-	        'd1746e3f-d869-11e9-80e1-6805ca44419c',
-	        'd7ac592e-d865-11e9-80e1-6805ca44419c',
-	        'd8cbdbac-d2e6-11e9-80e1-6805ca44419c',
-	        'dcc17144-caeb-11e9-80e1-6805ca44419c',
-	        'de55d63c-d2dd-11e9-80e1-6805ca44419c',
-	        'df851535-d2df-11e9-80e1-6805ca44419c',
-	        'e0dfb6cd-d549-11e9-80e1-6805ca44419c',
-	        'e55166c5-aeb2-11e9-80e1-6805ca44419c',
-	        'e57d422d-d869-11e9-80e1-6805ca44419c',
-	        'e7d3bdb6-d869-11e9-80e1-6805ca44419c',
-	        'e86aba2e-d2dc-11e9-80e1-6805ca44419c',
-	        'e9be4a05-d2db-11e9-80e1-6805ca44419c',
-	        'ed71ce2c-d0a8-11e9-80e1-6805ca44419c',
-	        'ed821ce6-d554-11e9-80e1-6805ca44419c',
-	        'f05b83a5-d2e2-11e9-80e1-6805ca44419c',
-	        'f1f153b9-d54a-11e9-80e1-6805ca44419c',
-	        'f307681d-d2e0-11e9-80e1-6805ca44419c',
-	        'f3bbbcf7-caeb-11e9-80e1-6805ca44419c',
-	        'fac6caef-d2de-11e9-80e1-6805ca44419c',
-	        'fb84e56a-d866-11e9-80e1-6805ca44419c',
-	        'fce734f3-d54d-11e9-80e1-6805ca44419c',
-	        'fcf0f323-d2dd-11e9-80e1-6805ca44419c',
-	        'fd15a788-d84b-11e9-80e1-6805ca44419c',
-	        'fe0a843f-d869-11e9-80e1-6805ca44419c'
+	        '0c3c8cdc-d2e0-11e9-80e1-6805ca44419c'
+	        ...
 		);
 
 		SELECT 
@@ -950,109 +968,8 @@ select * from public.prices where pid = 281727;
 		WHERE
 		    category_product.Номенклатура IN (
 				'003f2a6a-d2e8-11e9-80e1-6805ca44419c', 
-		        '0c3c8cdc-d2e0-11e9-80e1-6805ca44419c',
-		        '12151795-d2dc-11e9-80e1-6805ca44419c',
-		        '134e6cf4-d2db-11e9-80e1-6805ca44419c',
-		        '13d9260a-d2dd-11e9-80e1-6805ca44419c',
-		        '16fd532e-d60b-11e9-80e1-6805ca44419c',
-		        '1786006a-d49b-11e9-80e1-6805ca44419c',
-		        '1c2beb13-d555-11e9-80e1-6805ca44419c',
-		        '1fbaa7ac-d2de-11e9-80e1-6805ca44419c',
-		        '1fe3f2af-d867-11e9-80e1-6805ca44419c',
-		        '223175d4-d62b-11e9-80e1-6805ca44419c',
-		        '223198d2-d0a8-11e9-80e1-6805ca44419c',
-		        '27192ceb-d546-11e9-80e1-6805ca44419c',
-		        '28922d8d-d2e7-11e9-80e1-6805ca44419c',
-		        '2a1c9abc-d866-11e9-80e1-6805ca44419c',
-		        '2a80f15d-caeb-11e9-80e1-6805ca44419c',
-		        '317e730e-d867-11e9-80e1-6805ca44419c',
-		        '36d9443e-d2db-11e9-80e1-6805ca44419c',
-		        '3727e2c6-d0a9-11e9-80e1-6805ca44419c',
-		        '3a350ddd-d2dc-11e9-80e1-6805ca44419c',
-		        '3c7771a7-d84c-11e9-80e1-6805ca44419c',
-		        '3f4efffd-bf39-11e9-80e1-6805ca44419c',
-		        '4129f39e-d2e6-11e9-80e1-6805ca44419c',
-		        '41d5d871-caeb-11e9-80e1-6805ca44419c',
-		        '43a894ef-d62b-11e9-80e1-6805ca44419c',
-		        '4e569507-d2e0-11e9-80e1-6805ca44419c',
-		        '4e584b86-d2e8-11e9-80e1-6805ca44419c',
-		        '4fdd31c4-d2de-11e9-80e1-6805ca44419c',
-		        '4ff6f7f7-caeb-11e9-80e1-6805ca44419c',
-		        '51446b50-d540-11e9-80e1-6805ca44419c',
-		        '53bff3bf-d546-11e9-80e1-6805ca44419c',
-		        '55091eb6-d541-11e9-80e1-6805ca44419c',
-		        '57175c6c-d2e3-11e9-80e1-6805ca44419c',
-		        '572f88fe-d86a-11e9-80e1-6805ca44419c',
-		        '5c07f811-d867-11e9-80e1-6805ca44419c',
-		        '5d234285-d2e5-11e9-80e1-6805ca44419c',
-		        '61073379-d2dc-11e9-80e1-6805ca44419c',
-		        '61cbb306-d2db-11e9-80e1-6805ca44419c',
-		        '65ffd60d-d62b-11e9-80e1-6805ca44419c',
-		        '6626974f-caeb-11e9-80e1-6805ca44419c',
-		        '664498b1-d84c-11e9-80e1-6805ca44419c',
-		        '6774a794-d54e-11e9-80e1-6805ca44419c',
-		        '697774ff-d499-11e9-80e1-6805ca44419c',
-		        '697fe310-d073-11e9-80e1-6805ca44419c',
-		        '6a73d0e2-d540-11e9-80e1-6805ca44419c',
-		        '6ccb5c50-d3c6-11e9-80e1-6805ca44419c',
-		        '6cffa011-aeb2-11e9-80e1-6805ca44419c',
-		        '7a0291ca-d2de-11e9-80e1-6805ca44419c',
-		        '7d9deac8-d541-11e9-80e1-6805ca44419c',
-		        '7e5ba064-caeb-11e9-80e1-6805ca44419c',
-		        '7f805c12-d3a3-11e9-80e1-6805ca44419c',
-		        '7fa11dc3-d867-11e9-80e1-6805ca44419c',
-		        '84451c6b-d62b-11e9-80e1-6805ca44419c',
-		        '846046b9-d2e3-11e9-80e1-6805ca44419c',
-		        '84b06429-d864-11e9-80e1-6805ca44419c',
-		        '870191c2-d54d-11e9-80e1-6805ca44419c',
-		        '8a74967c-d540-11e9-80e1-6805ca44419c',
-		        '8e354124-d54a-11e9-80e1-6805ca44419c',
-		        '8fded8d6-aeb2-11e9-80e1-6805ca44419c',
-		        '90556586-d072-11e9-80e1-6805ca44419c',
-		        '90bc3e40-d2e8-11e9-80e1-6805ca44419c',
-		        '94926d95-d2dc-11e9-80e1-6805ca44419c',
-		        '9628a192-d2e0-11e9-80e1-6805ca44419c',
-		        '99d9282a-d2e7-11e9-80e1-6805ca44419c',
-		        '9b9b98ac-caea-11e9-80e1-6805ca44419c',
-		        '9ff3a95c-d0a8-11e9-80e1-6805ca44419c',
-		        'a9b2342d-caeb-11e9-80e1-6805ca44419c',
-		        'aa5fdcb3-d2da-11e9-80e1-6805ca44419c',
-		        'ad33f2a4-d867-11e9-80e1-6805ca44419c',
-		        'af1d4ff9-d54a-11e9-80e1-6805ca44419c',
-		        'b0e200a4-d2dd-11e9-80e1-6805ca44419c',
-		        'b0fb1b95-d3a7-11e9-80e1-6805ca44419c',
-		        'b4e95833-d2e3-11e9-80e1-6805ca44419c',
-		        'b9d33a3e-d869-11e9-80e1-6805ca44419c',
-		        'bbf6f9a4-caea-11e9-80e1-6805ca44419c',
-		        'bf742b8a-d2dc-11e9-80e1-6805ca44419c',
-		        'c2e7c31a-d84c-11e9-80e1-6805ca44419c',
-		        'c6c48b7c-aeb2-11e9-80e1-6805ca44419c',
-		        'c926c02d-d2de-11e9-80e1-6805ca44419c',
-		        'ce80b6e4-d54a-11e9-80e1-6805ca44419c',
-		        'd1746e3f-d869-11e9-80e1-6805ca44419c',
-		        'd7ac592e-d865-11e9-80e1-6805ca44419c',
-		        'd8cbdbac-d2e6-11e9-80e1-6805ca44419c',
-		        'dcc17144-caeb-11e9-80e1-6805ca44419c',
-		        'de55d63c-d2dd-11e9-80e1-6805ca44419c',
-		        'df851535-d2df-11e9-80e1-6805ca44419c',
-		        'e0dfb6cd-d549-11e9-80e1-6805ca44419c',
-		        'e55166c5-aeb2-11e9-80e1-6805ca44419c',
-		        'e57d422d-d869-11e9-80e1-6805ca44419c',
-		        'e7d3bdb6-d869-11e9-80e1-6805ca44419c',
-		        'e86aba2e-d2dc-11e9-80e1-6805ca44419c',
-		        'e9be4a05-d2db-11e9-80e1-6805ca44419c',
-		        'ed71ce2c-d0a8-11e9-80e1-6805ca44419c',
-		        'ed821ce6-d554-11e9-80e1-6805ca44419c',
-		        'f05b83a5-d2e2-11e9-80e1-6805ca44419c',
-		        'f1f153b9-d54a-11e9-80e1-6805ca44419c',
-		        'f307681d-d2e0-11e9-80e1-6805ca44419c',
-		        'f3bbbcf7-caeb-11e9-80e1-6805ca44419c',
-		        'fac6caef-d2de-11e9-80e1-6805ca44419c',
-		        'fb84e56a-d866-11e9-80e1-6805ca44419c',
-		        'fce734f3-d54d-11e9-80e1-6805ca44419c',
-		        'fcf0f323-d2dd-11e9-80e1-6805ca44419c',
-		        'fd15a788-d84b-11e9-80e1-6805ca44419c',
-		        'fe0a843f-d869-11e9-80e1-6805ca44419c'
+		        '0c3c8cdc-d2e0-11e9-80e1-6805ca44419c'
+		        ...
 			);
 
 	Тоже самое сделаем в magic
