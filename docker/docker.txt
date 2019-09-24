@@ -313,7 +313,7 @@ Docker Engine
 
 	cat Dockerfile - показывает содержимое файла
 
-	docker build -t image_name . - собирает образ из Dockerfile
+	docker build -t image_name . - собирает образ из Dockerfile, -t нужно для указания имени
 
 Создание собственных образов
 	

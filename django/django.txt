@@ -113,6 +113,9 @@
 		Контекст
 
 
+	Управление файлами
+
+
 	Url-ы
 
 
@@ -2612,6 +2615,73 @@ QuerySet
 		Template(tmpl).render(Context(context))
 
 		Выведет 'Country: myvar'
+
+Управление файлами
+
+	Django хранит файлы локально, используя настройки MEDIA_ROOT и MEDIA_URL.
+
+		MEDIA_ROOT - абсолютный путь к каталогу, в котором хранятся медиа-файлы
+
+			MEDIA_ROOT и STATIC_ROOT должны отличаться
+
+		MEDIA_URL - путь, который указывает на каталог MEDIA_ROOT
+
+			Нужен для использования в шаблонах.
+
+			Если вы хотите использовать {{ MEDIA_URL }} в шаблонах, добавьте 'django.template.context_processors.media' в опцию 'context_processors' настройки TEMPLATES.
+
+	Когда вы используете классы FileField или ImageField, Django предоставляет интерфейс программирования, чтобы открыть вам доступ к файлам.
+
+		Аргумент upload_to говорит куда сохранять картинку или файл. При этом будет взять путь из MEDIA_ROOT, внутри него создана директория из upload_to и туда сохранен файл.
+
+		class Car(models.Model):
+		    name = models.CharField(max_length=255)
+		    price = models.DecimalField(max_digits=5, decimal_places=2)
+		    photo = models.ImageField(upload_to='cars')
+
+		car.photo
+		car.photo.name
+		car.photo.path
+		car.photo.url
+
+	Файл сохраняется в базе данных как часть модели, поэтому фактическое название файла не может быть использовано до того момента, пока не будет сохранена модель, включающая его.
+
+	Если вам вдруг понадобится создать объект File самостоятельно, проще всего использовать для этого указанный выше встроенный файловый объект языка Python:
+
+		from django.core.files import File
+
+		with open('/tmp/hello.world', 'w') as f:
+			myfile = File(f)
+			myfile.write('Hello World')
+
+		Теперь у вас есть возможность использовать любой из атрибутов и методов стандартного класса File.
+
+	Выбор места для хранения файлов задаётся в настройках DEFAULT_FILE_STORAGE.
+
+	Хотя большую часть времени вам, скорее всего, будет достаточно объекта File (который осуществляет надлежащее хранение файлов), вы можете обращаться к файловой системе напрямую.
+
+		from django.core.files.storage import default_storage
+		from django.core.files.base import ContentFile
+
+		path = default_storage.save('/path/to/file', ContentFile('new content'))
+
+		default_storage.size(path)
+		default_storage.open(path).read()
+		default_storage.delete(path)
+		default_storage.exists(path)
+
+	Django поставляется со встроенным классом django.core.files.storage.FileSystemStorage, который реализует основное локальное файловое хранилище.
+
+		К примеру, следующий код будет хранить загруженные файлы в /media/photos, игнорируя настройки MEDIA_ROOT.
+
+		from django.db import models
+		from django.core.files.storage import FileSystemStorage
+
+		fs = FileSystemStorage(location='/media/photos')
+
+		class Car(models.Model):
+		    photo = models.ImageField(storage=fs)
+
 
 Url-ы
 

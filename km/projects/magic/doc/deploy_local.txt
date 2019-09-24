@@ -69,7 +69,17 @@ Settings local
 
             sudo mkdir ~/your_path/volumes/postgres_9.5/data
 
-        Создаем docker контейнер:
+        Создаем файл с именем Dockerfile для дополнительной локали:
+            
+            FROM postgres:9.5
+            RUN localedef -i ru_RU -c -f UTF-8 -A /usr/share/locale/locale.alias ru_RU.UTF-8
+            ENV LANG ru_RU.utf8
+
+        Создаем образ на основе Dockerfile:
+
+            docker build -t image_name .
+
+        Создаем docker контейнер на основе образа:
 
             sudo docker run \            
             --name postgres_9.5 \
@@ -77,7 +87,7 @@ Settings local
             -v ~/your_path/volumes/postgres_9.5/data:/var/lib/postgresql/data \
             -p 5432:5432 \
             -e POSTGRES_PASSWORD=asdf1234 \
-            -d postgres:9.5
+            -d image_name
 
     MySQL
 

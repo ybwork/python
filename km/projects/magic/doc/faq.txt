@@ -198,168 +198,6 @@
 
 Проблема с количеством товара на сайте
 
-	На 23.09.19
-
-		1с продукты
-
-			25047
-
-		Magic карточки товара
-
-			ProductCard.objects.filter(
-				date_formed_description__isnull=False
-			).exclude(
-				code__exact=None
-			).get_checked().get_actual().get_verified().count()
-			
-				22512
-
-			------
-
-			SELECT
-			    `cards_productcard`.`code`
-			FROM
-			    magic.`cards_productcard`
-			        LEFT OUTER JOIN
-			    magic.`cards_productcardimage` ON (`cards_productcard`.`id` = `cards_productcardimage`.`card_id`)
-			        INNER JOIN
-			    magic.`cards_kind` ON (`cards_productcard`.`kind_id` = `cards_kind`.`id`)
-			        INNER JOIN
-			    magic.`cards_property` ON (`cards_kind`.`id` = `cards_property`.`kind_id`)
-			WHERE
-			    (NOT (`cards_productcard`.`code` IS NULL)
-			        AND `cards_productcard`.`is_checked` = TRUE
-			        AND `cards_productcard`.`is_actual` = TRUE
-			        AND `cards_productcard`.`is_actual` = TRUE
-			        AND `cards_productcard`.`brand_id` IS NOT NULL
-			        AND `cards_productcard`.`code` IS NOT NULL
-			        AND `cards_productcard`.`has_invalid_images` = FALSE
-			        AND `cards_productcard`.`is_ready` = TRUE
-			        AND `cards_productcard`.`is_checked` = TRUE
-			        AND `cards_property`.`id` IS NOT NULL
-			        AND `cards_productcard`.`date_formed_description` IS NOT NULL)
-			GROUP BY `cards_productcard`.`id`
-			HAVING COUNT(`cards_productcardimage`.`id`) > 0
-			ORDER BY `cards_productcard`.`code` ASC
-
-		korallmicro продукты
-
-			select 
-				count(*) 
-			from public.products
-
-				23100
-
-		korallmicro продукты с published = true
-
-			select 
-				count(*) 
-			from 
-				public.products
-			where
-				published = true
-
-				19927
-
-		korallmicro продукты с published = false
-
-			select 
-				count(*)
-			from 
-				public.products
-			where
-				published = false
-
-				3173
-
-		карточки товара в magic из тех, что published = false на коралле
-
-			SELECT 
-			    count(*)
-			FROM
-			    magic.cards_productcard
-			WHERE
-			    code IN (
-			    	86 , 
-			    	249,
-			        251
-			        ...
-			    )
-
-			    609
-
-		карточки товара в magic из тех, что published = false на коралле, которые полностью валидны
-
-			SELECT
-				cards_productcard.code 
-			FROM
-				magic.cards_productcard
-					LEFT OUTER JOIN
-				magic.cards_productcardimage ON cards_productcard.id = cards_productcardimage.card_id
-					INNER JOIN
-				magic.cards_kind ON cards_productcard.kind_id = cards_kind.id
-					INNER JOIN
-				magic.cards_property ON cards_kind.id = cards_property.kind_id
-			WHERE
-				cards_productcard.code IN (
-					86,
-					249,
-					251,
-					...
-				)
-				AND cards_productcard.is_checked = TRUE
-				AND cards_productcard.is_actual = TRUE
-				AND cards_productcard.brand_id IS NOT NULL
-				AND cards_productcard.code IS NOT NULL
-				AND cards_productcard.has_invalid_images = FALSE
-				AND cards_productcard.is_ready = TRUE
-				AND cards_productcard.is_checked = TRUE
-				AND cards_property.id IS NOT NULL
-				AND cards_productcard.date_formed_description IS NOT NULL
-			GROUP BY cards_productcard.id
-			HAVING COUNT(cards_productcardimage.id) > 0
-			ORDER BY cards_productcard.code ASC
-
-				0
-
-		korallmicro цены
-
-			SELECT
-			    distinct
-			    count(*)
-			FROM
-			    public.prices
-			WHERE
-			    pid IN (
-			        select 
-			            id 
-			        from 
-			            public.products
-			        where
-			            published = false
-			    )
-
-			    565
-
-		korallmicro остатки
-
-			SELECT
-			    distinct
-			    count(*)
-			FROM
-			    public.remains
-			WHERE
-			    pid IN (
-			        select 
-			            id 
-			        from 
-			            public.products
-			        where
-			            published = false
-			    )
-
-			    0
-
 	Описание проблемы
 
 		На сайтах korallmicro, snr и istore должно быть больше товаров чем есть на данный момент.
@@ -404,7 +242,7 @@
 
 		Правильно заданы вид-подвид (в названии регистр имеет значение).
 
-		Правильно заданы правила распределения.
+		(?) Правильно заданы правила распределения.
 
 	Условия magic при которых продукт должен попасть на сайт
 
@@ -416,7 +254,7 @@
 
 		Карточка товара имеет код, бренд, вид-тип, валидные картинки, заполненное поле "date_formed_description", статус "актуальна", слепок, готова к проверке, проверена.
 
-	Условия dp при которых продукту должны проставиться цены и остатки
+	(?) Условия dp при которых продукту должны проставиться цены и остатки
 
 		...
 
@@ -430,54 +268,232 @@
 
 		У продукта есть остатки и цены.
 
-	На 17.08.19 проблемы на этапах:
+	Узкие места из-за которых могут быть проблемы:
 
-		1c
+		1с
 
-			косяк с вид-подвид в распределении.
+			Номенклатура не привязана к каталогу.
 
-		новинки на коралле
+			Не правильно заданы правила распределения.
 
-			у каталога в котором находится товар не стоит галочка "приоритетная группа", а до этого стояла.
+			У номенклатуры неправильно задан вид-подвид. В названии обратить внимание на ригистр и id-ки.
 
-				231367
+		Magic
 
-				/catalog/catalog/281727/change/
+			Нет карточки товара для продукта.
 
-				Если у любого родительского каталога убрать галочку "приоритетная группа", то у вложенных она тоже исчезнет
+			Карточка товара не валидна.
 
-				    def set_priority_group(self):
-				        """Устанавливает новое значение атрибута is_priority_group для
-				        записи и всех ее вложенных записей.
+			Нет слепка карточки товара.
 
-				        """
-				        self.children.all().update(is_priority_group=self.is_priority_group)
-				        for nested in self.children.all():
-				            nested.set_priority_group()
+			Каталог в котором находится продукт не имеет галочки "Приоритетная группа". Эта галочка проставляется только в magic.
 
-				В таске sync_shop модуля каталог is_priority_group берется из magic
+		(?) Dp
 
-			+ все везде есть и всеравно товар не появляется в новинках
+			...
 
-				232483
-				
-				нет остатков
+		Сайт
 
-		magic
+			Продукт не попал в базу.
 
-			в 1С в виде-подвиде "смартфон-запчасть" (то есть в правилах распределения задано неправильно, а в magic все правильно - "смартфон-смартфон" и на сайте тоже в смартфонах.
+			Продукт не опубликован.
 
-				Cмартфон
+			Группа в которую распределен продукт не приоритетная.
 
-					198186
+			У продукта нет цен и остатков.
 
-		dp
+	Как в 1с проверить номенклатуру
 
-			проблемы с синхронизацией цен и остатков.
+		SELECT 
+			*
+		FROM 
+			1C_8_RAW.Номенклатура
+		WHERE
+			-- подставляем свой код или uid номенклатуры
+			Код = 212149 или uid = '183c48dd-b732-11e8-80d6-6805ca44419c'
+				AND
+			-- созданные минимум 12 часов назад
+			ДатаСоздания <= date_add(now(),interval -12 hour)
 
-	Изначально продукты создаются в 1с.
+		В этих полях должны быть следующие занчения:
 
-	Из 1с продукты выгружаются в бд 1c_8_raw.
+			СнятаСПродажи = 0/1 (никакой роли не играет, но вводит в заблуждение, поэтому написал о нем)
+
+			НеДляПродажи = 0
+
+			НеДляРозницы = 0/1 (если 1, то не должен отображаться на korallmicro)
+
+			НеДляСНР = 0/1 (если 1, то не должен отображаться на snr)
+
+			_ПометкаУдаления = 0
+
+	Как в 1с проверить, что номенклатура привязана к каталогу нужного сайта
+
+		У каждого каталога есть план обмена.
+
+		Для каждого магазина есть план обмена с таким же именем.
+
+		Если нам нужно проверить, что номенклатура привязана к каталогу магазина korallmicro, то у каталога должен быть план обмена с именем korallmicro.
+
+		Одна и таже номенклатура может быть привязана к каталогам разных магазинов.
+
+			SELECT
+			    КаталогиИнтернетМагазина.Наименование AS catalog,
+			    ПланОбмена.Наименование AS shop
+			FROM
+			    1C_8_RAW.КаталогиИнтернетМагазина
+			        JOIN
+			    1C_8_RAW.ПланОбмена ON КаталогиИнтернетМагазина.ПланОбмена = ПланОбмена.uid
+			WHERE
+			    КаталогиИнтернетМагазина.uid IN (
+					SELECT 
+					    КаталогИнтернетМагазина
+					FROM
+					    1C_8_RAW.СвязиКаталоговИнтернетМагазина
+					WHERE
+						-- подставляем свой uid номенклатуры
+						Номенклатура = '00028cb9-b1fd-11e2-93f1-002655df3ac1'
+				);
+
+		Обращаем внимание на значение в поле "shop" и если находим нужный, то значит номенклатура привязана к каталогу.
+
+	Как в 1с посмотреть кол-во номенклатуры, которая связана с каталогами нужного магазина
+
+		Для смены магазина подставляем нужное значение на место 'Korallmicro' в запросе.
+
+		Возможные варианты смотреть в таблице ПланыОбмена базы 1C_8_RAW:
+
+			SELECT 
+				*
+			FROM 
+				1C_8_RAW.ПланОбмена;
+
+		SELECT 
+		    COUNT(*)
+		FROM
+		    1C_8_RAW.Номенклатура
+		WHERE
+		    uid IN (
+		    	SELECT 
+		            Номенклатура
+		        FROM
+		            1C_8_RAW.СвязиКаталоговИнтернетМагазина
+		        WHERE
+		            КаталогИнтернетМагазина IN (
+		            	SELECT 
+		                    uid
+		                FROM
+		                    1C_8_RAW.КаталогиИнтернетМагазина
+		                WHERE
+		                    ПланОбмена = (
+								SELECT 
+								    uid
+								FROM
+								    1C_8_RAW.ПланОбмена
+								WHERE
+								    Наименование = 'Korallmicro'
+								        AND _ПометкаУдаления = 0
+		                    )
+		            )
+		    )
+	        AND НеДляПродажи = 0
+	        AND НеДляРозницы = 0
+	        AND _ПометкаУдаления = 0
+	        AND ДатаСоздания <= DATE_ADD(NOW(), INTERVAL - 12 HOUR);
+
+	Как проверить, что после синхронизации продукт попал в magic
+
+		SELECT
+			product.code,
+			product.name,
+			catalog.name AS catalog,
+			catalog.type AS shop
+		FROM
+			magic.catalog_products AS product
+				JOIN
+			magic.catalog_distributions AS catalog_product ON catalog_product.product_id = product.code
+				JOIN
+			magic.catalog_catalog AS catalog ON catalog.id = catalog_product.catalog_id
+		WHERE
+			-- подставить нужный код
+			product.code = 47633;
+
+		Обращаем внимание на каталог в который он попал и к какому магазину этот каталог относится.
+
+		Сравниваем данные с данными из 1C_8_RAW.
+
+	Как проверить, что в magic для продукта есть полностью валидная карточка товара
+
+		SELECT
+			cards_productcard.code 
+		FROM
+			magic.cards_productcard
+				LEFT OUTER JOIN
+			magic.cards_productcardimage ON cards_productcard.id = cards_productcardimage.card_id
+				INNER JOIN
+			magic.cards_kind ON cards_productcard.kind_id = cards_kind.id
+				INNER JOIN
+			magic.cards_property ON cards_kind.id = cards_property.kind_id
+		WHERE
+			cards_productcard.code = 89
+			AND cards_productcard.is_checked = TRUE
+			AND cards_productcard.is_actual = TRUE
+			AND cards_productcard.brand_id IS NOT NULL
+			AND cards_productcard.code IS NOT NULL
+			AND cards_productcard.has_invalid_images = FALSE
+			AND cards_productcard.is_ready = TRUE
+			AND cards_productcard.is_checked = TRUE
+			AND cards_property.id IS NOT NULL
+			AND cards_productcard.date_formed_description IS NOT NULL
+		GROUP BY cards_productcard.id
+		HAVING COUNT(cards_productcardimage.id) > 0
+		ORDER BY cards_productcard.code ASC
+
+		------
+
+		ProductCard.objects.filter(
+			date_formed_description__isnull=False
+		).get_checked().get_actual().get_verified()
+
+	Как посмотреть в magic карточки товара помеченные, как "проверена" за определенный срок
+
+		bin/manage shell
+
+		from cards.models import *
+
+		list(
+			ProductCard.objects.filter(
+				date_checked__gte=datetime(2019, 9, 18), date_formed_description__isnull=False
+			).values_list(
+				'code', 
+				flat=True
+			)
+		)
+
+	Как 
+
+-----------------------------------------------------------------------------------------------------------
+
+
+	у каталога в котором находится товар не стоит галочка "приоритетная группа", а до этого стояла.
+
+		231367
+
+		/catalog/catalog/281727/change/
+
+		Если у любого родительского каталога убрать галочку "приоритетная группа", то у вложенных она тоже исчезнет
+
+		    def set_priority_group(self):
+		        """Устанавливает новое значение атрибута is_priority_group для
+		        записи и всех ее вложенных записей.
+
+		        """
+		        self.children.all().update(is_priority_group=self.is_priority_group)
+		        for nested in self.children.all():
+		            nested.set_priority_group()
+
+		В таске sync_shop модуля каталог is_priority_group берется из magic
+
 
 	Из бд 1c_8_raw продукты выгружаются в бд magic, таблица ones_products.
 
@@ -485,272 +501,54 @@
 
 	Из бд magic продукты попадают в бд конкретных сайтов (korallmicro, snr, istore).
 
-	Условия по которым продукт считается пригодным для выгрузки:
-
-		СнятаСПродажи = 0/1
-
-		НеДляПродажи = 0
-
-		НеДляРозницы = 0
-
-		_ПометкаУдаления = 0
-
-		# созданные минимум 12 часов назад
-		ДатаСоздания <= date_add(now(),interval -12 hour)
-
 	Из 1с в magic идет выгрузка в таблицы из модуля ones в таске sync_db.
 
 	Затем для каждого магазина запускается таск sync_shop.
 
 	Внутри таска sync_shop сначала идет распределение продуктов в magic по таблицам catalog_products, catalog_catalog и catalog_distributions c помощью метода sync, а затем уже в бд конкретного магазина.
 
-	Korallmicro
 
-		Выгрузка товаров из 1с в 1c_8_raw
 
-			SELECT 
-				COUNT(*)
-			FROM 
-				1C_8_RAW.Номенклатура
-			WHERE
-				uid IN (
-					SELECT 
-						Номенклатура
-					FROM
-						1C_8_RAW.СвязиКаталоговИнтернетМагазина
-					WHERE
-						КаталогИнтернетМагазина IN (
-							SELECT
-								uid
-							FROM
-								1C_8_RAW.КаталогиИнтернетМагазина
-							WHERE
-								ПланОбмена = (
-									SELECT 
-										uid
-									FROM 
-										1C_8_RAW.ПланОбмена
-									WHERE
-										Наименование = 'Korallmicro'
-								)
-							AND
-								_ПометкаУдаления = 0
-						)
-				)
-			AND
-				НеДляПродажи = 0
-			AND
-				НеДляРозницы = 0
-			AND
-				_ПометкаУдаления = 0
-			AND
-				ДатаСоздания <= date_add(now(),interval -12 hour);
+	Запросы
 
-			>>> 25101
-
-		Выгрузка товаров из 1c_8_raw в magic
+		korallmicro цены
 
 			SELECT
-				COUNT(*)
+			    distinct
+			    count(*)
 			FROM
-				magic.catalog_products as p
-			JOIN
-				magic.catalog_distributions as d
-			ON
-				d.product_id = p.code
-			JOIN
-				magic.catalog_catalog as c
-			ON
-				c.id = d.catalog_id
+			    public.prices
 			WHERE
-				c.type = 'korallmicro';
+			    pid IN (
+			        select 
+			            id 
+			        from 
+			            public.products
+			        where
+			            published = false
+			    )
 
-			>>> 23202
+			    565
 
-		Те у которых нет связи с каталогом korallmicro
-
-			SELECT 
-				COUNT(*)
-			FROM 
-				1C_8_RAW.Номенклатура
-			WHERE
-				uid IN (
-					SELECT 
-						Номенклатура
-					FROM
-						1C_8_RAW.СвязиКаталоговИнтернетМагазина
-					WHERE
-						КаталогИнтернетМагазина IN (
-							SELECT
-								uid
-							FROM
-								1C_8_RAW.КаталогиИнтернетМагазина
-							WHERE
-								ПланОбмена = (
-									SELECT 
-										uid
-									FROM 
-										1C_8_RAW.ПланОбмена
-									WHERE
-										Наименование = 'Korallmicro'
-								)
-							AND
-								_ПометкаУдаления = 0
-						)
-				)
-			AND
-				НеДляПродажи = 0
-			AND
-				НеДляРозницы = 0
-			AND
-				_ПометкаУдаления = 0
-			AND
-				ДатаСоздания <= date_add(now(),interval -12 hour)
-			AND
-				Код NOT IN (
-					SELECT
-						p.code
-					FROM
-						magic.catalog_products as p
-					JOIN
-						magic.catalog_distributions as d
-					ON
-						d.product_id = p.code
-					JOIN
-						magic.catalog_catalog as c
-					ON
-						c.id = d.catalog_id
-					WHERE
-						c.type = 'korallmicro'
-				)
-			ORDER BY ДатаСоздания DESC
-
-			>>> 1943
-
-		Провереям, что у 1943 продуктов нет связи с каталогом korallmicro, а должна быть
-
-			SELECT 
-			    p.code, c.type
-			FROM
-			    magic.catalog_products AS p
-			        JOIN
-			    magic.catalog_distributions AS d ON d.product_id = p.code
-			        JOIN
-			    magic.catalog_catalog AS c ON c.id = d.catalog_id
-			WHERE
-			    p.code IN (
-			        219587,
-			        203907
-			    );
-
-		Провереям, что у 1943 продуктов есть связи с каталогом korallmicro в 1с_8_raw
+		korallmicro остатки
 
 			SELECT
-				count(*)
-				product.Код,
-				category_product.КаталогИнтернетМагазина
+			    distinct
+			    count(*)
 			FROM
-			    1C_8_RAW.Номенклатура AS product
-			        JOIN
-			    1C_8_RAW.СвязиКаталоговИнтернетМагазина AS category_product ON category_product.Номенклатура = product.uid
-					JOIN
-				1C_8_RAW.КаталогиИнтернетМагазина AS category ON category.uid = category_product.КаталогИнтернетМагазина
+			    public.remains
 			WHERE
-				category.ПланОбмена = (
-					SELECT
-						plan.uid
-					FROM
-						1C_8_RAW.ПланОбмена AS plan
-					WHERE
-						plan.Наименование = 'korallmicro'
-				)
-				AND
-					product.Код IN (
-						213787, 
-						206999,
-					);
+			    pid IN (
+			        select 
+			            id 
+			        from 
+			            public.products
+			        where
+			            published = false
+			    )
 
-		Смотрим продукт 1с - magic
+			    0
 
-			SELECT 
-			    *
-			FROM
-			    1C_8_RAW.Номенклатура
-			WHERE
-				Код = 184512;
-
-			------
-
-			SELECT 
-			    *
-			FROM
-			    magic.catalog_products
-			WHERE
-			    code = 213787;
-
-		Смотрим связь продукта с категорией 1с - magic
-
-			SELECT 
-			    *
-			FROM
-			    1C_8_RAW.СвязиКаталоговИнтернетМагазина
-			WHERE
-				Номенклатура = '33ebd596-a479-11e9-80e1-6805ca44419c';
-
-			------
-
-			SELECT 
-			    *
-			FROM
-			    magic.catalog_distributions
-			WHERE
-			    product_id = 213787;
-
-		Смотрим категории 1с - magic
-
-			SELECT 
-			    КаталогиИнтернетМагазина.uid,
-			    КаталогиИнтернетМагазина.Наименование,
-			    ПланОбмена.Наименование
-			FROM
-			    1C_8_RAW.КаталогиИнтернетМагазина
-			        JOIN
-			    1C_8_RAW.ПланОбмена ON КаталогиИнтернетМагазина.ПланОбмена = ПланОбмена.uid
-			WHERE
-			    КаталогиИнтернетМагазина.uid IN (
-					'61863006-f59c-11e1-82bc-002655df3ac1',
-			        '801059df-1fbd-11e9-80d9-6805ca44419c',
-			        'bd15d28a-2714-11e5-80d9-001b21d8d330',
-			        'd155349c-fd61-11e5-93f9-001b21d8d330'
-				);
-
-			-------
-
-			SELECT
-				full_name,
-				type
-			FROM
-				magic.catalog_catalog
-			WHERE
-				id IN (318290);
-
-		Смотрим наличие карточки товара в magic и стоит ли date_formed_description
-
-			SELECT 
-			    *
-			FROM
-			    magic.cards_productcard
-			WHERE
-				code = 213787;
-
-		Смотрим есть ли слепок карточки товара
-
-			SELECT 
-			    *
-			FROM
-			    magic.cards_productcarddescription
-			WHERE
-				card_id = 60627;
 
 		Смотрим остатки 1с - dp
 
@@ -794,12 +592,6 @@
 			WHERE 
 				pid=197416;
 
-			------
-
-			from sales_base_models.models import * 
-
-			Prices.objects.filter(sid=Site.objects.get(subdomain='www').pk, pid=184512)
-
 		Смотрим наличие продукта в базе магазина
 
 			SELECT 
@@ -827,157 +619,18 @@
 				WHERE
 					code = 225550;
 
-			Цепочка
-
-				184512, 228869, 197416
-
-					Номенклатура
-
-						Нет пометок
-
-						SELECT 
-						    *
-						FROM
-						    1C_8_RAW.Номенклатура
-						WHERE
-							Код = 197416;
-
-					Распределение каталогов сайтов
-
-						"Иерархия объектов обмена"
-
-						Не указал папку
-
-						Не указал правильный вид-подвид
-
-						Вид-подвид не соответсвовал группе
-
-						Папка и бери из неё все
-
-					Мэджик каталоги
-
-						Если видит, то супер
-
-					Мэджик карточка
-
-						Фото, валидация
-
-					В dp "цены и остатки"
-
-						korallmicro
-
-						поиск по всем каталогам
-
-						смотрю папку в иерархии dp
-
-						есть тип цены, но он не влияет на выгрузку
-
-							инэт магаз
-
-							по акции
-
-							ррц рекомендуемая розничная цена производителя
-
-					Закупка кладет товар в папку
-
-						"Если решили переложить в другую папку, то он просто пропадает"
-
--------
-
-string 'getProducts' (length=11)
-array (size=1)
- 'where' =>
-   array (size=4)
-     0 => string '"product"."id" not in (select "pid" from "disabled" where "sid" = 49 and "gid" is null)' (length=87)
-     1 => string 'product.id in (select "pid" from "distributions" where "gid" in (select "gid" from "catalogs" where "is_priority_group" is true))' (length=129)
-     2 => string '"product"."new" is true' (length=23)
-     3 => string '"remain"."km_value" + "remain"."dealer_value" +  "remain"."transit_value"> 0' (length=76)
-Array ( [where] => Array ( [0] => "product"."id" not in (select "pid" from "disabled" where "sid" = 49 and "gid" is null) [1] => product.id in (select "pid" from "distributions" where "gid" in (select "gid" from "catalogs" where "is_priority_group" is true)) [2] => "product"."new" is true [3] => "remain"."km_value" + "remain"."dealer_value" + "remain"."transit_value"> 0 ) )
-
----------
-
 select * from public.products where id = 231367;
 
 select * from public.distributions where pid = 231367;
 
 select * from public.catalogs where gid = 281727;
 
-select * from public.remains where pid = 281727;
-
-	если остатков нет, то нет записи
+select * from public.remains where pid = 281727; (если остатков нет, то нет записи)
 
 select * from public.prices where pid = 281727;
 
 
 ---------
-
-
-Коды продуктов проведенных за определенный срок
-
-	from cards.models import *
-
-	list(
-		ProductCard.objects.filter(
-			date_checked__gte=datetime(2019, 9, 18), date_formed_description__isnull=False
-		).values_list(
-			'code', 
-			flat=True
-		)
-	)
-
-Получим все uid продуктов
-
-	SELECT 
-	    uid
-	FROM
-	    1C_8_RAW.Номенклатура
-	WHERE
-	    Код IN (229630 , 229631,
-	        229633,
-	        229634,
-	        ...
-	    );
-
-Проверим, что каждый привязан к каталогу коралла и он не помечен на удаление
-
-	SELECT 
-	    *
-	FROM
-	    1C_8_RAW.СвязиКаталоговИнтернетМагазина AS category_product
-	WHERE
-	    category_product.Номенклатура IN (
-			'003f2a6a-d2e8-11e9-80e1-6805ca44419c', 
-	        '0c3c8cdc-d2e0-11e9-80e1-6805ca44419c'
-	        ...
-		);
-
-		SELECT 
-		    COUNT(*)
-		FROM
-		    1C_8_RAW.СвязиКаталоговИнтернетМагазина AS category_product
-		        JOIN
-		    1C_8_RAW.КаталогиИнтернетМагазина AS category ON category.uid = category_product.КаталогИнтернетМагазина
-		        AND category.ПланОбмена = (
-					SELECT 
-						uid
-					FROM
-						1C_8_RAW.ПланОбмена
-					WHERE
-						Наименование = 'korallmicro'
-				)
-		WHERE
-		    category_product.Номенклатура IN (
-				'003f2a6a-d2e8-11e9-80e1-6805ca44419c', 
-		        '0c3c8cdc-d2e0-11e9-80e1-6805ca44419c'
-		        ...
-			);
-
-	Тоже самое сделаем в magic
-
-Проверим цены и остатки по этим продуктам
-
-
---------
 
 
 Мебель
