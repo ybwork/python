@@ -105,10 +105,152 @@ Two scoops of Django
 						flavor.py
 						ingredient.py
 
-			Но это не самый лучший подход, потому что приложений может быть много и файлов внутри каждого views тоже. И через время это будет сложно поддерживать, потому что логика будет размазана.
-
 		Независимо от того, какая структура будет выбрана стоит помнить и постараться вынести бизнес-логику из файлов views.py или viewsets.py
+
+	Версии api
+
+		Хорошей практикой является указания версии api в url-е.
+
+			/api/v1/flavors
+
+		Так же версионность api позволяет старым пользователям пользоваться ими не изменяя приложения и если есть желание или необходимость потихоньку переходить на новые.
 
 		Создавать для каждой версии api отдельное приложение это плохой подход, потому что много кода будет дублироваться.
 
-		Стоп на 230
+	Аутентификация
+
+		Всеравно использовать CSRF (Unless we are writing a non-cookie based scheme, we don’t disable CSRF)
+
+	Remote Procedure Calls (RPC) vs REST API
+
+		Мы имеем 2 отдельных сущности: сироп и мороженное.
+
+		Мы можем создавать их, получать, редактировать, удалять.
+
+			/sundae/ - GET, POST
+			/sundae/id/ - PUT, DELETE
+
+			/syrup/ - GET, POST
+			/syrup/id/ - PUT, DELETE
+
+		Все эти действия делаются по отдельности для каждой сущности и это правильно.
+
+		Но что если нам нужно полить мороженное сиропом?
+
+			Должно уменьшиться кол-во сиропа и поменяться состояние сиропа.
+
+			И тут возникает проблема, потому что REST API предполагает работу с каждой отдельной сущностью
+
+				/syrup/ - GET, POST
+
+				/sundae/ - GET, POST
+
+			А тут нужно последовательный набор действий с разными сущностями.
+
+		Для этого можно воспользоваться RPC (вызов удаленной процедуры) или другими словами предоставить в API метод, который нальет сироп на мороженное.
+
+			/sundae/id/syrup/ - GET, POST
+
+			class PourSyrupOnSundaeView(APIView):
+				"""View dedicated to adding syrup to sundaes"""
+
+				def post(self, request, *args, **kwargs):
+					sundae = get_object_or_404(Sundae, uuid=request.data['uuid'])
+
+					try:
+						sundae.add_syrup(request.data['syrup'])
+					except Sundae.TooManySyrups:
+						msg = "Sundae already maxed out for syrups"
+						return Response({'message': msg}, status_code=400)
+					except Syrup.DoesNotExist
+						msg = "{}
+						does not exist".format(request.data['syrup'])
+						return Response({'message': msg}, status_code=404)
+
+					return Response(SundaeSerializer(sundae).data)
+
+
+				def get(self, request, *args, **kwargs):
+					sundae = get_object_or_404(Sundae, uuid=request.data['uuid'])
+					syrups = [SyrupSerializer(x).data for x in sundae.syrup_set.all()]
+					return Response(syrups)
+
+		Работа с несколькими сущностями
+
+			Иногда сущности связаны и нужно работать с этими связями.
+
+			Например автор написал много книг
+
+				/authors/id/books/
+
+			Или например нам нужна конкретная книга, конкретного автора
+
+				/authors/id/books/id
+
+			Или нам нужно сделать ещё какие-либо действия
+
+				/authors/id/books/ - GET, POST
+
+				/authors/id/books/id - PUT, DELETE
+
+			По такому же принципу сделано api например stripe
+
+				https://stripe.com/docs/api/cards
+
+					/v1/customers/:id/sources
+
+					/v1/customers/:id/sources/:id
+
+		Закрытие старой версии api
+
+			Перед закрытием нужно информировать пользователей api.
+
+			Так же можно отправлять в ответ на запросы код 410 с сообщением о закрытии версии api и ссылкой на документацию новой версии.
+
+		Ограничение кол-ва запросов в промежуток времени
+
+			В целях безопастности и защиты от ddos атак рекомендуется устанавливать лимиты на кол-во запросов от какого то одного источника в определенный промежуток времени.
+
+			Можно установить лимит через сервер, а можно с помощью кода.
+
+		Документация
+
+			Предлагают использовать readthedocs.com или swagger.io
+
+		Запрос-ответ
+
+			Часто возникают проблемы со скоростью.
+
+			Имеется ввиду время на отправку запроса серверу, обработка сервером запроса, отправка сервером ответа, обработка клиента ответа.
+
+			Особенно это заметно, когда запрос идет из одной точки мира в другую.
+
+			Варианты решения проблемы:
+
+				Javascript анимации, которые мы наблюдаем во многих spa (single page aplication). 
+
+				Обработка на стороне клиента, как будто запрос был успешно выполнен с дальнейшим продолжением работы. То есть асинхронность. Говорим пользователю, что все ок и пока он продолжает работать отправялем данные на сервер.
+
+					Думаю с помощью промисов это реализованно.
+
+				Сервера на 7 континентах мира. Можно сделать с помощью поднятия отдельных полноценных приложений на каждом сервере и отправки запроса на ближайший.
+
+		Анти-паттерны при реализации Api
+
+			Использование spa там, где это не нужно и где важная работа поискового робота.
+
+			Переводить старые сайты на spa.
+
+			Отсутсвие тестов для front-end и back-end.
+
+			Не понимание, как работает память в JavaScript.
+
+				"Single-page apps are great, but the complex implementations where users keep them open constantly will hold objects in the browser for a very long time. Eventually, if not managed, this can cause browser slowdowns and crashes. Each JavaScript framework comes with tools or advice on how to handle this potential problem, and it’s a good idea to know the recommended approach."
+
+		Советы
+
+			Не отключать CSRF, потому что это важная часть безопастности фреймворка и приложения.
+
+			17.5.1 на 248 Спросить у Вити.
+
+		Стоп на 241

@@ -309,8 +309,8 @@
 		FROM 
 			1C_8_RAW.Номенклатура
 		WHERE
-			-- подставляем свой код или uid номенклатуры
-			Код = 212149 или uid = '183c48dd-b732-11e8-80d6-6805ca44419c'
+			-- подставляем свой код
+			Код = 212149
 				AND
 			-- созданные минимум 12 часов назад
 			ДатаСоздания <= date_add(now(),interval -12 hour)
@@ -401,6 +401,25 @@
 	        AND _ПометкаУдаления = 0
 	        AND ДатаСоздания <= DATE_ADD(NOW(), INTERVAL - 12 HOUR);
 
+	(?) Как посмотреть в 1с вид-подвид номенклатуры
+
+		SELECT 
+		    Номенклатура.Код AS код,
+		    Номенклатура.Наименование AS название,
+		    КаталогиИнтернетМагазина.Наименование AS каталог,
+		    ВидыТипыБренды.Наименование AS вид
+		FROM
+		    1C_8_RAW.Номенклатура
+		        JOIN
+		    1C_8_RAW.ВидыПодвидыКаталогов ON ВидыПодвидыКаталогов.ВидНоменклатуры = Номенклатура.Вид
+		        AND ВидыПодвидыКаталогов.ПодвидНоменклатуры = Номенклатура.Тип
+		        JOIN
+		    1C_8_RAW.КаталогиИнтернетМагазина ON КаталогиИнтернетМагазина.uid = ВидыПодвидыКаталогов.Идентификатор
+				JOIN
+			1C_8_RAW.ВидыТипыБренды ON ВидыТипыБренды.uid IN (Номенклатура.Вид, Номенклатура.Тип)
+		WHERE
+		    Номенклатура.Код = 192825;
+
 	Как проверить, что после синхронизации продукт попал в magic
 
 		SELECT
@@ -449,6 +468,8 @@
 		HAVING COUNT(cards_productcardimage.id) > 0
 		ORDER BY cards_productcard.code ASC
 
+		Если запрос вернул код продукта занчит с картокой продукта все в порядке.
+
 		------
 
 		ProductCard.objects.filter(
@@ -470,10 +491,82 @@
 			)
 		)
 
-	Как 
+	Как проверить, что после синхронизации с magic продукт попал в бд магазина
+
+		SELECT 
+		    product.id AS code,
+			product.uuid AS uid,
+			product.published,
+			product.new,
+			category.name AS category,
+			category.is_priority_group
+		FROM
+		    public.products AS product
+		 		JOIN
+		 	public.distributions AS category_product ON category_product.pid = product.id
+		  		JOIN
+		 	public.catalogs AS category ON category.gid = category_product.gid
+		WHERE
+		    product.id = 231367;
+
+		Обратить внимание на поля и значения:
+
+			published - true
+
+			is_priority_group - true
+
+	Как в 1с проверить, что у номенклатуры есть остатки
+
+		Нюансы:
+
+			если остатков нет, то нет и записи
+
+		SELECT 
+			*
+		FROM
+			1C_8_RAW.Остатки
+		WHERE
+			-- подставляем свой uid номенклатуры
+			Номенклатура = '0978b6c9-cbb4-11e8-80d7-6805ca44419c';
+
+	Как проверить в бд магазина, что у продукта есть остатки
+
+		Нюансы:
+
+			pid == коду продукта
+
+			если остатков нет, то нет и записи
+
+			если в полях нулевые значения, то товар должен отображаться на сайте с пометкой "под заказ"
+
+		SELECT 
+		    *
+		FROM
+		    public.remains
+		WHERE
+			-- подставляем свой pid
+		    pid = 281727;
+
+	Как в 1с проверить, что у номенклатуры есть цены
+
+		SELECT 
+		    *
+		FROM
+		    1C_8_RAW.Цены
+		WHERE
+		    Номенклатура = '21609ef0-3b93-11e7-80c7-6805ca44419c';
+
+	Как проверить в бд магазина, что у продукта есть цены
+
+		SELECT 
+			*  
+		FROM 
+			public.prices 
+		WHERE
+			-- подставляем свой pid
+			pid=197416;
 
 -----------------------------------------------------------------------------------------------------------
-
 
 	у каталога в котором находится товар не стоит галочка "приоритетная группа", а до этого стояла.
 
@@ -506,129 +599,6 @@
 	Затем для каждого магазина запускается таск sync_shop.
 
 	Внутри таска sync_shop сначала идет распределение продуктов в magic по таблицам catalog_products, catalog_catalog и catalog_distributions c помощью метода sync, а затем уже в бд конкретного магазина.
-
-
-
-	Запросы
-
-		korallmicro цены
-
-			SELECT
-			    distinct
-			    count(*)
-			FROM
-			    public.prices
-			WHERE
-			    pid IN (
-			        select 
-			            id 
-			        from 
-			            public.products
-			        where
-			            published = false
-			    )
-
-			    565
-
-		korallmicro остатки
-
-			SELECT
-			    distinct
-			    count(*)
-			FROM
-			    public.remains
-			WHERE
-			    pid IN (
-			        select 
-			            id 
-			        from 
-			            public.products
-			        where
-			            published = false
-			    )
-
-			    0
-
-
-		Смотрим остатки 1с - dp
-
-			SELECT 
-			    *
-			FROM
-			    1C_8_RAW.Остатки
-			WHERE
-			    Номенклатура = '0978b6c9-cbb4-11e8-80d7-6805ca44419c';
-
-			------
-
-			SELECT 
-				* 
-			FROM 
-				public.remains 
-			WHERE 
-				pid=197416;
-
-			------
-
-			from sales_base_models.models import * 
-
-			Remains.objects.filter(sid=Site.objects.get(subdomain='www').pk, pid=184512)
-
-		Смотрим наличие цены 1с - dp
-
-			SELECT 
-			    *
-			FROM
-			    1C_8_RAW.Цены
-			WHERE
-			    Номенклатура = '21609ef0-3b93-11e7-80c7-6805ca44419c';
-
-			------
-
-			SELECT 
-				*  
-			FROM 
-				public.prices 
-			WHERE 
-				pid=197416;
-
-		Смотрим наличие продукта в базе магазина
-
-			SELECT 
-				* 
-			FROM 
-				public.products 
-			WHERE 
-				id=197416;
-
-		Вид-тип-бренд и каталог
-
-			Нет нужной связи в catalog_distributions и она не может сформироваться, потому что product_uuids = get_product_uuids_for_sale, не берет нужный продукт из-за отсутсвия нужной связи вид-типа-бренда и каталога
-
-				SELECT 
-				    *
-				FROM
-				    magic.catalog_rules;
-
-			Где взять vtb_id
-
-				SELECT 
-				    vtb_id
-				FROM
-				    magic.ones_products
-				WHERE
-					code = 225550;
-
-select * from public.products where id = 231367;
-
-select * from public.distributions where pid = 231367;
-
-select * from public.catalogs where gid = 281727;
-
-select * from public.remains where pid = 281727; (если остатков нет, то нет записи)
-
-select * from public.prices where pid = 281727;
-
 
 ---------
 
