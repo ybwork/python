@@ -432,19 +432,77 @@
 
 		bin/celery call -A app_celery sync --queue=default
 
-	25.09.19
+			чтобы корректно отработал нужно DEBUG = False
 
-		конкретно по этому товару - точку останова можно сюда поставить:
-		   neighbor_remains = {}
-		modules/main/tasks/profiles.py
-		вероятно
-		по товару 187231
+	Цепочка
 
-		-------
+		/modules/main/tasks/__init__.py
 
-		Я правильно понимаю, что все отрабатывает, но как бы и не все?))))
-		shadow 2:51 PM
-		или по товарам еще, которые есть в остатках в 1С (рав), но нет на коралле
-		ага)
-		отрабатывают синки, не падая
-		но странности какие-то возникают
+			def sync(self):
+
+				FilialSync().si()
+
+		/modules/main/tasks/remains_and_dealer_prices.py
+
+			self.sync_remains(agreement_uuid, main_store_uuids, stores)
+
+				self.sync(agreement_uuid, main_remains_dict, current_main_remain_dict, 'main_remain')
+
+	Запросы
+
+		select	
+			*
+		from
+			public.main_product
+		where
+			code = 187231
+
+		--
+
+		select
+			*
+		from
+			public.main_price
+		where
+			id = 187231
+
+		--
+
+		select
+			*
+		from
+			public.main_remains
+		where
+			product_id = '506d8386-5ff9-11e7-80c8-6805ca44419c'
+
+		--
+
+		select
+			*
+		from
+			public.main_dealersite
+		where
+			id in (1, 28)
+
+	Лента
+
+		25.09.19
+
+			конкретно по этому товару - точку останова можно сюда поставить:
+			   neighbor_remains = {}
+			modules/main/tasks/profiles.py
+			вероятно
+			по товару 187231
+
+			-------
+
+			Я правильно понимаю, что все отрабатывает, но как бы и не все?))))
+			shadow 2:51 PM
+			или по товарам еще, которые есть в остатках в 1С (рав), но нет на коралле
+			ага)
+			отрабатывают синки, не падая
+			но странности какие-то возникают
+
+		26.09.19
+
+			Нет остатков в таблице main_remains
