@@ -247,10 +247,18 @@ Two scoops of Django
 
 				"Single-page apps are great, but the complex implementations where users keep them open constantly will hold objects in the browser for a very long time. Eventually, if not managed, this can cause browser slowdowns and crashes. Each JavaScript framework comes with tools or advice on how to handle this potential problem, and it’s a good idea to know the recommended approach."
 
+			Хранение данных в DOM-дереве
+
+				"After years of using jQuery, some of us have grown used to using DOM elements to store data (especially Daniel). However, when using other JavaScript frameworks this isn’t ideal. They have their own mechanisms for handling client data, and by not following them we risk losing out on some of the features promised by these frameworks. We recommend looking up the data management methods for your chosen JavaScript framework and embracing them as deeply as possible."
+
 		Советы
 
 			Не отключать CSRF, потому что это важная часть безопастности фреймворка и приложения.
 
-			17.5.1 на 248 Спросить у Вити.
+			Установить CSRF_COOKIE_HTTPONLY в True для того, чтобы нельзя было получить CSRF из куки.
 
-		Стоп на 241
+				CSRF определяется на странице и с помощью js мы берем его и отправляем.
+
+				<html>
+					{% csrf_token %}
+				</html>
