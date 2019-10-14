@@ -1,6 +1,6 @@
-The rolling stones
+The rolling stones (1,)
 
-Pink Floyd
+Pink Floyd (1,)
 
 Ramones
 
@@ -12,7 +12,7 @@ Bad Religion
 
 Genesis
 
-W.A.S.P
+W.A.S.P (1,)
 
 Judas Priest
 
@@ -24,8 +24,24 @@ Motorhead
 
 Manowar
 
-Iron Savior
+Iron Savior (1,)
 
 Blind Guardian
+
+Halloween
+
+Primal Fear (1,)
+
+Van hallen
+
+Twisted sister
+
+Rage (1,)
+
+Dio
+
+Nofx
+
+The misfits
 
 Nirvana
