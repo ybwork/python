@@ -1,6 +1,6 @@
-The rolling stones (1,)
+The rolling stones
 
-Pink Floyd (1,)
+Pink Floyd
 
 Ramones
 
@@ -12,7 +12,7 @@ Bad Religion
 
 Genesis
 
-W.A.S.P (1,)
+W.A.S.P
 
 Judas Priest
 
@@ -24,19 +24,19 @@ Motorhead
 
 Manowar
 
-Iron Savior (1,)
+Iron Savior
 
 Blind Guardian
 
 Halloween
 
-Primal Fear (1,)
+Primal Fear
 
 Van hallen
 
 Twisted sister
 
-Rage (1,)
+Rage
 
 Dio
 
