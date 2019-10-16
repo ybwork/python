@@ -2417,6 +2417,25 @@ QuerySet
 			    # поля формы
 			    fields = ['name']
 
+			Вместе с CreateView используется форма
+
+				<form action="" method="post">
+					{% csrf_token %}
+				    {{ form.as_p }}
+				    <input type="submit" value="Create"/>
+				</form>
+
+				Django ожидает увидеть эту форму в name_app и с названием namemodel_form.html
+
+					Чтобы изменить это поведение можно использовать:
+
+						template_name - для полного указания шаблона и его местоположения
+
+							class AuthorCreate(CreateView):
+								
+
+						template_name_suffix - для добавления суффикса к стандартному имени шаблона
+
 			Пример с использованием AJAX
 
 				views.py
