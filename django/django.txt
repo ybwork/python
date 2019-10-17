@@ -2836,11 +2836,67 @@ QuerySet
 
 	Наборы форм
 
-		...
+		Позволяют работать с множеством форм на одной странице
+
+			class ArticleForm(forms.Form):
+				title = forms.CharField()
+				pub_date = forms.DateField()
+
+			# extra задает кол-во пустых форм
+			# max_num ограничивает кол-во пустых форм
+			# validate_max проверяет, что общее количество форм, без учета помеченных для удаления, не больше чем max_num 
+			# (будет ошибка даже если количество инициализированных форм превышает max_num)
+			# Независимо от validate_max, если количество форм превышает max_num на более чем 1000, будет ошибка валидации
+			# validate_min проверяет, что общее количество форм, без учета помеченных для удаления, больше или равно min_num
+			ArticleFormSet = formset_factory(ArticleForm, extra=2, max_num=1, validate_max=True, min_num=1 validate_min=True)
+
+			formset = ArticleFormSet()
+			for form in formset:
+				print(form.as_table())
+
+		Использование начальных данных с наборами форм
+
+			formset = ArticleFormSet(
+				initial=[
+					{
+						'title': 'Django is now open source',
+			     		'pub_date': datetime.date.today(),
+			     	}
+				]
+			)
+
+		Проверка набора форм
+
+			Набор форм обладает методом is_valid().
+
+				formset = ArticleFormSet(data)
+				formset.is_valid()
+
+			Другие методы набора форм при проверке
+
+				formset.errors
+				formset.total_error_count()
+				# изменились ли данные относительно начальных значений
+				formset.has_changed()
+				formset.total_form_count
+				# возвращает количество предварительно заполненных форм в наборе,
+				# а также используется для определения количества форм, обязательных для заполнения
+				formset.initial_form_count
+
+		Собственная проверка набора форм
+
+			Для этого набор форм имеет метод clean.
+
+				class BaseArticleFormSet(BaseFormSet):
+					def clean(self):
+						if any(self.errors):
+							return
 
 	Дополнительные возможности Django Form
 
 		Если ваша форма будет использоваться для создания или редактирования объекта модели, вы можете использовать ModelForm.
+
+	Стоп на Сортировка и удаление форм
 
 	Модельные формы
 

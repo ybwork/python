@@ -627,3 +627,152 @@
 				Смотреть в /modules/catalog/tasks.py
 
 				Метод sync, который вызывается в задаче sync_shop
+
+	Как построить отчет для заказчика
+
+		кол-во товаров в 1c_8_raw по конкретному сайту
+
+			SELECT 
+			    COUNT(*)
+			FROM
+			    1C_8_RAW.Номенклатура
+			WHERE
+			    uid IN (
+			    	SELECT 
+			            Номенклатура
+			        FROM
+			            1C_8_RAW.СвязиКаталоговИнтернетМагазина
+			        WHERE
+			            КаталогИнтернетМагазина IN (
+			            	SELECT 
+			                    uid
+			                FROM
+			                    1C_8_RAW.КаталогиИнтернетМагазина
+			                WHERE
+			                    ПланОбмена = (
+									SELECT 
+									    uid
+									FROM
+									    1C_8_RAW.ПланОбмена
+									WHERE
+									    Наименование = 'Korallmicro'
+									        AND _ПометкаУдаления = 0
+			                    )
+			            )
+			    )
+		        AND НеДляПродажи = 0
+		        AND НеДляРозницы = 0
+		        AND _ПометкаУдаления = 0;
+
+		кол-во карточек товара в magic
+
+			SELECT
+				count(*)
+			FROM
+				magic.cards_productcard
+
+		кол-во актуальных (в продаже), готовых к проверке и проверенных карточек товара в magic
+
+			SELECT
+				count(*)
+			FROM
+				magic.cards_productcard
+			WHERE
+				cards_productcard.is_actual = TRUE
+	 			AND cards_productcard.is_ready = TRUE
+	 			AND cards_productcard.is_checked = TRUE;
+
+		кол-во карточек товара с брендом в magic
+
+			SELECT
+				count(*)
+			FROM
+				magic.cards_productcard
+			WHERE
+				cards_productcard.is_actual = TRUE
+				AND cards_productcard.is_ready = TRUE
+				AND cards_productcard.is_checked = TRUE
+				AND cards_productcard.brand_id IS NOT NULL;
+
+		кол-во карточек товара без галочки невалидные изображения в magic
+
+			SELECT
+				count(*)
+			FROM
+				magic.cards_productcard
+			WHERE
+				cards_productcard.is_actual = TRUE
+				AND cards_productcard.is_ready = TRUE
+				AND cards_productcard.is_checked = TRUE
+				AND cards_productcard.brand_id IS NOT NULL
+			    AND cards_productcard.has_invalid_images = FALSE;
+
+		кол-во которые прошли системную проверку
+
+			SELECT
+				count(*)
+			FROM
+				magic.cards_productcard
+					INNER JOIN
+				magic.cards_kind ON cards_productcard.kind_id = cards_kind.id
+					INNER JOIN
+				magic.cards_property ON cards_kind.id = cards_property.kind_id
+			WHERE
+				cards_productcard.is_actual = TRUE
+				AND cards_productcard.is_ready = TRUE
+				AND cards_productcard.is_checked = TRUE
+				AND cards_productcard.brand_id IS NOT NULL
+			    AND cards_productcard.has_invalid_images = FALSE
+			    AND cards_productcard.code IS NOT NULL
+				AND cards_property.id IS NOT NULL
+				AND cards_productcard.date_formed_description IS NOT NULL;
+
+		кол-во товаров на конкретном
+
+			SELECT
+				count(*)
+			FROM
+				public.products AS product
+					JOIN
+				public.distributions AS category_product ON category_product.pid = product.id
+					JOIN
+				public.catalogs AS category ON category.gid = category_product.gid
+			WHERE
+				product.published = True;
+
+		кол-во распределенных товаров в magic для конкретного сайта
+
+			SELECT
+				count(*)
+			FROM
+				magic.catalog_products AS product
+					JOIN
+				magic.catalog_distributions AS catalog_product ON catalog_product.product_id = product.code
+					JOIN
+				magic.catalog_catalog AS catalog ON catalog.id = catalog_product.catalog_id
+			WHERE
+				catalog.type = 'korallmicro';
+
+		коды продуктов, которые выгрузились из 1с в magic, но у них нет карточки товара в magic
+
+			bin/manage shell
+
+			from cards.models import *
+
+			from catalog.models import *
+
+			product_card = ProductCard.objects.filter(
+			    date_formed_description__isnull=False
+			).get_checked().get_actual().get_verified().values_list('code', flat=True)
+
+			len(product_card)
+
+			products = Products.objects.filter(distributions__catalog__type='korallmicro').values_list('code', flat=True)
+
+			len(products)
+
+			res = set(products) - set(product_card)
+
+			len(res)
+
+			print(res)
