@@ -154,6 +154,10 @@
 
 	9:30 - 18:00 - Проблема с синхронизацией выгодных предложений, #19813 (8,5)
 
+21 октября 2019
+
+	9:30 - 18:00 - Проблема с синхронизацией выгодных предложений, #19813 (8,5)
+
 		изменения в интерфейсе magic в выгодных: добавить id оффера:
 		[123] Sтарт Nовых Rаспродаж. Скидки всем и на всё! октябрь (с) (0 из 1)
 		сейчас id можно посмотреть только наведя на ма-аленький гаечный ключик +
@@ -173,6 +177,107 @@
 		Алгоритм
 
 			Вызываем функцию каждые 5 секунд и каждый раз берем её результат
+
+			Метод, который берет состояние задачи +
+
+			Метод, который проверяет состояние задачи и выводит алерт +
+
+			Метод, который убирает состояния кнопки
+
+
+		Алгоритм 2
+
+			Клиентский код должен вызывать метод, который берет состояние таски каждые 5 секунд не больше 5 раз.
+
+				Если метод, который проверяет таску вернул "ок" или "error", то прекращаем проверку.
+
+
+			Метод, который проверяет таску
+
+				var task_state;
+				function get_task_state(task_id) {
+				    $.getJSON('/catalog/offers/get_task_state/' + task_id + '/', function(json) {
+				        task_state = json['status'];
+				    });
+				    return task_state;
+				}
+
+			Клиентский код должен вызывать метод, который берет состояние таски каждые 5 секунд не больше 5 раз
+
+				var iter_check_task_state = 0;
+				function check_task_state(task_id) {
+				    if (iter_check_task_state >= 5) {
+				        iter_check_task_state = 0;
+				        console.log('end');
+				        return get_task_state(task_id);
+				    }
+					iter_check_task_state += 1;
+
+					
+					setTimeout(
+						function() {
+							check_task_state(task_id);
+						},
+						5000
+					);
+
+					return get_task_state(task_id);
+				}
+
+				-----
+
+				var iter_check_task_state = 0;
+				if (iter_check_task_state >= 5) {
+			        iter_check_task_state = 0;
+			        return get_task_state(task_id);
+			    }
+				iter_check_task_state += 1;
+
+			Если метод, который проверяет таску вернул "ок" или "error", то прекращаем проверку
+
+				var iter_check_task_state = 0;
+				async function check_task_state(task_id) {
+
+					let promise_result = new Promise(
+						(reject, resolve) => {
+						    if (iter_check_task_state >= 5) {
+						        iter_check_task_state = 0;
+						        console.log('end');
+						        resolve(get_task_state(task_id))
+						    }
+							iter_check_task_state += 1;							
+						}
+					)
+
+					return get_task_state(task_id);
+				}
+
+				var iter_wrapper_get_task_state = 0;
+				async function wrapper_get_task_state(task_id) {
+					let promise_result = new Promise(
+						(reject, resolve) => {
+							setTimeout(
+								function() {
+									get_task_state(task_id);
+								},
+								5000
+							)					
+						}
+					)
+
+					let task_state = await promise_result;
+
+					if (task_state == 'wait' && iter_wrapper_get_task_state < 5) {
+						console.log(1);
+						iter_wrapper_get_task_state += 1;
+						wrapper_get_task_state(task_id);
+					}
+					console.log(2);
+					iter_wrapper_get_task_state = 0;
+					return task_state;
+				}
+
+
 
 Отработать
 
