@@ -171,3 +171,104 @@
 
 3. Основные инструменты
 
+	3.1. Модели
+
+		(!) Здесь нужно описать связь один-к-одному, один-ко-многим, многие-ко-многим, прокси модели, менеджеры модели, кверисэты модели.
+
+		В сообществе принято называть таблицы и модели в единственном числе.
+
+		На основе модели в бд создается таблица в формате appname_modelname (cards_product).
+
+		Обычная модель
+
+			class Something(models.Model):
+
+				id = models.AutoField(primary_key=True)
+
+					Django добавляет такое поле по умолчанию к каждой модели (можно изменить)
+
+				sites = models.ForeignKey(Site, verbose_name='list of sites')
+
+					В полях типа ForeignKey, ManyToManyField и OneToOneField с помощью первого аргумента 'list of sites' можно указать читабельное название поля.
+
+				dealer = models.ForeignKey(Dealer, related_name='cars')
+
+					Имя для обратной связи, например если мы захотим обратиться от другой модели, то это можно сделать так Dealer.objects.first().cars
+
+				dealer = models.ForeignKey('Dealer', on_delete=models.CASCADE)
+
+					'Dealer' позволяет создать связь с моделью, которая еще не определена для обращения к модели из другого приложения пишем так 'name_app.Manufacturer'
+
+				name = models.CharField('User name')
+
+					C помощью первого аргумента 'user name' можно указать читабельное название поля
+
+				surname = models.CharField(null=True)
+
+					Если null=True, то сохранит в бд пустое значение из формы, как NULL
+
+				phone = models.CharField(blank=True)
+
+					Если blank=True, форма позволит передать пустое значение на сервер
+
+			    SHIRT_SIZES = (
+			        ('S', 'Small'),
+			        ('M', 'Medium'),
+			        ('L', 'Large'),
+			    )
+			    shirt_size = models.CharField(max_length=1, choices=SHIRT_SIZES)
+
+			    	Виджет формы использует select и ограничит значение поля указанными значениями в SHIRT_SIZES
+
+			    amount = models.IntegerField(default=0)
+
+			    	Значение из default будет попадать в бд по умолчанию
+
+			    code = models.IntegerField(primary_key=True)
+
+			    	Поле будет первичным ключом и по умолчанию не добавится поле id 
+
+			    email = models.CharField(unique=True)
+
+			    	Значение в поле должно быть уникальным
+
+				class Meta:
+
+			        ordering = ['end_date'/'-end_date']
+
+			        	Сортировка asc/desc
+
+			        db_table = 'music_album'
+
+			        	Название таблицы для этой модели
+
+			        managed = False
+
+			        	При миграция таблицы для этой модели не будет создаваться или удаляться это полезно, если модель отображает существующую таблицу, которая была создана другим способом
+
+			        # остальные настройки можно посмотреть здесь
+
+				        https://djbook.ru/rel1.9/ref/models/options.html
+
+				        https://docs.djangoproject.com/en/2.2/ref/models/options
+
+		Одни к одному
+
+			class People(models.Model):
+				name = models.CharField(max_length=255)
+
+			class Pasport(models.Model):
+				people = models.OneToOneField(People, on_delete=models.CASCADE)
+				code = models.IntegerField()
+
+			На основе этих моделей создадутся 2 таблицы в бд - appname_people, appname_pasport.
+
+			В таблице appname_pasport будет связь один к одному - people_id.
+
+		Один ко многим
+
+			class Dealer(models.Model):
+				name = models.CharField(max_length=255)
+
+			class Car(models.Model):
+				dealer = models.ForeignKey(Dealer, on_delete=models.CASCADE)
