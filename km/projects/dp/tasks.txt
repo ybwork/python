@@ -70,6 +70,723 @@
 
 		re.findall(r'[A-ZА-Я]', a)
 
+	Откуда удалить тестового пользователя
+
+		customer_profile_customer
+
+		SELECT 
+			* 
+		FROM 
+			public.customer_profile_customer
+		WHERE
+			email = iliakia@mailforspam.com;
+
+	Объединение контрагентов
+
+		Поиск дублирующихся email в разном регистре
+
+			SELECT lower(email) FROM customer_profile_customer GROUP BY lower(email) HAVING COUNT(lower(email))  > 1;
+			​
+			SELECT * FROM customer_profile_customer WHERE lower(email) IN (
+				'evgenymv@inbox.ru',
+				'kalinicheinko1991@mail.ru',
+				'a.e.beydin@yandex.ru',
+				'kazar1234789@gmail.com',
+				'lierian@mail.ru',
+				'kidenko.lana@mail.ru',
+				'arturchikmuhomorchik@mail.ru',
+				'lenok610395@yandex.ru',
+				'lotedve@gmail.com'
+			);
+
+		Пользователя оставляем от той учетки под которой был сделан последний заказ
+
+			SELECT
+				customer_profile_customer.id,
+				customer_profile_customer.email,
+				orders_order.date_created
+			FROM
+				public.customer_profile_customer
+					JOIN
+				public.orders_order ON orders_order.customer_id = customer_profile_customer.id
+			WHERE
+				email IN ('evgenymv@inbox.ru', 'Evgenymv@inbox.ru')
+				-- email IN ('kalinicheinko1991@mail.ru', 'Kalinicheinko1991@mail.ru')
+				-- email IN ('a.e.beydin@yandex.ru', 'A.E.Beydin@yandex.ru')
+				-- email IN ('kazar1234789@gmail.com', 'Kazar1234789@gmail.com')
+				-- email IN ('lierian@mail.ru', 'Lierian@mail.ru')
+				-- email IN ('kidenko.lana@mail.ru', 'Kidenko.lana@mail.ru')
+				-- email IN ('arturchikmuhomorchik@mail.ru', 'Arturchikmuhomorchik@mail.ru')
+				-- email IN ('lenok610395@yandex.ru', 'Lenok610395@yandex.ru')
+				-- email IN ('lotedve@gmail.com', 'loTEDve@GMail.CoM')
+			ORDER BY date_created DESC
+
+		-------------------------------------------
+
+			оставляем         удаляем
+
+			evgenymv@inbox.ru, Evgenymv@inbox.ru
+			-- есть 1 заказ у второго, передаем первому
+
+			'kalinicheinko1991@mail.ru', 'Kalinicheinko1991@mail.ru'
+			-- заказов нет ни у кого
+
+			'a.e.beydin@yandex.ru', 'A.E.Beydin@yandex.ru'
+			-- только у первого есть заказы, вторую просто удаляем
+
+			'kazar1234789@gmail.com', 'Kazar1234789@gmail.com'
+			-- только у первого есть заказы, вторую просто удаляем
+
+			'lierian@mail.ru', 'Lierian@mail.ru'
+			-- есть 1 заказ у второго, передаем первому
+
+			'Kidenko.lana@mail.ru' 'kidenko.lana@mail.ru'
+			-- второго удаляем, первого приводим к lower (заказ есть у первого)
+
+			'arturchikmuhomorchik@mail.ru', 'Arturchikmuhomorchik@mail.ru'
+			-- заказов нет ни у кого
+
+			'lenok610395@yandex.ru', 'Lenok610395@yandex.ru'
+			-- только у первого есть заказы, вторую просто удаляем
+
+			'lotedve@gmail.com', 'loTEDve@GMail.CoM'
+			-- заказов нет ни у кого
+
+		-------------------------------------------
+
+		-------------------------------------------
+
+			-- evgenymv@inbox.ru, Evgenymv@inbox.ru
+			-- есть 1 заказ у второго, передаем первому
+
+			-- переносим заказы
+			UPDATE
+				public.orders_order
+				-- id пользователя, которого оставляем
+				SET customer_id = 154670, 
+					customer_email = 'evgenymv@inbox.ru'
+			WHERE
+				-- id удаляемого пользователя
+				orders_order.customer_id = 154522;
+
+			--	переносим обратную связь
+			UPDATE
+				public.customer_profile_feedback
+				-- id пользователя, которого оставляем
+				SET customer_id = 154670
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 154522;
+
+			-- переносим историю заказа
+			UPDATE
+				public.orders_historicalorder
+				-- id пользователя, которого оставляем
+				SET customer_id = 154670
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 154522;
+
+			-- удаляем лишнего пользователя
+			DELETE
+			FROM
+				public.customer_profile_customer
+			WHERE
+				-- id удаляемого пользователя
+				id = 154522;
+
+			------------------
+
+			-- 'kalinicheinko1991@mail.ru', 'Kalinicheinko1991@mail.ru'
+			-- 144342,						144251
+			-- заказов нет ни у кого
+
+			-- переносим заказы
+			UPDATE
+				public.orders_order
+				-- id пользователя, которого оставляем
+				SET customer_id = 144342, 
+				    customer_email = 'kalinicheinko1991@mail.ru'
+			WHERE
+				-- id удаляемого пользователя
+				orders_order.customer_id = 144251;
+
+			--	переносим обратную связь
+			UPDATE
+				public.customer_profile_feedback
+				-- id пользователя, которого оставляем
+				SET customer_id = 144342
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 144251;
+
+			-- переносим историю заказа
+			UPDATE
+				public.orders_historicalorder
+				-- id пользователя, которого оставляем
+				SET customer_id = 144342
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 144251;
+
+			-- удаляем лишнего пользователя
+			DELETE
+			FROM
+				public.customer_profile_customer
+			WHERE
+				-- id удаляемого пользователя
+				id = 144251;
+
+			------------------
+
+			-- 'a.e.beydin@yandex.ru', 'A.E.Beydin@yandex.ru'
+			-- 154244,					154243
+			-- только у первого есть заказы, вторую просто удаляем
+
+			-- переносим заказы
+			UPDATE
+				public.orders_order
+				-- id пользователя, которого оставляем
+				SET customer_id = 154244,
+				    customer_email = 'a.e.beydin@yandex.ru'
+			WHERE
+				-- id удаляемого пользователя
+				orders_order.customer_id = 154243;
+
+			--	переносим обратную связь
+			UPDATE
+				public.customer_profile_feedback
+				-- id пользователя, которого оставляем
+				SET customer_id = 154244
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 154243;
+
+			-- переносим историю заказа
+			UPDATE
+				public.orders_historicalorder
+				-- id пользователя, которого оставляем
+				SET customer_id = 154244
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 154243;
+
+			-- переносим данные о юр лице
+			UPDATE
+				public.customer_profile_legalpersonalproperty
+				-- id пользователя, которого оставляем
+				SET customer_id = 154244
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 154243;
+
+			-- удаляем лишнего пользователя
+			DELETE
+			FROM
+				public.customer_profile_customer
+			WHERE
+				-- id удаляемого пользователя
+				id = 154243;
+
+			------------------
+
+			--'kazar1234789@gmail.com', 'Kazar1234789@gmail.com'
+			-- 154555					153840
+			-- только у первого есть заказы, вторую просто удаляем
+
+			-- переносим заказы
+			UPDATE
+				public.orders_order
+				-- id пользователя, которого оставляем
+				SET customer_id = 154555, 
+					customer_email = 'kazar1234789@gmail.com'
+			WHERE
+				-- id удаляемого пользователя
+				orders_order.customer_id = 153840;
+
+			--	переносим обратную связь
+			UPDATE
+				public.customer_profile_feedback
+				-- id пользователя, которого оставляем
+				SET customer_id = 154555
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 153840;
+
+			-- переносим историю заказа
+			UPDATE
+				public.orders_historicalorder
+				-- id пользователя, которого оставляем
+				SET customer_id = 154555
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 153840;
+
+			-- переносим данные о юр лице
+			UPDATE
+				public.customer_profile_legalpersonalproperty
+				-- id пользователя, которого оставляем
+				SET customer_id = 154555
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 153840;
+
+			-- удаляем лишнего пользователя
+			DELETE
+			FROM
+				public.customer_profile_customer
+			WHERE
+				-- id удаляемого пользователя
+				id = 153840;
+
+			------------------
+
+			-- 'lierian@mail.ru', 'Lierian@mail.ru'
+			-- 156137				153634
+			-- есть 1 заказ у второго, передаем первому
+
+			-- переносим заказы
+			UPDATE
+				public.orders_order
+				-- id пользователя, которого оставляем
+				SET customer_id = 156137, 
+					customer_email = 'lierian@mail.ru'
+			WHERE
+				-- id удаляемого пользователя
+				orders_order.customer_id = 153634;
+
+			--	переносим обратную связь
+			UPDATE
+				public.customer_profile_feedback
+				-- id пользователя, которого оставляем
+				SET customer_id = 156137
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 153634;
+
+			-- переносим историю заказа
+			UPDATE
+				public.orders_historicalorder
+				-- id пользователя, которого оставляем
+				SET customer_id = 156137
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 153634;
+
+			-- переносим данные о юр лице
+			UPDATE
+				public.customer_profile_legalpersonalproperty
+				-- id пользователя, которого оставляем
+				SET customer_id = 156137
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 153634;
+
+			-- удаляем лишнего пользователя
+			DELETE
+			FROM
+				public.customer_profile_customer
+			WHERE
+				-- id удаляемого пользователя
+				id = 153634;
+
+			------------------
+
+			-- 'Kidenko.lana@mail.ru' 'kidenko.lana@mail.ru'
+			-- 154109					154261
+			-- второго удаляем, первого приводим к lower (заказ есть у первого)
+
+			-- переносим заказы
+			UPDATE
+				public.orders_order
+				-- id пользователя, которого оставляем
+				SET customer_id = 154109, 
+					customer_email = 'kidenko.lana@mail.ru'
+			WHERE
+				-- id удаляемого пользователя
+				orders_order.customer_id = 154261;
+
+			--	переносим обратную связь
+			UPDATE
+				public.customer_profile_feedback
+				-- id пользователя, которого оставляем
+				SET customer_id = 154109
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 154261;
+
+			-- переносим историю заказа
+			UPDATE
+				public.orders_historicalorder
+				-- id пользователя, которого оставляем
+				SET customer_id = 154109
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 154261;
+
+			-- переносим данные о юр лице
+			UPDATE
+				public.customer_profile_legalpersonalproperty
+				-- id пользователя, которого оставляем
+				SET customer_id = 154109
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 154261;
+
+			-- удаляем лишнего пользователя
+			DELETE
+			FROM
+				public.customer_profile_customer
+			WHERE
+				-- id удаляемого пользователя
+				id = 154261;
+
+			-- первого приводим к lower
+			UPDATE
+				public.customer_profile_customer
+				SET email = 'kidenko.lana@mail.ru'
+			WHERE
+				-- id пользователя, которого оставляем
+				customer_profile_customer.id = 154109;
+
+			------------------
+
+			--'arturchikmuhomorchik@mail.ru', 'Arturchikmuhomorchik@mail.ru'
+			-- 150662							150660
+			-- заказов нет ни у кого
+
+			-- переносим заказы
+			UPDATE
+				public.orders_order
+				-- id пользователя, которого оставляем
+				SET customer_id = 150662, 
+					customer_email = 'arturchikmuhomorchik@mail.ru'
+			WHERE
+				-- id удаляемого пользователя
+				orders_order.customer_id = 150660;
+
+			--	переносим обратную связь
+			UPDATE
+				public.customer_profile_feedback
+				-- id пользователя, которого оставляем
+				SET customer_id = 150662
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 150660;
+
+			-- переносим историю заказа
+			UPDATE
+				public.orders_historicalorder
+				-- id пользователя, которого оставляем
+				SET customer_id = 150662
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 150660;
+
+			-- переносим данные о юр лице
+			UPDATE
+				public.customer_profile_legalpersonalproperty
+				-- id пользователя, которого оставляем
+				SET customer_id = 150662
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 150660;
+
+			-- удаляем лишнего пользователя
+			DELETE
+			FROM
+				public.customer_profile_customer
+			WHERE
+				-- id удаляемого пользователя
+				id = 150660;
+
+			------------------
+
+			-- 'lenok610395@yandex.ru', 'Lenok610395@yandex.ru'
+			-- 150881					150880
+			-- только у первого есть заказы, вторую просто удаляем
+
+			-- переносим заказы
+			UPDATE
+				public.orders_order
+				-- id пользователя, которого оставляем
+				SET customer_id = 150881, 
+					customer_email = 'lenok610395@yandex.ru'
+			WHERE
+				-- id удаляемого пользователя
+				orders_order.customer_id = 150880;
+
+			--	переносим обратную связь
+			UPDATE
+				public.customer_profile_feedback
+				-- id пользователя, которого оставляем
+				SET customer_id = 150881
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 150880;
+
+			-- переносим историю заказа
+			UPDATE
+				public.orders_historicalorder
+				-- id пользователя, которого оставляем
+				SET customer_id = 150881
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 150880;
+
+			-- переносим данные о юр лице
+			UPDATE
+				public.customer_profile_legalpersonalproperty
+				-- id пользователя, которого оставляем
+				SET customer_id = 150881
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 150880;
+
+			-- удаляем лишнего пользователя
+			DELETE
+			FROM
+				public.customer_profile_customer
+			WHERE
+				-- id удаляемого пользователя
+				id = 150880;
+
+			------------------
+
+			-- 'lotedve@gmail.com', 'loTEDve@GMail.CoM'
+			-- 157597				157596
+			-- заказов нет ни у кого
+
+			-- переносим заказы
+			UPDATE
+				public.orders_order
+				-- id пользователя, которого оставляем
+				SET customer_id = 157597, 
+					customer_email = 'lotedve@gmail.com'
+			WHERE
+				-- id удаляемого пользователя
+				orders_order.customer_id = 157596;
+
+			--	переносим обратную связь
+			UPDATE
+				public.customer_profile_feedback
+				-- id пользователя, которого оставляем
+				SET customer_id = 157597
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 157596;
+
+			-- переносим историю заказа
+			UPDATE
+				public.orders_historicalorder
+				-- id пользователя, которого оставляем
+				SET customer_id = 157597
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 157596;
+
+			-- переносим данные о юр лице
+			UPDATE
+				public.customer_profile_legalpersonalproperty
+				-- id пользователя, которого оставляем
+				SET customer_id = 157597
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 157596;
+
+			-- переносим точки доставки
+			UPDATE
+				public.customer_profile_deliverypoint
+				-- id пользователя, которого оставляем
+				SET customer_id = 157597
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 157596;
+
+			-- удаляем лишнего пользователя
+			DELETE
+			FROM
+				public.customer_profile_customer
+			WHERE
+				-- id удаляемого пользователя
+				id = 157596;
+
+		-------------------------------------------
+
+		Если ни под одной заказов не было тогда оставляем учетку созданную позже
+
+			SELECT
+				customer_profile_customer.email,
+				customer_profile_customer.create_date AS customer_created
+			FROM
+				public.customer_profile_customer
+			WHERE
+				email IN ('evgenymv@inbox.ru', 'Evgenymv@inbox.ru')
+
+		Переносим заказы пользователя
+
+			UPDATE
+				public.orders_order
+
+				-- id пользователя, которого оставляем
+				SET customer_id = 
+
+			WHERE
+
+				-- id удаляемого пользователя
+				customer_id = 
+
+		Переносим историю заказов
+
+			UPDATE
+				public.orders_historicalorder
+				-- id пользователя, которого оставляем
+				SET customer_id = 
+
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 
+
+		Есть ли история обращений к обратной связи
+
+			SELECT
+				id
+			FROM
+				public.customer_profile_feedback
+			WHERE
+				customer_id =
+
+		Помимо заказов так же необходимо объединить историю обращений в обратной связи
+
+			UPDATE
+				public.customer_profile_feedback
+				-- id пользователя, которого оставляем
+				SET customer_id = 
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = 
+
+			Проверка
+
+				SELECT
+					id
+				FROM
+					public.customer_profile_feedback
+				WHERE
+					-- id пользователя, которого оставляем и id удаляемого пользователя
+					customer_id =
+
+		Настройки по уведомлению необходимо оставить от той учетки, чей будет оставлен пароль
+
+			Просто удалили старого и все, потому что настройки это поле email_notice.
+
+			DELETE
+			FROM
+				public.customer_profile_customer
+			WHERE
+				-- id удаляемого пользователя
+				id = 
+
+		Шаблон переноса
+
+			--	email IN (...)
+
+			-- переносим заказы
+			UPDATE
+				public.orders_order
+				-- id пользователя, которого оставляем
+				SET customer_id = , 
+					customer_email = 
+			WHERE
+				-- id удаляемого пользователя
+				orders_order.customer_id = ;
+
+			--	переносим обратную связь
+			UPDATE
+				public.customer_profile_feedback
+				-- id пользователя, которого оставляем
+				SET customer_id = 
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = ;
+
+			-- переносим историю заказа
+			UPDATE
+				public.orders_historicalorder
+				-- id пользователя, которого оставляем
+				SET customer_id = 
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = ;
+
+			-- переносим данные о юр лице
+			UPDATE
+				public.customer_profile_legalpersonalproperty
+				-- id пользователя, которого оставляем
+				SET customer_id = 
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = ;
+
+			-- переносим точки доставки
+			UPDATE
+				public.customer_profile_deliverypoint
+				-- id пользователя, которого оставляем
+				SET customer_id = 
+			WHERE
+				-- id удаляемого пользователя
+				customer_id = ;
+
+			-- удаляем лишнего пользователя
+			DELETE
+			FROM
+				public.customer_profile_customer
+			WHERE
+				-- id удаляемого пользователя
+				id = ;
+
+		Проверяем, что у удаляемого пользователя больше нет связанных данных
+
+			Сохраняем сюда id удаляемого пользователя
+
+				154522
+
+				SELECT
+					id
+				FROM
+					public.customer_profile_customer
+				WHERE
+					id = 154522
+				UNION ALL
+				SELECT
+					id
+				FROM
+					public.orders_order
+				WHERE
+					customer_id = 154522
+				UNION ALL
+				SELECT
+					id
+				FROM
+					public.orders_historicalorder
+				WHERE
+					customer_id = 154522
+				UNION ALL
+				SELECT
+					id
+				FROM
+					public.customer_profile_legalpersonalproperty
+				WHERE
+					customer_id = 154522
+				UNION ALL
+				SELECT
+					id
+				FROM
+					public.customer_profile_feedback
+				WHERE
+					customer_id = 154522
+
+
 Посадочная страница
 
 	- все, что они хотят размесить согласовать Зелюков Анатолий

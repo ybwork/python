@@ -16,7 +16,7 @@
 
 	3. Основные инструменты
 
-		3.1. Модели -
+		3.1. Модели - (проверить какие таблицы создадутся при связях один ко многим на себя и многие ко многим)
 
 		3.2. Миграции -
 
@@ -173,7 +173,7 @@
 
 	3.1. Модели
 
-		(!) Здесь нужно описать связь один-к-одному, один-ко-многим, многие-ко-многим, прокси модели, менеджеры модели, кверисэты модели.
+		(!) Здесь нужно описать наследование, прокси модели, менеджеры модели, кверисэты модели.
 
 		В сообществе принято называть таблицы и модели в единственном числе.
 
@@ -272,3 +272,46 @@
 
 			class Car(models.Model):
 				dealer = models.ForeignKey(Dealer, on_delete=models.CASCADE)
+
+		Один ко многим на себя
+
+			Используется например для вложенных категорий, когда главная категория имеет сслыку на свою вложенную категорию.
+
+			class Category(models.Model):
+				subcategory = models.ForeignKey('self', on_delete=models.CASCADE)
+
+		Многие ко многим
+
+			Не имеет значения какая модель содержит поле ManyToManyField, но его может содержать только одна из моделей.
+
+			Желательно, чтобы название поля ManyToManyField было во множественном числе.
+
+			Обычно, ManyToManyField необходимо добавить в модель, которая будет редактироваться в форме.
+
+				class Topping(models.Model):
+				    pass
+
+				class Pizza(models.Model):
+				    toppings = models.ManyToManyField(Topping)
+
+			В итоге на основе данной модели в бд создастся таблица appname_pizza_toppings.
+
+			Иногда необходимо хранить дополнительную информацию о связи. Например музыкальные группы, музыканты и когда музыкант вступил в группу.
+
+				class Person(models.Model):
+				    name = models.CharField(max_length=128)
+
+				class Group(models.Model):
+				    name = models.CharField(max_length=128)
+				    members = models.ManyToManyField(Person, through='Membership')
+
+				class Membership(models.Model):
+				    person = models.ForeignKey(Person, on_delete=models.CASCADE)
+				    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+				    date_joined = models.DateField()
+				    invite_reason = models.CharField(max_length=64)
+
+			На основе этих моделей создадутся таблицы appname_person, appname_group, appname_membership (здесь и будет находиться связи - person_id, group_id)
+
+
+

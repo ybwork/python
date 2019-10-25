@@ -1203,7 +1203,7 @@ ORM
 		class Pizza(models.Model):
 		    toppings = models.ManyToManyField(Topping)
 
-		Желательно, чтобы название поля ManyToManyField было множественным называнием связанных объектов.
+		Желательно, чтобы название поля ManyToManyField было во множественном числе.
 
 		Не имеет значения какая модель содержит поле ManyToManyField, но его может содержать только одна из моделей.
 
