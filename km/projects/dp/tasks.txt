@@ -33,8 +33,14 @@
 		dp_package/profile/form.py 
 
 			class AuthCustomerForm(RenderFormMixin, forms.Form):
-
+				...
 				def clean_email(self):
+					email = self.cleaned_data['email'].lower()
+
+			class EmailCustomerForm(forms.Form):
+			    ...    
+			    def clean_email(self):
+			        #email = self.cleaned_data['email'].lower()
 
 	request
 
@@ -786,18 +792,7 @@
 				WHERE
 					customer_id = 154522
 
-
-Посадочная страница
-
-	- все, что они хотят размесить согласовать Зелюков Анатолий
-
-	- если все ок, мы берем в работу
-
-	- создать задачу в мега плане
-
-	- подключить Виктора
-
-Невозможно отменить заказы #18943
+Невозможно отменить заказы
 
 	У дилера из Ленинградской есть два заказа которые он не может отменить.
 
@@ -860,6 +855,69 @@
 
 Исправить отчет с состоянием обработки заказа
 
+	Как должно работать
+
+		Появился заказ.
+
+		На его обработку выделенно время.
+
+		Если диллер нажимает кнопку "не дозвонился", то время перестает фиксироваться.
+
+		Если закончился рабочий день диллера, то фиксация времени тоже останавливается.
+
+	Проблема
+
+		В заказе 146308 была нажата кнопка "Не дозвонился" но в отчете эта информация не отображается и время фиксации обработки заказа не остановилось.
+
+	Как работает кнопка "не дозвонился"?
+
+		{'url': r'^submit/(?P<order_id>\d+)
+
+			def need_to_call(self, request, order):
+
+				end_order_process_time.send(Order, order_id=order.id,
+
+				# обработчик сигнала end_order_process_time
+				def end_process_time_handler(sender, order_id, **kwargs):
+
+	Как проверяется время затраченное на обработку заказа?
+
+		def check_time_order_processing():
+
+			sms_recipient_list = list(
+
+	ppp
+
+		SELECT * FROM public.orders_orderprocessstate where id = 123372
+
+		SELECT * FROM public.orders_orderprocesstime where state_id = 123372
+
+		SELECT * FROM public.orders_order where id = 140844
+
+	Как проверить, что диллер действительно нажимал ту или иную кнопку
+
+		ssh web@192.168.7.54
+
+		sudo mc (пароль см. в pass.txt)
+
+		/var/log/nginx/dealer-price.access.log
+
+		f3
+
+		end
+
+		?
+
+		то, что нужно найти
+
+		n - для того чтобы найти следующее вхождение
+
+	Вопросы заказчика:
+
+		Ставится ли стоп, когда диллер нажал "не дозвонился"?
+
+		А если через 3 дня нажал "дозвонился" то как считается время?
+
 	Заказы диллера
 
 		http://127.1.0.1:8300/orders/?dealer_site=67
@@ -884,34 +942,7 @@
 
 		с 14 по 18 февраля 2019
 
-	В коде
-
-		modules/report/views.py
-
-			class Report(FormView):
-				def form_valid(self, form):
-					REPORT_MAPPER.get(report_type)
-
-						total-orders-errors
-
-							modules/report/views.py
-
-								'total-orders-errors': reports.OrderErrorByClientReport,
-
-									class OrderErrorByClientReport(BaseReport, SimpleHeaderMixin):
-										def _render_data(self, block_render, report_options):
-
-											...
-
-											error_times_dict = OrderProcessState.objects
-										
-	Вопросы Малашихина:
-
-		Ставится ли стоп, когда диллер нажал "не дозвонился"?
-
-		А если через 3 дня нажал "дозвонился" то как считается время?
-
-	Проверка
+	Проверка в админке dp
 
 		163821
 
@@ -919,41 +950,47 @@
 
 		/dpa/orders/orderprocessstate/?q=163821
 
+	Проверка в dp
+
 		/orders/?dealer_site=67
 
-		В pgadmin
+	Проверка в pgadmin
 
-			SELECT * FROM public.orders_order WHERE id = 166361;
+		SELECT * FROM public.orders_order WHERE id = 166361;
 
-			SELECT * FROM public.orders_orderprocessstate WHERE order_id = 166361;
+		SELECT * FROM public.orders_orderprocessstate WHERE order_id = 166361;
 
-			SELECT * FROM public.orders_orderprocesstime WHERE state_id = 143375;
+		SELECT * FROM public.orders_orderprocesstime WHERE state_id = 143375;
 
-			SELECT * FROM public.orders_historicalorder WHERE id = 166361;
+		SELECT * FROM public.orders_historicalorder WHERE id = 166361;
 
-		Сброс времени начала обработки
+	Сброс времени начала обработки
 
-			from orders.models import *
+		bin/manage shell
 
-			ord_process_state = OrderProcessState.objects.get(order_id=163821)
+		from orders.models import *
 
-			ord_process_state - 140844
+		ord_process_state = OrderProcessState.objects.get(order_id=176360)
 
-			ord_process_time = OrderProcessTime.objects.get(state_id=ord_process_state.pk)
+		ord_process_time = OrderProcessTime.objects.get(state_id=ord_process_state.pk)
 
-			ord_process_time.end_time=None
+		ord_process_time.end_time=None
 
-			ord_process_time.reason_for_finish=None
+		ord_process_time.reason_for_finish=None
 
-			ord_process_time.save()
+		ord_process_time.save()
 
-		Cброс статуса заказа
+	Cброс статуса заказа
 
-			ord = Order.objects.get(pk=163821)
+		bin/manage shell
 
-			ord.state='New'
+		from orders.models import *
 
-			ord.save()
+		ord = Order.objects.get(pk=176360)
+
+		ord.state='New'
+
+		ord.save()
 
 	Какой статус получает заказ при создании?
 
@@ -1011,7 +1048,7 @@
 
     Как протестить
 
-    	Создать через dpa заказ
+    	Создать через админку dp заказ
 
     	start_order_process_time.send(Order, order_id=76626, reason_alias='ORDER_CREATED')
 
@@ -1019,32 +1056,36 @@
 
     	print OrderProcessTime.objects.get(state_id=ord_process_state.pk)
 
+    Как создается заказ?
+
+		{'url': r'^new/$',
+
     На 9.09.19
 
     	Нажимаем создать заказ
 
-    	{'url': r'^submit/(?P<order_id>\d+)/(?P<action>[\w_]+)/$',
-     	'wrapper_view': wrapper_order_submit_view}
+	    	{'url': r'^submit/(?P<order_id>\d+)/(?P<action>[\w_]+)/$',
+	     	'wrapper_view': wrapper_order_submit_view}
 
-     	class OrderSubmitView(
+	     	class OrderSubmitView(
 
-     		def process(
+	     		def process(
 
-     			order.process()
+	     			order.process()
 
-    	def create_order(
+	    	def create_order(
 
-    		result = create_order_handler(request.POST)
+	    		result = create_order_handler(request.POST)
 
-		        start_order_process_time.send(
-		            Order,
-		            order_id=order.pk,
-		            reason_alias='ORDER_CREATED',
-		            # передаем, если найдем, параметры по контрольной закупке Я.Маркета
-		            params_control_purchase=order.get_control_purchase_ya_market()
-		        )
+			        start_order_process_time.send(
+			            Order,
+			            order_id=order.pk,
+			            reason_alias='ORDER_CREATED',
+			            # передаем, если найдем, параметры по контрольной закупке Я.Маркета
+			            params_control_purchase=order.get_control_purchase_ya_market()
+			        )
 
-		Как вызвать def create_order?
+			Как вызвать def create_order?
 
 Проблема с распаковкой zip архивов с ценами, номенклатурой и остатками диллера
 

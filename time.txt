@@ -174,63 +174,13 @@
 
 	16:00 - 17:30 - Закрыть возможность создавать пользователей с одинаковым email, #19363 (1,5)
 
-24 октября 2019
+25 октября 2019
 
 	9:00 - 17:30 - Закрыть возможность создавать пользователей с одинаковым email, #19363 (8)
 
-		Места, где должен быть приведение email к нижнему регистру:
+25 октября 2019
 
-			Кораллмикро
-
-				Регистрация
-
-					$authResult = $customer->auth($params['email'], $params['password'], $long_expire);
-
-			    Восстановление пароля
-
-			    	$this->view->reset_password_form = API::getPasswordResetRequestForm($params);
-
-			    Вход
-
-			    	$authResult = $customer->auth($params['email'], $params['password'], $long_expire);
-
-			Снр
-
-				регистрация, вход, забыли пароль
-
-			Dp
-
-				def create_customer(request, event_uuid=None)
-
-					Что это там за statsy и как это все работает?
-
-				---
-
-				/home/web/www/dealer_price-env/lib/python2.7/site-packages/dp_package/profile/forms.py
-
-				class EmailCustomerForm(forms.Form):
-				    email = forms.EmailField(label=u'Адрес электронной почты')
-				        
-				    def clean_email(self):
-				        #email = self.cleaned_data['email'].lower()
-				​
-				​
-				class AuthCustomerForm(RenderFormMixin, forms.Form):
-				    """
-				    Форма авторизации
-				    """
-				    customer_pk = forms.IntegerField(required=False, widget=forms.HiddenInput)
-				    email = forms.EmailField(label=u'Адрес электронной почты',
-				                             widget=forms.EmailInput)
-				    password = forms.CharField(max_length=64, label=u'Пароль',
-				                               widget=forms.PasswordInput,
-				                               help_text=u'Пароль может содержать буквы '
-				                                         u'латинского алфавита и цифры, '
-				                                         u'не менее 6 символов.')
-				        
-				    def clean_email(self):
-				        #email = self.cleaned_data['email'].lower()
-				        email = self.cleaned_data['email']
+	9:30 - 17:30
 
 Отработать
 
