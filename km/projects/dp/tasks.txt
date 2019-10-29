@@ -855,6 +855,8 @@
 
 Исправить отчет с состоянием обработки заказа
 
+	На 29.10.19 очет по заказу 176360 формируется правильно, потому что по логам пользователь действительно нажал кнопку "готово" в 12:12:46, а start_order_process_time нужно посмотреть когда
+
 	Как должно работать
 
 		Появился заказ.
@@ -868,6 +870,8 @@
 	Проблема
 
 		В заказе 146308 была нажата кнопка "Не дозвонился" но в отчете эта информация не отображается и время фиксации обработки заказа не остановилось.
+
+		[14/Feb/2019:10:05:35 +0300] "POST /orders/submit/146308/need_to_call/?dealer_site=67
 
 	Как работает кнопка "не дозвонился"?
 
@@ -886,13 +890,17 @@
 
 			sms_recipient_list = list(
 
-	ppp
+	Как посмотреть заказ и время его обработки в бд
 
-		SELECT * FROM public.orders_orderprocessstate where id = 123372
+		select * from public.orders_order where id = 176360
 
-		SELECT * FROM public.orders_orderprocesstime where state_id = 123372
+		select * from public.orders_orderprocessstate where order_id = 176360
 
-		SELECT * FROM public.orders_order where id = 140844
+		select * from public.orders_orderprocesstime where state_id = 153276
+
+	Как найти заказ, чтобы нажать кнопку "готово"
+
+		select id, site_id, state from public.orders_order where last_meta_status = 'ORDER_NEW_STATES'
 
 	Как проверить, что диллер действительно нажимал ту или иную кнопку
 
@@ -911,6 +919,16 @@
 		то, что нужно найти
 
 		n - для того чтобы найти следующее вхождение
+
+		Если нажимал "готово", то искать
+
+			process/?dealer_site=17
+
+			[28/Oct/2019:12:12:46 +0300] "POST /orders/submit/176360/process/?dealer_site=17
+
+		Если нажимал "не дозвонился", то искать
+
+			need_to_call/?dealer_site=67
 
 	Вопросы заказчика:
 
@@ -934,6 +952,14 @@
 
 		"Отчет об ошибках" или "Отчет об ошибках по заказам" (более подробный).
 
+	Как формируется отчет в коде?
+
+		REPORT_MAPPER = {
+
+			ищем по параметрам из дата атрибута кнопки
+
+				data-type="details-orders-errors"
+
 	Поддомен
 
 		stavropol.korallmicro.ru
@@ -956,13 +982,19 @@
 
 	Проверка в pgadmin
 
-		SELECT * FROM public.orders_order WHERE id = 166361;
+		select * from public.orders_order where id = 146308
 
-		SELECT * FROM public.orders_orderprocessstate WHERE order_id = 166361;
+		update public.orders_order set fire=False where id = 146308
 
-		SELECT * FROM public.orders_orderprocesstime WHERE state_id = 143375;
+		update public.orders_order set need_to_call=False where id = 146308
 
-		SELECT * FROM public.orders_historicalorder WHERE id = 166361;
+		select * from public.orders_orderprocessstate where order_id = 146308
+
+		select * from public.orders_orderprocesstime where state_id = 123372
+
+		delete from public.orders_orderprocesstime where id = 178169
+
+		update public.orders_orderprocesstime set end_time = null, reason_for_finish = null where id = 178169
 
 	Сброс времени начала обработки
 
@@ -970,15 +1002,11 @@
 
 		from orders.models import *
 
-		ord_process_state = OrderProcessState.objects.get(order_id=176360)
+		ord_process_state = OrderProcessState.objects.get(order_id=
 
-		ord_process_time = OrderProcessTime.objects.get(state_id=ord_process_state.pk)
+		ord_process_time = OrderProcessTime.objects.filter(state_id=ord_process_state.pk)
 
-		ord_process_time.end_time=None
-
-		ord_process_time.reason_for_finish=None
-
-		ord_process_time.save()
+		ord_process_time.update(end_time=None, reason_for_finish=None)
 
 	Cброс статуса заказа
 
@@ -986,15 +1014,27 @@
 
 		from orders.models import *
 
-		ord = Order.objects.get(pk=176360)
+		from datetime import timedelta
 
-		ord.state='New'
+		ord = Order.objects.get(pk=
 
+		ord.state='NEW'
+
+		ord.last_meta_status='ORDER_NEW_STATES'
+
+		ord.user_delivery_date_preference=datetime.now() + timedelta(days=1)
+		
 		ord.save()
+
+		update public.orders_order set fire=False where id = 146308
 
 	Какой статус получает заказ при создании?
 
-		New
+		NEW
+
+	Какой последний мета статус получает заказ при создании?
+
+		ORDER_NEW_STATES
 
 	В какой раздел попадает заказ со статусом New?
 
@@ -1044,7 +1084,7 @@
 
     	Учет времени может остановиться если закончилось время работы магазина. Для обработки таких ситуация работает крон.
 
-    		check_time_order_processing
+    		def check_time_order_processing():
 
     Как протестить
 
@@ -1059,33 +1099,6 @@
     Как создается заказ?
 
 		{'url': r'^new/$',
-
-    На 9.09.19
-
-    	Нажимаем создать заказ
-
-	    	{'url': r'^submit/(?P<order_id>\d+)/(?P<action>[\w_]+)/$',
-	     	'wrapper_view': wrapper_order_submit_view}
-
-	     	class OrderSubmitView(
-
-	     		def process(
-
-	     			order.process()
-
-	    	def create_order(
-
-	    		result = create_order_handler(request.POST)
-
-			        start_order_process_time.send(
-			            Order,
-			            order_id=order.pk,
-			            reason_alias='ORDER_CREATED',
-			            # передаем, если найдем, параметры по контрольной закупке Я.Маркета
-			            params_control_purchase=order.get_control_purchase_ya_market()
-			        )
-
-			Как вызвать def create_order?
 
 Проблема с распаковкой zip архивов с ценами, номенклатурой и остатками диллера
 
