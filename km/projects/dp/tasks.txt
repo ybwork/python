@@ -33,8 +33,14 @@
 		dp_package/profile/form.py 
 
 			class AuthCustomerForm(RenderFormMixin, forms.Form):
-
+				...
 				def clean_email(self):
+					email = self.cleaned_data['email'].lower()
+
+			class EmailCustomerForm(forms.Form):
+			    ...    
+			    def clean_email(self):
+			        #email = self.cleaned_data['email'].lower()
 
 	request
 
@@ -786,18 +792,7 @@
 				WHERE
 					customer_id = 154522
 
-
-Посадочная страница
-
-	- все, что они хотят размесить согласовать Зелюков Анатолий
-
-	- если все ок, мы берем в работу
-
-	- создать задачу в мега плане
-
-	- подключить Виктора
-
-Невозможно отменить заказы #18943
+Невозможно отменить заказы
 
 	У дилера из Ленинградской есть два заказа которые он не может отменить.
 
@@ -860,6 +855,125 @@
 
 Исправить отчет с состоянием обработки заказа
 
+	На 29.10.19 очет по заказу 176360 формируется правильно, потому что по логам пользователь действительно нажал кнопку "готово" в 12:12:46, а start_order_process_time нужно посмотреть когда
+
+	31.10.19 
+
+		Если появился заказ, его обработали позже нужного времени на какое то кол-во минут, то отчет строится корректно.
+
+			orders_orderprocesstime
+
+				id, start_time, end_time, state_id, reason_for_start, reason_for_finish
+
+				224314, "2019-10-31 07:40:31.841377+00", "2019-10-31 08:46:18.241831+00", 153555, "создание заказа", "заказ перешел в обработанное состояние"
+
+			orders_orderprocessstate
+
+				id, order_id, error_start_time, error_finish_time, has_error, stopped_by_operators_shedule, control_purchase_params
+
+				153555, 176643, "2019-10-31 08:41:05.967228+00", "2019-10-31 08:46:18.241831+00", true, false
+
+		Появился заказ, вовремя нажали кнопку "не дозвонился", вовремя нажали кнопку "созвонились", не вовремя нажали кнопку "готово"
+
+			...
+
+		Как сэмитировать проверку времени учета?
+
+			Обновляем дату создания заказа на текущую.
+
+			Переводим время на компьютере на час и одну минуту вперед.
+
+			Запускаем таску.
+
+				from orders.tasks import *
+
+				check_time_order_processing.delay()
+
+		Где код, который выводит "время учета обработки заказа"?
+
+			class OrderProcessStateAdmin(admin.ModelAdmin):
+				...
+				inlines = (OrderProcessTimeInlineAdmin, )
+
+	Как должно работать
+
+		Появился заказ.
+
+		На его обработку выделенно время.
+
+		Если диллер нажимает кнопку "не дозвонился", то время перестает фиксироваться.
+
+		Если закончился рабочий день диллера, то фиксация времени тоже останавливается.
+
+	Проблема
+
+		В заказе 146308 была нажата кнопка "Не дозвонился" но в отчете эта информация не отображается и время фиксации обработки заказа не остановилось.
+
+		[14/Feb/2019:10:05:35 +0300] "POST /orders/submit/146308/need_to_call/?dealer_site=67
+
+	Как работает кнопка "не дозвонился"?
+
+		{'url': r'^submit/(?P<order_id>\d+)
+
+			def need_to_call(self, request, order):
+
+				end_order_process_time.send(Order, order_id=order.id,
+
+				# обработчик сигнала end_order_process_time
+				def end_process_time_handler(sender, order_id, **kwargs):
+
+	Как проверяется время затраченное на обработку заказа?
+
+		def check_time_order_processing():
+
+			sms_recipient_list = list(
+
+	Как посмотреть заказ и время его обработки в бд
+
+		select * from public.orders_order where id = 176360
+
+		select * from public.orders_orderprocessstate where order_id = 176360
+
+		select * from public.orders_orderprocesstime where state_id = 153276
+
+	Как найти заказ, чтобы нажать кнопку "готово"
+
+		select id, site_id, state from public.orders_order where last_meta_status = 'ORDER_NEW_STATES'
+
+	Как проверить, что диллер действительно нажимал ту или иную кнопку
+
+		ssh web@192.168.7.54
+
+		sudo mc (пароль см. в pass.txt)
+
+		/var/log/nginx/dealer-price.access.log
+
+		f3
+
+		end
+
+		?
+
+		то, что нужно найти
+
+		n - для того чтобы найти следующее вхождение
+
+		Если нажимал "готово", то искать
+
+			process/?dealer_site=17
+
+			[28/Oct/2019:12:12:46 +0300] "POST /orders/submit/176360/process/?dealer_site=17
+
+		Если нажимал "не дозвонился", то искать
+
+			need_to_call/?dealer_site=67
+
+	Вопросы заказчика:
+
+		Ставится ли стоп, когда диллер нажал "не дозвонился"?
+
+		А если через 3 дня нажал "дозвонился" то как считается время?
+
 	Заказы диллера
 
 		http://127.1.0.1:8300/orders/?dealer_site=67
@@ -876,6 +990,14 @@
 
 		"Отчет об ошибках" или "Отчет об ошибках по заказам" (более подробный).
 
+	Как формируется отчет в коде?
+
+		REPORT_MAPPER = {
+
+			ищем по параметрам из дата атрибута кнопки
+
+				data-type="details-orders-errors"
+
 	Поддомен
 
 		stavropol.korallmicro.ru
@@ -884,34 +1006,7 @@
 
 		с 14 по 18 февраля 2019
 
-	В коде
-
-		modules/report/views.py
-
-			class Report(FormView):
-				def form_valid(self, form):
-					REPORT_MAPPER.get(report_type)
-
-						total-orders-errors
-
-							modules/report/views.py
-
-								'total-orders-errors': reports.OrderErrorByClientReport,
-
-									class OrderErrorByClientReport(BaseReport, SimpleHeaderMixin):
-										def _render_data(self, block_render, report_options):
-
-											...
-
-											error_times_dict = OrderProcessState.objects
-										
-	Вопросы Малашихина:
-
-		Ставится ли стоп, когда диллер нажал "не дозвонился"?
-
-		А если через 3 дня нажал "дозвонился" то как считается время?
-
-	Проверка
+	Проверка в админке dp
 
 		163821
 
@@ -919,45 +1014,65 @@
 
 		/dpa/orders/orderprocessstate/?q=163821
 
+	Проверка в dp
+
 		/orders/?dealer_site=67
 
-		В pgadmin
+	Проверка в pgadmin
 
-			SELECT * FROM public.orders_order WHERE id = 166361;
+		select * from public.orders_order where id = 146308
 
-			SELECT * FROM public.orders_orderprocessstate WHERE order_id = 166361;
+		update public.orders_order set fire=False where id = 146308
 
-			SELECT * FROM public.orders_orderprocesstime WHERE state_id = 143375;
+		update public.orders_order set need_to_call=False where id = 146308
 
-			SELECT * FROM public.orders_historicalorder WHERE id = 166361;
+		select * from public.orders_orderprocessstate where order_id = 146308
 
-		Сброс времени начала обработки
+		select * from public.orders_orderprocesstime where state_id = 123372
 
-			from orders.models import *
+		delete from public.orders_orderprocesstime where id = 178169
 
-			ord_process_state = OrderProcessState.objects.get(order_id=163821)
+		update public.orders_orderprocesstime set end_time = null, reason_for_finish = null where id = 178169
 
-			ord_process_state - 140844
+	Сброс времени начала обработки
 
-			ord_process_time = OrderProcessTime.objects.get(state_id=ord_process_state.pk)
+		bin/manage shell
 
-			ord_process_time.end_time=None
+		from orders.models import *
 
-			ord_process_time.reason_for_finish=None
+		ord_process_state = OrderProcessState.objects.get(order_id=
 
-			ord_process_time.save()
+		ord_process_time = OrderProcessTime.objects.filter(state_id=ord_process_state.pk)
 
-		Cброс статуса заказа
+		ord_process_time.update(end_time=None, reason_for_finish=None)
 
-			ord = Order.objects.get(pk=163821)
+	Cброс статуса заказа
 
-			ord.state='New'
+		bin/manage shell
 
-			ord.save()
+		from orders.models import *
+
+		from datetime import timedelta
+
+		ord = Order.objects.get(pk=
+
+		ord.state='NEW'
+
+		ord.last_meta_status='ORDER_NEW_STATES'
+
+		ord.user_delivery_date_preference=datetime.now() + timedelta(days=1)
+		
+		ord.save()
+
+		update public.orders_order set fire=False where id = 146308
 
 	Какой статус получает заказ при создании?
 
-		New
+		NEW
+
+	Какой последний мета статус получает заказ при создании?
+
+		ORDER_NEW_STATES
 
 	В какой раздел попадает заказ со статусом New?
 
@@ -1007,11 +1122,11 @@
 
     	Учет времени может остановиться если закончилось время работы магазина. Для обработки таких ситуация работает крон.
 
-    		check_time_order_processing
+    		def check_time_order_processing():
 
     Как протестить
 
-    	Создать через dpa заказ
+    	Создать через админку dp заказ
 
     	start_order_process_time.send(Order, order_id=76626, reason_alias='ORDER_CREATED')
 
@@ -1019,32 +1134,78 @@
 
     	print OrderProcessTime.objects.get(state_id=ord_process_state.pk)
 
-    На 9.09.19
+    Как создается заказ?
 
-    	Нажимаем создать заказ
+		{'url': r'^new/$',
 
-    	{'url': r'^submit/(?P<order_id>\d+)/(?P<action>[\w_]+)/$',
-     	'wrapper_view': wrapper_order_submit_view}
+	Работа с заказом
 
-     	class OrderSubmitView(
+		Врямя считается от создания человеком заказа на сайте и до изменения статуса оператора (на любой статус - отменен, не дозвонился, готов)
 
-     		def process(
+		Если я создаю заказ в дп, то я оператор и заказ попадает "Заказ принят к исполнению": Создание - готов (создастся заказ) и тут ещё согласование с клиентом.
 
-     			order.process()
+		"Заказ сформирован" началось время учета. Если в течении часа нажали кнопку, то ошибки не будет, если нет, то будет.
 
-    	def create_order(
+		Если нажал "Не дозвонился", то он перешел в "Необходимо связаться с покупателем" (время учета времени)
 
-    		result = create_order_handler(request.POST)
+		Если нажал "Созвонился", то он перешел в "Заказ сформирован"
 
-		        start_order_process_time.send(
-		            Order,
-		            order_id=order.pk,
-		            reason_alias='ORDER_CREATED',
-		            # передаем, если найдем, параметры по контрольной закупке Я.Маркета
-		            params_control_purchase=order.get_control_purchase_ya_market()
-		        )
+		Если нажал "Готов" без нажатия "Созвонился", то он перешел в "Заказ принят к исполнению"
 
-		Как вызвать def create_order?
+		Когда нажал "Оприходован", то он перешел в "Заказ принят к исполнению"
+
+		Когда нажал "Получен клиентом", то он перешел в "Завершенные заказы"
+
+		Нажать через час "Оприходован", "Выдан клиенту".
+
+		"Созвонился", "Не дозвонился", "Созвонился", "Не дозвонился", "Готово"
+
+			Созвонился - /orders/submit/176643/called/?dealer_site=6
+
+			Не дозвонился - /orders/submit/14519/need_to_call/?dealer_site=6
+
+			Готово - /orders/submit/176643/process/?dealer_site=6
+
+			# найдем нужный заказ
+			select * from public.orders_order where id = 176643
+
+			# сбросим заказк до состояния "новый"
+			-- NEED_TO_CALL
+			update public.orders_order set state = 'NEW', need_to_call = false where id = 176643
+
+			# берем ошибки по обработке заказа
+			select * from public.orders_orderprocessstate where order_id = 176643
+
+			# сбрасываем ошибки по обработки заказа
+			update public.orders_orderprocessstate set error_start_time = null, error_finish_time = null, has_error = false where id = 153555
+
+			# берем время потраченной на обработку заказа
+			select * from public.orders_orderprocesstime where state_id = 153555
+
+			# сбрасываем время потраченной на обработку заказа
+			update public.orders_orderprocesstime set start_time = current_timestamp, end_time = null, reason_for_finish = '' where state_id = 153555
+
+			# удаляем лишнее время потраченной на обработку заказа
+			delete from public.orders_orderprocesstime where id in(удалять все кроме создания заказа)
+
+			# если случайно удалили все записи о времени потраченном на обработку заказа, то можно создать вот так
+			insert into public.orders_orderprocesstime values(224314, current_timestamp, null, 153555, 'создание заказа', '') - если нужно создать заказ руками
+
+		Каждую минуту работает таска, которая проверяет время обработки заказа
+
+			def check_time_order_processing():
+
+			Для теста нажимаем сначала "не дозвонился", потом через пару минут "дозвонился", потом меняем время на компе на час вперед и запускаем руками таску.
+
+				bin/manage shell
+
+				from orders.tasks import *
+
+				check_time_order_processing.delay()
+
+			Внутри таска есть метод, который считает общее кол-во минут затраченное на обработку заказа
+
+				_get_total_time
 
 Проблема с распаковкой zip архивов с ценами, номенклатурой и остатками диллера
 

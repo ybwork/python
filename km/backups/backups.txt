@@ -17,3 +17,11 @@ alt + c
 находим нужный бэкап в формате bz2 и в названии должно быть sql
 
 f5 для сохранения бэкапа на локалку
+
+---
+
+/usr/lib/postgresql/9.5/bin/pg_dump --host 192.168.7.9 --port 5432 --username "dealer_price" --format custom --blobs --encoding UTF8 --verbose --file "dealer_price_2019-09-20_17-10.backup" "dealer_price"
+
+или без пути вначале, а сразу pg_dump и т.д.
+
+пароль dealer_price
