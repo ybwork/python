@@ -204,15 +204,41 @@
 
 	10:30 - 11:30 - Совещание с Виктором
 
-	11:30 - 17:30 - 
+	11:30 - 17:30 - Поиск и тестирование инструмента для конвертации картинок карточки товара, #20040, 6
 
-		если полностью валидная картинка
+20 ноября 2019
 
-		если есть расширение, но нет формата
+	9:30 - 10:30 - Поиск и тестирование инструмента для конвертации картинок карточки товара, #20040 (1)
 
-		если нет расширения и нет формата
+	10:30 - 17:30 - Исправить отчет с состоянием обработки заказа, #20305 (7)
 
-		если расширение jpg
+		e-commerce.js
+
+			'basket_afterChangedItems': function(event)
+
+				tmp = prepare_data(data['item'], data['item_before']);
+
+		basket.js
+
+			ajaxSend : function(action, code, count, async)
+
+				'complete' : function()
+
+			loadItems : function()
+
+				Стоп, походу не работает запрос
+
+		AjaxController
+
+			public function additemtobasketAction()
+
+		init.js
+
+			public function additemtobasketAction()
+
+		BasketController
+
+			public function indexAction()
 
 Отработать
 
