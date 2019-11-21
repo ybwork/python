@@ -1498,13 +1498,20 @@ Queryset-ы
 
 	Используются не вместо Book.objects, а вместе с Book.objects.queryset_method()
 
-		class ProductCardQuerySet:
+		class ProductCardQuerySet(models.QuerySet):
 			def get_actual(self):
 				return self.filter(is_actual=True)
 
 		objects = ProductCardQuerySet.as_manager()
 
 	В кастомном queryset-е не переопределяется метод get_queryset, только в кастомном менеджере.
+
+	Не каждый метод QuerySet следует добавлять в менеджер. Для этого можно создать метод внутри QuerySet с атрибутом queryset_only равным True.
+
+	    def method_name(self):
+	    	...
+	        return result
+	    method_name.queryset_only = True
 
 QuerySet
 

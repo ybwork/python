@@ -212,6 +212,16 @@
 
 	10:30 - 17:30 - Исправить отчет с состоянием обработки заказа, #20305 (7)
 
+21 ноября 2019
+
+	9:30 - 17:30 - Исправить отчет с состоянием обработки заказа, #20305 (8)
+
+	17:30 - 18:30 - Переделать сохранения формата картинки карточки товара, #20440 (1), консультация с Сашей Глубоковым
+
+22 ноября 2019
+
+		168691
+		
 		e-commerce.js
 
 			'basket_afterChangedItems': function(event)
@@ -226,7 +236,7 @@
 
 			loadItems : function()
 
-				Стоп, походу не работает запрос
+				походу не работает запрос
 
 		AjaxController
 
@@ -239,6 +249,54 @@
 		BasketController
 
 			public function indexAction()
+
+		BasketController
+
+	        public function selectdeliveryAction()
+	        	есть в корзине
+
+		    public function selectpaymentAction()
+		    	есть в корзине
+
+		    public function confirmAction()
+		    	есть в корзине
+
+		    public function checkBasket($stage_deep=3)
+		    	работает
+
+		    public function doneAction(){
+		        падает тут
+
+		        стоп
+				$result = $this->_basket->createOrder($this->_customer, $this->_dealer, $ymapsGeolocation);
+		        if ($this->_debug) $this->_logger->log($result);
+
+		        $this->view->success = $result['status'];
+		        if ($result['status'] === true) {
+
+		AjaxController
+
+		    public function additemtobasketAction(){
+		        $code = (int)$this->getRequest()->getParam('code');
+		        $count = (int)$this->getRequest()->getParam('count');
+		        if ($this->_debug) $this->_logger->log(sprintf('Добавим "%d" штук товара с кодом "%d"', $count, $code));
+		        $this->updateCustomerItems();
+		        $this->_basket->addItem($code, $count);
+		        var_dump($this->_basket->getTotalCount()); die();
+		        $items = $this->_basket->getItemsForBasket();
+		        $index = $this->getItemIndex($items, $code);
+		        $response = array(
+		            'status' => 1,
+		            'basket' => $this->_basket->getBasketInfo(),
+		            'items' => $items,
+		            'delivery_dates' => $this->_basket->getBasketDeliveryDateCaptions($this->_dealer)
+		        );
+		        $this->updateCustomerItems($items[$index]);
+		        if ($this->_debug) $this->_logger->log($response);
+		        echo Zend_Json_Encoder::encode($response);
+		    }
+
+			{"status":1,"basket":{"delivery_method":null,"variousCount":1,"totalCount":1,"totalCost":18290},"items":[{"code":168691,"uuid":"7ea7bde9-5a79-11e6-93ff-001b21d8d330","name":"\u041f\u043b\u0430\u043d\u0448\u0435\u0442 Samsung SM-T580 10.1 (1.6) 8C\/RAM2Gb\/ROM16Gb\/WiFi\/BT\/8Mpix\/2Mpix\/GPS\/Android 6.0\/\/\u0431\u0435\u043b\u044b\u0439\/Touch\/microSD 200Gb\/minUSB\/7300mAh SM-T580NZWASER","translit":"planshet-samsung-sm-t580-101-16-8cram2gbrom16gbwifibt8mpix2mpixgpsandroid-60belyijtouchmicrosd-200gbminusb7300mah-sm-t580nzwaser","new":false,"price":18290,"tag_type":null,"dealer_remains":1,"km_remains":0,"transit_remains":0,"remains":1,"is_provided":true,"disabled":false,"not_availabled":false,"count":1,"url":"\/products\/168691_planshet-samsung-sm-t580-101-16-8cram2gbrom16gbwifibt8mpix2mpixgpsandroid-60belyijtouchmicrosd-200gbminusb7300mah-sm-t580nzwaser.html","image_src":"http:\/\/cdn2.korallmicro.ru\/korallmicro\/images\/product\/168691\/korallmicro_small.jpg"}],"delivery_dates":{"168691":{"pickup":"21.11.2019 \u043f\u043e\u0441\u043b\u0435 16:18","delivery":"22.11.2019"}}}
 
 Отработать
 

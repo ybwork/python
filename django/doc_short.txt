@@ -1,147 +1,159 @@
 Оглавление
 
-	1. Локальное развертывание
-
-		1.1. Создание проекта
-
-		1.2. Структура проекта от Two scoops of Django
-
-		1.3. Настройка проекта -
-
-			Описать, как только настрою всё
-
-		1.4. Приложения проекта от Two scoops of Django
-
-	2. Последовательность действий
-
-	3. Основные инструменты
-
-		3.1. Модели - (проверить какие таблицы создадутся при связях один ко многим на себя и многие ко многим)
-
-		3.2. Миграции -
-
-		3.3. Представления -
-
-		3.4. Шаблоны -
-
-		3.5. Url-ы -
-
-		3.6. Тесты -
-
-		3.7. Формы -
-
-1. Основные инструменты
-	
 	1.1. Создание проекта
-
-		Команды для создания виртуального окружения
-
-			whereis python
-
-			virtualenv --python=/usr/bin/python3.7 name_venv
-
-			. name_venv/bin/activate
-
-			deactivate
-
-		Команды для создания проекта
-
-			pip install django==1.9
-
-			django-admin startproject name_project
 
 	1.2. Структура проекта от Two scoops of Django
 
-		project_name/
-			config/
-
-				settings/
-					__init__.py
-					local.py
-					production.py
-					...
-
-				__init__.py
-				urls.py
-				wsgi.py
-
-			docs/
-
-			project_name/
-				media/
-				name_app/
-				name_app/
-				static/
-				templates/
-
-			.gitignore
-			README.rst
-			manage.py
-			requirements.txt
-			package.json
-
-		Для корректной работы меняем:
-
-			local.py
-
-				ROOT_URLCONF = 'config.urls'
-
-				WSGI_APPLICATION = 'config.wsgi.application'
-
-		Запуск и встроенные команды
-
-			Теперь к каждой команде добавляем файл с настоойками.
-
-				./manage.py runserver --settings=config.settings.local
-
-		Bootstrap и другие js/css либы
-
-			Ставим через npm и package.json
-
-			В итоге в корне проекта появляется директория node_modules
-
-			При деплое руками переносим нужные файлы в директорию static, потому что команда ./manage collectstatic расчитана только на приложения django, а bootstrapp, jquery и т.д. относятся ко всему проекту, а не к конкретному приложению.
-
-		Установка через npm
-
-			В корне проекта создаем package.json
-
-				У него четкой правил по структуре, поэтому можно не добавлять много.
-
-				{
-				  "name": "project_name",
-				  "version": "1.0.0",
-				  "private": true,
-				  "dependencies": {
-				    "bootstrap": "",
-				    "jquery": "",
-				    "popper.js": ""
-				  }
-				}
-
-			В терминале выполняем команду npm i
-
-			Для просмотра установленных пакетов в терминале выполняем npm ls
-
-		Подключение общей статики в шаблонах
-
-			Добавляет путь к общей статике в STATICFILES_DIRS
-
-				STATICFILES_DIRS = [
-				    os.path.join(PROJECT_ROOT, 'node_modules')
-				]
-
-	1.3. Настройка проекта
-
-		...
+	1.3. Настройка проекта -
 
 	1.4. Приложения проекта от Two scoops of Django
 
-		Приложения должны делать только одну вещь и делать её хорошо.
+	2. Последовательность действий
 
-		Приложения могут быть взаимосвязанны между собой.
+	3.1. Модели
 
-		Название приложений могут быть, как в единственном, так и во множественном числе. Это завист от того, что делает приложение, например blog и shop будут в единственном числе, потому что на сайте один блог и один магазин, а например events и tickets будут во множественном, потому что отвечают за работу со множеством событий и билетов.
+	3.2. Миграции
+
+	3.3. Представления -
+
+	3.4. Шаблоны -
+
+	3.5. Url-ы -
+
+	3.6. Тесты -
+
+	3.7. Формы -
+
+	3.8. Кэширование -
+
+	3.9. Логгирование -
+
+	3.10. Статические файлы -
+
+	3.11. Медиа файлы -
+
+	3.12. Сигналы -
+
+	3.13. Безопасность -
+
+	3.14. Локализация -
+
+	3.15. Интерфейс администратора -
+
+	3.16. Запросы -
+
+	3.17. Аутентификация -
+	
+1.1. Создание проекта
+
+	Команды для создания виртуального окружения
+
+		whereis python
+
+		virtualenv --python=/usr/bin/python3.7 name_venv
+
+		. name_venv/bin/activate
+
+		deactivate
+
+	Команды для создания проекта
+
+		pip install django==1.9
+
+		django-admin startproject name_project
+
+1.2. Структура проекта от Two scoops of Django
+
+	project_name/
+		config/
+
+			settings/
+				__init__.py
+				local.py
+				production.py
+				...
+
+			__init__.py
+			urls.py
+			wsgi.py
+
+		docs/
+
+		project_name/
+			media/
+			name_app/
+			name_app/
+			static/
+			templates/
+
+		.gitignore
+		README.rst
+		manage.py
+		requirements.txt
+		package.json
+
+	Для корректной работы меняем:
+
+		local.py
+
+			ROOT_URLCONF = 'config.urls'
+
+			WSGI_APPLICATION = 'config.wsgi.application'
+
+	Запуск и встроенные команды
+
+		Теперь к каждой команде добавляем файл с настоойками.
+
+			./manage.py runserver --settings=config.settings.local
+
+	Bootstrap и другие js/css либы
+
+		Ставим через npm и package.json
+
+		В итоге в корне проекта появляется директория node_modules
+
+		При деплое руками переносим нужные файлы в директорию static, потому что команда ./manage collectstatic расчитана только на приложения django, а bootstrapp, jquery и т.д. относятся ко всему проекту, а не к конкретному приложению.
+
+	Установка через npm
+
+		В корне проекта создаем package.json
+
+			У него четкой правил по структуре, поэтому можно не добавлять много.
+
+			{
+			  "name": "project_name",
+			  "version": "1.0.0",
+			  "private": true,
+			  "dependencies": {
+			    "bootstrap": "",
+			    "jquery": "",
+			    "popper.js": ""
+			  }
+			}
+
+		В терминале выполняем команду npm i
+
+		Для просмотра установленных пакетов в терминале выполняем npm ls
+
+	Подключение общей статики в шаблонах
+
+		Добавляет путь к общей статике в STATICFILES_DIRS
+
+			STATICFILES_DIRS = [
+			    os.path.join(PROJECT_ROOT, 'node_modules')
+			]
+
+1.3. Настройка проекта
+
+	...
+
+1.4. Приложения проекта от Two scoops of Django
+
+	Приложения должны делать только одну вещь и делать её хорошо.
+
+	Приложения могут быть взаимосвязанны между собой.
+
+	Название приложений могут быть, как в единственном, так и во множественном числе. Это завист от того, что делает приложение, например blog и shop будут в единственном числе, потому что на сайте один блог и один магазин, а например events и tickets будут во множественном, потому что отвечают за работу со множеством событий и билетов.
 
 2. Последовательность действий
 
@@ -167,216 +179,215 @@
 
 	Ещё раз выполнили тот же тест (он прошел).
 
-3. Основные инструменты
+3.1. Модели
 
-	3.1. Модели
+	В сообществе принято называть таблицы и модели в единственном числе.
 
-		(!) Здесь нужно описать менеджеры модели, кверисэты модели.
+	На основе модели в бд создается таблица в формате appname_modelname (cards_product).
 
-		В сообществе принято называть таблицы и модели в единственном числе.
+	Обычная модель
 
-		На основе модели в бд создается таблица в формате appname_modelname (cards_product).
+		class Something(models.Model):
 
-		Обычная модель
+			id = models.AutoField(primary_key=True)
 
-			class Something(models.Model):
+				Django добавляет такое поле по умолчанию к каждой модели (можно изменить)
 
-				id = models.AutoField(primary_key=True)
+			sites = models.ForeignKey(Site, verbose_name='list of sites')
 
-					Django добавляет такое поле по умолчанию к каждой модели (можно изменить)
+				В полях типа ForeignKey, ManyToManyField и OneToOneField с помощью первого аргумента 'list of sites' можно указать читабельное название поля.
 
-				sites = models.ForeignKey(Site, verbose_name='list of sites')
+			dealer = models.ForeignKey(Dealer, related_name='cars')
 
-					В полях типа ForeignKey, ManyToManyField и OneToOneField с помощью первого аргумента 'list of sites' можно указать читабельное название поля.
+				Имя для обратной связи, например если мы захотим обратиться от другой модели, то это можно сделать так Dealer.objects.first().cars
 
-				dealer = models.ForeignKey(Dealer, related_name='cars')
+			dealer = models.ForeignKey('Dealer', on_delete=models.CASCADE)
 
-					Имя для обратной связи, например если мы захотим обратиться от другой модели, то это можно сделать так Dealer.objects.first().cars
+				'Dealer' позволяет создать связь с моделью, которая еще не определена для обращения к модели из другого приложения пишем так 'name_app.Manufacturer'
 
-				dealer = models.ForeignKey('Dealer', on_delete=models.CASCADE)
+			name = models.CharField('User name')
 
-					'Dealer' позволяет создать связь с моделью, которая еще не определена для обращения к модели из другого приложения пишем так 'name_app.Manufacturer'
+				C помощью первого аргумента 'user name' можно указать читабельное название поля
 
-				name = models.CharField('User name')
+			surname = models.CharField(null=True)
 
-					C помощью первого аргумента 'user name' можно указать читабельное название поля
+				Если null=True, то сохранит в бд пустое значение из формы, как NULL
 
-				surname = models.CharField(null=True)
+			phone = models.CharField(blank=True)
 
-					Если null=True, то сохранит в бд пустое значение из формы, как NULL
+				Если blank=True, форма позволит передать пустое значение на сервер
 
-				phone = models.CharField(blank=True)
+		    SHIRT_SIZES = (
+		        ('S', 'Small'),
+		        ('M', 'Medium'),
+		        ('L', 'Large'),
+		    )
+		    shirt_size = models.CharField(max_length=1, choices=SHIRT_SIZES)
 
-					Если blank=True, форма позволит передать пустое значение на сервер
+		    	Виджет формы использует select и ограничит значение поля указанными значениями в SHIRT_SIZES
 
-			    SHIRT_SIZES = (
-			        ('S', 'Small'),
-			        ('M', 'Medium'),
-			        ('L', 'Large'),
-			    )
-			    shirt_size = models.CharField(max_length=1, choices=SHIRT_SIZES)
+		    amount = models.IntegerField(default=0)
 
-			    	Виджет формы использует select и ограничит значение поля указанными значениями в SHIRT_SIZES
+		    	Значение из default будет попадать в бд по умолчанию
 
-			    amount = models.IntegerField(default=0)
+		    code = models.IntegerField(primary_key=True)
 
-			    	Значение из default будет попадать в бд по умолчанию
+		    	Поле будет первичным ключом и по умолчанию не добавится поле id 
 
-			    code = models.IntegerField(primary_key=True)
+		    email = models.CharField(unique=True)
 
-			    	Поле будет первичным ключом и по умолчанию не добавится поле id 
+		    	Значение в поле должно быть уникальным
 
-			    email = models.CharField(unique=True)
+			class Meta:
 
-			    	Значение в поле должно быть уникальным
+		        ordering = ['end_date'/'-end_date']
 
-				class Meta:
+		        	Сортировка asc/desc
 
-			        ordering = ['end_date'/'-end_date']
+		        db_table = 'music_album'
 
-			        	Сортировка asc/desc
+		        	Название таблицы для этой модели
 
-			        db_table = 'music_album'
+		        managed = False
 
-			        	Название таблицы для этой модели
+		        	При миграция таблицы для этой модели не будет создаваться или удаляться это полезно, если модель отображает существующую таблицу, которая была создана другим способом
 
-			        managed = False
+		        # остальные настройки можно посмотреть здесь
 
-			        	При миграция таблицы для этой модели не будет создаваться или удаляться это полезно, если модель отображает существующую таблицу, которая была создана другим способом
+			        https://djbook.ru/rel1.9/ref/models/options.html
 
-			        # остальные настройки можно посмотреть здесь
+			        https://docs.djangoproject.com/en/2.2/ref/models/options
 
-				        https://djbook.ru/rel1.9/ref/models/options.html
+	Одни к одному
 
-				        https://docs.djangoproject.com/en/2.2/ref/models/options
+		class People(models.Model):
+			name = models.CharField(max_length=255)
 
-		Одни к одному
+		class Pasport(models.Model):
+			people = models.OneToOneField(People, on_delete=models.CASCADE)
+			code = models.IntegerField()
 
-			class People(models.Model):
-				name = models.CharField(max_length=255)
+		На основе этих моделей создадутся 2 таблицы в бд - appname_people, appname_pasport.
 
-			class Pasport(models.Model):
-				people = models.OneToOneField(People, on_delete=models.CASCADE)
-				code = models.IntegerField()
+		В таблице appname_pasport будет связь один к одному - people_id.
 
-			На основе этих моделей создадутся 2 таблицы в бд - appname_people, appname_pasport.
+	Один ко многим
 
-			В таблице appname_pasport будет связь один к одному - people_id.
+		class Dealer(models.Model):
+			name = models.CharField(max_length=255)
 
-		Один ко многим
+		class Car(models.Model):
+			dealer = models.ForeignKey(Dealer, on_delete=models.CASCADE)
 
-			class Dealer(models.Model):
-				name = models.CharField(max_length=255)
+	Один ко многим на себя
 
-			class Car(models.Model):
-				dealer = models.ForeignKey(Dealer, on_delete=models.CASCADE)
-
-		Один ко многим на себя
-
-			Используется например для вложенных категорий, когда главная категория имеет сслыку на свою вложенную категорию.
+		Используется например для вложенных категорий, когда главная категория имеет сслыку на свою вложенную категорию.
 
 			class Category(models.Model):
 				subcategory = models.ForeignKey('self', on_delete=models.CASCADE)
 
-		Многие ко многим
+			На основе данной модели создастся таблица appname_category с полями id и subcategory_id.
 
-			Не имеет значения какая модель содержит поле ManyToManyField, но его может содержать только одна из моделей.
+	Многие ко многим
 
-			Желательно, чтобы название поля ManyToManyField было во множественном числе.
+		Не имеет значения какая модель содержит поле ManyToManyField, но его может содержать только одна из моделей.
 
-			Обычно, ManyToManyField необходимо добавить в модель, которая будет редактироваться в форме.
+		Желательно, чтобы название поля ManyToManyField было во множественном числе.
 
-				class Topping(models.Model):
-				    pass
+		Обычно, ManyToManyField необходимо добавить в модель, которая будет редактироваться в форме.
 
-				class Pizza(models.Model):
-				    toppings = models.ManyToManyField(Topping)
+			class Topping(models.Model):
+			    name = models.CharField(max_length=255)
 
-			В итоге на основе данной модели в бд создастся таблица appname_pizza_toppings.
+			class Pizza(models.Model):
+			    toppings = models.ManyToManyField(Topping)
+			    name = models.CharField(max_length=255)
 
-			Иногда необходимо хранить дополнительную информацию о связи. Например музыкальные группы, музыканты и когда музыкант вступил в группу.
+			На основе данной модели в бд появятся таблицы appname_pizza, appname_topping, appname_pizza_toppings.
 
-				class Person(models.Model):
-				    name = models.CharField(max_length=128)
-
-				class Group(models.Model):
-				    name = models.CharField(max_length=128)
-				    members = models.ManyToManyField(Person, through='Membership')
-
-				class Membership(models.Model):
-				    person = models.ForeignKey(Person, on_delete=models.CASCADE)
-				    group = models.ForeignKey(Group, on_delete=models.CASCADE)
-				    date_joined = models.DateField()
-				    invite_reason = models.CharField(max_length=64)
-
-			На основе этих моделей создадутся таблицы appname_person, appname_group, appname_membership (здесь и будет находиться связи - person_id, group_id)
-
-		Класс пользовательское модели должен наследоваться от models.Model
-
-			class Author(models.Model):
-
-		Multi-table наследование
-
-			Каждая модель имеет собственную таблицу в базе данных и может быть использована независимо.
-
-			Наследование использует связь между родительской и дочерней моделью через автоматически созданное поле OneToOneField.
-
-			Все поля родительской модели будут доступны в дочерней при том, что значения будут храниться в разных таблицах.
-
-			Дочерняя модель не имеет доступа к родительскому классу Meta.
-
-			Можно не наследовать настроеки Meta родительской модели.
-
-			При использовании ForeignKey и ManyToManyField в дочерней модели по отношении к родительской обязательно нужно указать related_name/
-
-		Для определении общих полей для некскольких моделей используются абстрактные модели
-
-			class CommonInfo(models.Model):
-			    name = models.CharField(max_length=100)
-			    age = models.PositiveIntegerField()
-
-			    class Meta:
-			        abstract = True
-
-			class Student(CommonInfo):
-
-			class Teacher(CommonInfo):
-
-			Запрещено переопределять атрибуты класса родителя в дочернем классе. То есть если родительская модель имеет поле author, вы не можете создать поле с именем author в дочерних моделях.
-
-		Для переопределения поведения модели (сортировка, менеджер и т.д.) не меняя структуры базы данных используются proxy модели
+		Иногда необходимо хранить дополнительную информацию о связи. Например музыкальные группы, музыканты и когда музыкант вступил в группу.
 
 			class Person(models.Model):
-			    name = models.CharField(max_length=30)
+			    name = models.CharField(max_length=128)
 
-			class ProxyPerson(Person):
-				objects = NewManager()
+			class Group(models.Model):
+			    name = models.CharField(max_length=128)
+			    members = models.ManyToManyField(Person, through='Membership')
 
-			    class Meta:
-			        proxy = True
+			class Membership(models.Model):
+			    person = models.ForeignKey(Person, on_delete=models.CASCADE)
+			    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+			    date_joined = models.DateField()
+			    invite_reason = models.CharField(max_length=64)
 
-			Если вы не определите ни один менеджер для proxy модели, он будет унаследован от родительской модели.
+			На основе этих моделей создадутся таблицы appname_person, appname_group, appname_membership (здесь будет находиться связи - person_id, group_id и доп. данные - date_joined, invite_reason)
 
-			Proxy модель использует ту же таблицу в базе данных, что и оригинальная.
+	Класс пользовательское модели должен наследоваться от models.Model
 
-			Proxy модель должна наследоваться от одной модели.
+		class Author(models.Model):
 
-		Множественное наследование
+	Multi-table наследование
 
-			class Article(models.Model):
-			    article_id = models.AutoField(primary_key=True)
+		Каждая модель имеет собственную таблицу в базе данных и может быть использована независимо.
 
-			class Book(models.Model):
-			    book_id = models.AutoField(primary_key=True)
+		Наследование использует связь между родительской и дочерней моделью через автоматически созданное поле OneToOneField.
 
-			class BookReview(Book, Article):
-			    pass
+		Все поля родительской модели будут доступны в дочерней при том, что значения будут храниться в разных таблицах.
 
-			Если есть несколько родительских объектов с классом Meta, в таком случае будет использован атрибут первой родительской модели, остальные будут проигнорированы.
+		Дочерняя модель не имеет доступа к родительскому классу Meta.
 
-			Наследование от нескольких моделей, которые содержат первичное поле id, вызовет ошибку.Чтобы избежать этой проблемы, можно явно указать AutoField поля в базовых моделях.
+		Можно не наследовать настроеки Meta родительской модели.
 
-	Менеджеры
+		При использовании ForeignKey и ManyToManyField в дочерней модели по отношении к родительской обязательно нужно указать related_name/
+
+	Для определении общих полей для некскольких моделей используются абстрактные модели
+
+		class CommonInfo(models.Model):
+		    name = models.CharField(max_length=100)
+		    age = models.PositiveIntegerField()
+
+		    class Meta:
+		        abstract = True
+
+		class Student(CommonInfo):
+
+		class Teacher(CommonInfo):
+
+		Запрещено переопределять атрибуты класса родителя в дочернем классе. То есть если родительская модель имеет поле author, вы не можете создать поле с именем author в дочерних моделях.
+
+	Для переопределения поведения модели (сортировка, менеджер и т.д.) не меняя структуры базы данных используются proxy модели
+
+		class Person(models.Model):
+		    name = models.CharField(max_length=30)
+
+		class ProxyPerson(Person):
+			objects = NewManager()
+
+		    class Meta:
+		        proxy = True
+
+		Если вы не определите ни один менеджер для proxy модели, он будет унаследован от родительской модели.
+
+		Proxy модель использует ту же таблицу в базе данных, что и оригинальная.
+
+		Proxy модель должна наследоваться от одной модели.
+
+	Множественное наследование
+
+		class Article(models.Model):
+		    article_id = models.AutoField(primary_key=True)
+
+		class Book(models.Model):
+		    book_id = models.AutoField(primary_key=True)
+
+		class BookReview(Book, Article):
+		    pass
+
+		Если есть несколько родительских объектов с классом Meta, в таком случае будет использован атрибут первой родительской модели, остальные будут проигнорированы.
+
+		Наследование от нескольких моделей, которые содержат первичное поле id, вызовет ошибку.Чтобы избежать этой проблемы, можно явно указать AutoField поля в базовых моделях.
+
+	Менеджер модели
 
 		Это интерфейс, через который создаются запросы.
 
@@ -440,35 +451,104 @@
 			    def editors(self):
 			        return self.get_queryset().editors()
 
-	Queryset-ы
+	Queryset модели
 
 		Queryset-ы модели более гибче, чем менеджеры модели и похожи на фильтры. 
 
 		Используются не вместо Book.objects, а вместе с Book.objects.queryset_method()
 
-			class ProductCardQuerySet:
+			class ProductCardQuerySet(models.QuerySet):
 				def get_actual(self):
 					return self.filter(is_actual=True)
 
 			objects = ProductCardQuerySet.as_manager()
 
+			ProductCard.objects.get_actual()
+
 		В кастомном queryset-е не переопределяется метод get_queryset, только в кастомном менеджере.
 
-	QuerySet
+		Не каждый метод QuerySet следует добавлять в менеджер. Для этого можно создать метод внутри QuerySet с атрибутом queryset_only равным True.
 
-		Для получения объектов из базы данных, создается QuerySet.
+		    def method_name(self):
+		    	...
+		        return result
+		    method_name.queryset_only = True
 
-		QuerySet представляет выборку объектов из базы данных.
+3.2. Миграции
 
-		Обратиться к менеджерам можно только через класс модели и нельзя через экземпляр.
+	Основы работы
 
-		После каждого изменения QuerySet, вы получаете новый QuerySet, который никак не связан с предыдущим.
+		Создали и описали модель.
 
-		Создание QuerySet не выполняет запросов к базе данных, пока QuerySet не вычислен.
+		Выполнили ./manage.py makemigrations
 
-		Если используется срез, больше нельзя изменять queryset (например, добавлять фильтры, менять сортировку и т.д.).
+		В приложении в директории migrations создался файл.
 
-	3.2. Миграции
+		Выполнили ./manage.py migrate
 
+		В базе создались таблицы.
 
+		Добавили в модель новое поле.
+
+		Выполнили ./manage.py makemigrations
+
+		В приложении в директории migrations создался новый файл.
+
+		Выполнили ./manage.py migrate
+
+		В базе в нужной таблице создалось поле, которое добавили в модель.
+
+		Удалили новое поле из модели.
+
+		Выполнили ./manage.py makemigrations
+
+		В приложении в директории migrations создался еще один файл. При этом предыдущие два остались.
+
+		Выполнили ./manage.py migrate
+
+		В базе в нужной таблице удалилось поле, которое удалили из модели.
+
+		Если нужно вернуть выполненную миграцию, то ./manage.py migrate my_app zero
+
+		Для просмотра миграций ./manage.py showmigrations
+	
+	Тестирование работы в бою
+
+		Заливаем актуальный дамп в бд.
+
+		Создаем новое поле в модели.
+
+		Выполняем ./manage.py makemigrations
+
+		Выполняем ./manage.py migrate
+
+		Должно успешно создасться новое поле в бд.
+
+	Команды
+
+		./manage.py makemigrations
+
+			--empty - создает пустую миграцию для последующего редактирования вручную
+
+			--merge - решает конфликты с миграциями
+
+			--name - задает имя миграции
+
+		./manage.py migrate
+
+			<app_label>
+
+			<app_label> <migrationname>
+
+			--database
+
+			--fake - помечает миграции, как невыполненные (может “сломать” автоматическое применение миграций)
+
+			--fake-initial - помечает миграции, как выполненные
+
+		./manage.py showmigrations
+
+		./manage.py migrate my_app zero
+
+3.3. Представления
 
