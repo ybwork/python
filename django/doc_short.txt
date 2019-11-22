@@ -552,3 +552,186 @@
 
 3.3. Представления
 
+	Определяются в файле views.py
+
+	Это функция или метод класса, которая принимает запрос и возвращает ответ.
+
+		def home(request):
+			return HttpResponse('home')
+
+		class ProductView(View):
+			def get(self, request):
+				return HttpResponse('all products')
+
+			def post(self, request):
+				return HttpResponse('create product')
+
+			def put(self, request):
+				return HttpResponse('edit product')
+
+			def delete(self, request):
+				return HttpResponse('delete product')
+
+	Чтобы представление работало его нужно привязать к определенному URL-у.
+
+		path('home', views.home, name='home')
+
+		path('product', ProductView.as_view(), name='product')
+
+		path('category', CategoryListView.as_view(), name='category')
+
+	Встроенные (generic) представления классы
+
+		Нужны для решения тривиальных задач.
+
+		Попытка скрестить более чем один generic класс не будет работать так, как вы ожидаете.
+
+		Общие классы представления автоматически создают класс ModelForm при работе с моделями.
+
+		Подробное описание и все методы смотреть здесь:
+
+			https://djbook.ru/rel1.9/ref/class-based-views/flattened-index.html
+
+			https://docs.djangoproject.com/en/2.2/ref/class-based-views/flattened-index/
+
+		TemplateView
+
+			Обрабатывает заданный шаблон.
+
+			class HomePageView(TemplateView):
+			    template_name = '/path_to_templage/home.html'
+
+		RedirectView
+
+			Редирект на заданный URL.
+
+			Если переданный URL равен None, Django вернет исключение HttpResponseGone (410).
+
+			class ArticleCounterRedirectView(RedirectView):
+				# должно ли перенаправление быть постоянным
+			    permanent = False
+
+			    # передавать ли строку GET запроса в новую локацию
+			    query_string = True
+
+			    # название URL-шаблона на который перенаправлять
+			    pattern_name = 'article-detail'
+
+    	DetailView
+
+    		Берет из бд и отображает детальную информацию одного объекта.
+
+    		class PublisherDetailView(DetailView):
+			    model = Publisher
+
+		ListView
+
+			Берет из бд и отображает список объектов.
+
+			В шаблоне список всех объектов по умолчанию будет в object_list или modelname_list.
+
+			class PublisherListView(ListView):
+    			model = Publisher
+    			template_name = '/books/publisher_list.html'
+
+    			# имя list объектов для доступа в шаблоне
+    			context_object_name = 'my_favorite_publishers'
+
+		FormView
+
+			Для работы с формой (инициализирующий GET запрос, POST с верными или неверными данными).
+
+			forms.py
+
+				from django import forms
+
+				class ContactForm(forms.Form):
+				    name = forms.CharField()
+				    message = forms.CharField(widget=forms.Textarea)
+
+			views.py
+
+				class ContactFormView(FormView):
+				    template_name = '/path_to_template/contact.html'
+				    form_class = ContactForm
+				    success_url = reverse_lazy(viename='home')
+
+		CreateView
+
+			Для создания объекта.
+
+			Если вы указали и fields и form_class, будет вызвано исключение ImproperlyConfigured.
+
+			class AuthorCreateView(CreateView):
+			    model = Author
+
+			    # поля формы для создания
+			    fields = ['name']
+
+			Вместе с CreateView используется форма
+
+				<form action="" method="post">
+					{% csrf_token %}
+				    {{ form.as_p }}
+				    <button type="submit">create<button/>
+				</form>
+
+				Django ожидает увидеть эту форму в name_app и с названием namemodel_form.html
+
+				Чтобы изменить это поведение можно использовать template_name для полного указания шаблона и его местоположения.
+
+			Пример с использованием AJAX
+
+				class AjaxableResponseMixin(object):
+				    def form_invalid(self, form):
+				        response = super(AjaxableResponseMixin, self).form_invalid(form)
+				        if self.request.is_ajax():
+				            return JsonResponse(form.errors, status=400)
+				        else:
+				            return response
+
+				    def form_valid(self, form):
+				        response = super(AjaxableResponseMixin, self).form_valid(form)
+				        if self.request.is_ajax():
+				            data = {
+				                'pk': self.object.pk,
+				            }
+				            return JsonResponse(data)
+				        else:
+				            return response
+
+				class AuthorCreate(AjaxableResponseMixin, CreateView):
+				    model = Author
+				    fields = ['name']
+
+		UpdateView
+
+			Для редактирования объекта.
+
+			Если вы указали и fields и form_class, будет вызвано исключение ImproperlyConfigured.
+
+			class AuthorUpdateView(UpdateView):
+			    model = Author
+
+			    # поля формы для редактирования
+			    fields = ['name']
+
+		DeleteView
+
+			Для удаления объекта.
+
+			Если вы указали и fields и form_class, будет вызвано исключение ImproperlyConfigured.
+
+			reverse_lazy используется, потому что urls ещё не загрузились при импорте файла.
+
+			class AuthorDeleteView(DeleteView):
+			    model = Author
+			    success_url = reverse_lazy(viewname='author-list')
+
+		Так же уществуют общие классы представления для работы с датами: DateDetailView, TodayArchiveView, DayArchiveView, WeekArchiveView, MonthArchiveView, YearArchiveView. ArchiveIndexView.
+
+		Миксины классов представлений
+
+			Хранят в себе общие некий общий вспомогательный функционал для классов представлений.
+
+			...
