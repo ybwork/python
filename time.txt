@@ -226,9 +226,13 @@
 
 	11:00 - 16:30 - Исправить отчет с состоянием обработки заказа, #20305 (5,5)
 
-		168691
+25 ноября 2019
 
-		177152
+	9:30 - 14:00 - Исправить отчет с состоянием обработки заказа, #20305 (4,5)
+
+	14:00 - 17:30 - Доработка интерфейса каталогов в magic, #20213 (3,5)
+
+		168691
 
 		korallmicro
 		
@@ -286,13 +290,28 @@
 
 			def create_order(request):
 
+		fix
+
+			dp_orders
+
+				from pytz import timezone
+
+				local_tz = timezone(settings.TIME_ZONE) 
+
+				res = local_tz.localize(order.date_created.replace(tzinfo=None)).strftime('%d.%m.%Y %H:%M')
+
+
+				from django.utils.timezone import make_naive
+
+				make_naive(date).strftime(date_format)
+
 Отработать
 
 	0
 
 Переработал
 
-	4
+	0
 
 Приоритет задач
 

@@ -14,7 +14,7 @@
 
 	3.2. Миграции
 
-	3.3. Представления -
+	3.3. Представления
 
 	3.4. Шаблоны -
 
@@ -24,25 +24,21 @@
 
 	3.7. Формы -
 
-	3.8. Кэширование -
+	3.8. Логгирование -
 
-	3.9. Логгирование -
+	3.9. Статические файлы - (сюда, как подключить и где хранить)
 
-	3.10. Статические файлы -
+	3.10. Медиа файлы - (сюда, как подключить и где хранить)
 
-	3.11. Медиа файлы -
+	3.11. Сигналы -
 
-	3.12. Сигналы -
+	3.12. Безопасность - (сюда просто, что есть в django)
 
-	3.13. Безопасность -
+	3.13. Интерфейс администратора -
 
-	3.14. Локализация -
+	3.14. Запросы -
 
-	3.15. Интерфейс администратора -
-
-	3.16. Запросы -
-
-	3.17. Аутентификация -
+	3.15. Аутентификация
 	
 1.1. Создание проекта
 
@@ -730,8 +726,177 @@
 
 		Так же уществуют общие классы представления для работы с датами: DateDetailView, TodayArchiveView, DayArchiveView, WeekArchiveView, MonthArchiveView, YearArchiveView. ArchiveIndexView.
 
-		Миксины классов представлений
+		Миксины
 
-			Хранят в себе общие некий общий вспомогательный функционал для классов представлений.
+			Это классы, которые хранят в себе общий код для повторного использования в других классах.
 
-			...
+			Чем больше реализация методов будет размазана по примесям, тем сложнее будет читать дочерний класс и понимать что же он всё-таки делает, какие методы откуда берутся и какие методы уже перекрыты в родительских классах. Поэтому с миксинами лучше не грубить.
+
+				class AjaxableResponseMixin(object):
+				    def form_invalid(self, form):
+				        response = super(AjaxableResponseMixin, self).form_invalid(form)
+				        if self.request.is_ajax():
+				            return JsonResponse(form.errors, status=400)
+				        else:
+				            return response
+
+				    def form_valid(self, form):
+				        response = super(AjaxableResponseMixin, self).form_valid(form)
+				        if self.request.is_ajax():
+				            data = {
+				                'pk': self.object.pk,
+				            }
+				            return JsonResponse(data)
+				        else:
+				            return response
+
+				class AuthorCreate(AjaxableResponseMixin, CreateView):
+				    model = Author
+				    fields = ['name']
+
+			Миксины классов представлений
+
+				ContextMixin - для работы с контекстом шаблона
+
+				TemplateResponseMixin - для работы с шаблоном
+
+				SingleObjectMixin - для работы с одиночным объектом
+
+				SingleObjectTemplateResponseMixin - для работы с шаблоном и одиночным объектом
+
+				MultipleObjectMixin - для работы с множеством объектов
+
+				MultipleObjectTemplateResponseMixin - для работы с множеством объектов и шаблоном
+
+				FormMixin - для создания и отображения формы
+
+				ModelFormMixin - для создания и отображения модельной формы
+
+				ProcessFormView - для работы с формой в рамках GET и POST запросов
+
+				DeletionMixin - для работы с удалением
+
+				YearMixin, MonthMixin, DayMixin, WeekMixin, DateMixin - для работы с датами
+
+				Подробней смотреть здесь:
+
+					https://docs.djangoproject.com/en/2.2/ref/class-based-views/mixins/
+
+		Декорирование представлений классов
+
+			Расширение представлений-классов не ограничивается использованием миксинов, также можно подключить декораторы.
+
+			Для декорирования каждого метода представления класса, нужно декорировать метод dispatch().
+
+				Метод класса не то же самое, что и обычная функция, к нему просто так применить декоратор не получится.
+
+				Нужно сначала преобразовать его в метод декоратор. Для этого существует декоратор method_decorator.
+
+					@method_decorator(login_required)
+					def dispatch(self, *args, **kwargs):
+					    return super(ProtectedView, self).dispatch(*args, **kwargs)
+
+					Также вы можете декорировать класс, указав название методы, которые необходимо декорировать, в аргументе name.
+
+						@method_decorator(login_required, name='dispatch')
+						class ProtectedView(TemplateView):
+						    template_name = 'secret.html'
+
+					Если у вас есть список декораторов, которые используются в нескольких местах, вы можете указать список или кортеж декораторов и использовать его в method_decorator() несколько раз. При этом декораторы обрабатывают запрос в указанном порядке.
+
+						decorators = [never_cache, login_required]
+
+						@method_decorator(decorators, name='dispatch')
+						class ProtectedView(TemplateView):
+						    template_name = 'secret.html'
+
+		Обработка форм с помощью представлений классов
+
+			class MyFormView(View):
+			    form_class = MyForm
+			    initial = {'key': 'value'}
+			    template_name = 'form_template.html'
+
+			    def get(self, request, *args, **kwargs):
+			        form = self.form_class(initial=self.initial)
+			        return render(request, self.template_name, {'form': form})
+
+			    def post(self, request, *args, **kwargs):
+			        form = self.form_class(request.POST)
+
+			        if form.is_valid():
+			            return HttpResponseRedirect('/success/')
+			        return render(request, self.template_name, {'form': form})
+
+3.4. Шаблоны
+
+	Стоп - https://djbook.ru/rel1.9/topics/templates.html (Язык шаблонов Django)
+
+	Шаблон - это просто текстовый файл, или строка Python.
+
+	Шаблоны содержат статический HTML и динамические данные.
+
+	Загрузка шаблона включает в себя поиск шаблона по названию и предварительную обработку, обычно выполняется загрузка шаблона в память. 
+
+	Рендеринг означает передачу данных контекста в шаблон и возвращение строки с результатом.
+
+	Шаблоны можно настроить с помощью настройки TEMPLATES, но по умолчанию они настроенны нормально.
+
+	Для загрузки шаблона рекомендуется использовать метод get_template или select_template.
+
+	Если вызвать get_template('story_detail.html'), Django будет искать следующие файлы:
+
+		/home/html/example.com/story_detail.html
+
+	Вы можете использовать select_template для гибкой загрузки шаблонов. 
+
+		Например, вы написали новость и хотите использовать другой шаблон для некоторых новостей. 
+
+		Вы можете использовать select_template(['story_%s_detail.html' % story.id, 'story_detail.html']). 
+
+		Это позволить создать отдельный шаблон для определенных новостей, а для всех остальных использовать шаблон по умолчанию.
+
+	Ребята из 'two scoops of django' предлагают использовать Jinja2.
+
+	Структура by 'two scoops of django'
+
+		2-ух уровневая
+
+			templates/
+
+				base.html
+
+				profiles/
+
+					profile_detail.html # extends base.html
+
+					profile_form.html # extends base.html
+
+		3-х уровневая
+
+			Подходит для сайтов с совершенно разными макетами для каждой страницы.
+
+			templates/
+
+				base.html
+
+				profiles/
+
+					base_profiles.html # extends base.html
+
+					profile_detail.html # extends base_profiles.html
+
+					profile_form.html # extends base_profiles.html
+
+	Язык шаблонов
+
+
+3.15. Аутентификация
+
+	https://djbook.ru/rel1.9/topics/auth/index.html
+
+	https://djbook.ru/rel1.9/topics/auth/default.html
+
+	https://docs.djangoproject.com/en/2.2/topics/auth/
+
+	https://docs.djangoproject.com/en/2.2/topics/auth/default/
