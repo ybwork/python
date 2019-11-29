@@ -16,9 +16,9 @@
 
 	3.3. Представления
 
-	3.4. Шаблоны -
+	3.4. Шаблоны
 
-	3.5. Url-ы -
+	3.5. Url-ы
 
 	3.6. Тесты -
 
@@ -26,17 +26,17 @@
 
 	3.8. Логгирование -
 
-	3.9. Статические файлы - (сюда, как подключить и где хранить)
+	3.9. Статические файлы - (сюда, как подключить и где хранить) Стоп
 
 	3.10. Медиа файлы - (сюда, как подключить и где хранить)
 
 	3.11. Сигналы -
 
-	3.12. Безопасность - (сюда просто, что есть в django)
+	3.12. Безопасность
 
 	3.13. Интерфейс администратора -
 
-	3.14. Запросы -
+	3.14. Запросы
 
 	3.15. Аутентификация
 	
@@ -617,6 +617,8 @@
 
     		Берет из бд и отображает детальную информацию одного объекта.
 
+    		Будет искать шаблон в myapp/modelname_detail.html
+
     		class PublisherDetailView(DetailView):
 			    model = Publisher
 
@@ -625,6 +627,8 @@
 			Берет из бд и отображает список объектов.
 
 			В шаблоне список всех объектов по умолчанию будет в object_list или modelname_list.
+
+			Если не указать template_name, то будет искать appname/modelname_list.html
 
 			class PublisherListView(ListView):
     			model = Publisher
@@ -636,6 +640,8 @@
 		FormView
 
 			Для работы с формой (инициализирующий GET запрос, POST с верными или неверными данными).
+
+			Полюбому нужно указывать template_name.
 
 			forms.py
 
@@ -657,6 +663,8 @@
 			Для создания объекта.
 
 			Если вы указали и fields и form_class, будет вызвано исключение ImproperlyConfigured.
+
+			Будет искать шаблон в appname/modelname_form.html
 
 			class AuthorCreateView(CreateView):
 			    model = Author
@@ -706,11 +714,17 @@
 
 			Если вы указали и fields и form_class, будет вызвано исключение ImproperlyConfigured.
 
+			Необходимо указать template_name_suffix.
+
+			Будет искать шаблон appname/modelname_update_form.html
+
 			class AuthorUpdateView(UpdateView):
 			    model = Author
 
 			    # поля формы для редактирования
 			    fields = ['name']
+
+			    template_name_suffix = '_update_form'
 
 		DeleteView
 
@@ -830,19 +844,70 @@
 
 3.4. Шаблоны
 
-	Стоп - https://djbook.ru/rel1.9/topics/templates.html (Язык шаблонов Django)
-
 	Шаблон - это просто текстовый файл, или строка Python.
 
 	Шаблоны содержат статический HTML и динамические данные.
 
-	Загрузка шаблона включает в себя поиск шаблона по названию и предварительную обработку, обычно выполняется загрузка шаблона в память. 
+	Шаблоны стоит хранить внутри каждого приложения, а не в корневой директории, чтобы не было хаоса.
+
+		По умолчанию django будет искать шаблон в nameapp/templates/nameapp/
+
+		Пример структуры хранения шаблонов:
+
+			nameapp/templates/nameapp/author_list.html
+
+	В корневой директории следует хранить только общие шаблоны.
+
+		Для того, чтобы django искал шаблоны и в корневой директории нужно в корневой директории создать директорию 'templates' и в settings.py написать так:
+
+			TEMPLATES = [
+			    {
+			        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+			        'DIRS': [BASE_DIR, 'templates']
+			        ...
+			    },
+			]
+
+			В списке DIRS хранятся пути для дополнительного поиска шаблонов.
+
+	Основные конструкции внутри шаблона это переменные, теги, фильтры и комментарии.
+
+		{{ first_name }} - переменная
+
+		{% if ... %} ... {% endif %} - тег
+
+		{{ django|title }} - фильтр
+
+		{# this won't be rendered #} - комментарии
+
+		{% comment "optional note" %} ... {% endcomment %} - многострочный комментарий
+
+	Загрузка шаблона включает в себя поиск шаблона по названию, его обработку и рендеринг. 
 
 	Рендеринг означает передачу данных контекста в шаблон и возвращение строки с результатом.
 
+	Рендеринг заменяет переменные на их значения, которые ищутся в контексте, и выполняет теги.
+
 	Шаблоны можно настроить с помощью настройки TEMPLATES, но по умолчанию они настроенны нормально.
 
-	Для загрузки шаблона рекомендуется использовать метод get_template или select_template.
+	Для загрузки шаблона можно использовать методы get_template или select_template.
+
+		from django.template import RequestContext, loader
+
+		def index(request):
+		    question_list = Question.objects.all()
+		    template = loader.get_template('polls/index.html')
+		    context = RequestContext(request, {
+		        'latest_question_list': latest_question_list,
+		    })
+		    return HttpResponse(template.render(context))
+
+	Но гораздо удобней использовать метод render.
+
+		def index(request):
+		    question_list = Question.objects.all()
+		    context = {'question_list': question_list}
+		    return render(request, 'polls/index.html', context)
 
 	Если вызвать get_template('story_detail.html'), Django будет искать следующие файлы:
 
@@ -855,6 +920,100 @@
 		Вы можете использовать select_template(['story_%s_detail.html' % story.id, 'story_detail.html']). 
 
 		Это позволить создать отдельный шаблон для определенных новостей, а для всех остальных использовать шаблон по умолчанию.
+
+	Фильтры
+
+		Фильтры - это просто функции Python (могут принимать или не принимать аргументы)
+
+		Фильтры используются вместе с переменными: {{ name|cut:"0" }}
+
+		Есть ряд встроенных фильтров. Вспомнить о них прежде чем искать нунжный фильтр в катомных.
+
+		Фильтр с аргументом
+
+			{{ name|cut:"0" }}
+
+			def cut(value, arg):
+			    return value.replace(arg, '')
+
+			В данном примере в функцию cut первым аргументом попадет значение переменной name, а вторым значение аргумента - "0"
+
+		Фильтр без аргументов
+
+			{{ name|lower }}
+
+			def lower(value):
+			    return value.lower()
+
+		Наследование
+
+			Позволяет создать шаблон-скелет, который содержит базовые элементы сайта и определяет блоки, которые могут быть переопределены дочерними шаблонами.
+
+				base.html
+
+					<!DOCTYPE html>
+					<html lang="en">
+					<head>
+					    <link rel="stylesheet" href="style.css" />
+					    <title>{% block title %}My amazing site{% endblock %}</title>
+					</head>
+
+					<body>
+					    <div id="sidebar">
+					        {% block sidebar %}
+					        <ul>
+					            <li><a href="/">Home</a></li>
+					            <li><a href="/blog/">Blog</a></li>
+					        </ul>
+					        {% endblock %}
+					    </div>
+
+					    <div id="content">
+					        {% block content %}{% endblock %}
+					    </div>
+					</body>
+					</html>
+
+				product_list.html
+
+					{% extends "base.html" %}
+
+					{% block title %}Products{% endblock %}
+
+					{% block content %}
+						{% for product in product_list %}
+						    <h2>{{ product.name }}</h2>
+						    <p>{{ product.price }}</p>
+						{% endfor %}
+					{% endblock %}
+
+					Если вы используете {% extends %}, он должен быть первым тегом в шаблоне. Иначе наследование не будет работать.
+
+					Тэг extends говорит механизму шаблонов, что этот шаблон наследует другой шаблон. 
+
+					Когда механизм шаблонов выполняет этот шаблон, первым делом находится родительский шаблон.
+
+					Далее механизм шаблонов находит тег block в base.html и заменяет его содержимым дочернего шаблона.
+
+			Если вам необходимо содержимое блока родительского шаблона, используйте переменную {{ block.super }}. Это полезно, если вам необходимо дополнить содержимое родительского блока, а не полностью переопределить его.
+
+		Доп. инфу см. здесь:
+
+			https://djbook.ru/rel1.9/ref/templates/builtins.html
+
+			https://djbook.ru/rel1.9/ref/templates/builtins.html#ref-templates-builtins-filters
+
+			https://djbook.ru/rel1.9/howto/custom-template-tags.html#howto-writing-custom-template-filters
+
+			https://djbook.ru/rel1.9/ref/templates/language.html#template-inheritance
+
+			https://docs.djangoproject.com/en/2.2/ref/templates/builtins
+
+			https://docs.djangoproject.com/en/2.2/ref/templates/builtins/#ref-templates-builtins-filters
+
+			https://docs.djangoproject.com/en/2.2/howto/custom-template-tags/#howto-writing-custom-template-filters
+
+			https://docs.djangoproject.com/en/2.2/ref/templates/language/#template-inheritance
 
 	Ребята из 'two scoops of django' предлагают использовать Jinja2.
 
@@ -890,6 +1049,939 @@
 
 	Язык шаблонов
 
+3.5. Url-ы
+
+	Определяются в файле urls.py
+
+	Когда запрос дошел до django он:
+
+		определяет какой корневой модуль urls.py использовать, по умолчанию это будет файл из project_name/urls.py
+
+			можно явно указать корневой модуль urls.py с помощью ROOT_URLCONF в settings.py
+
+		загружает этот корневой модуль
+
+		ищет в корневом модуле переменную urlpatterns
+
+		перебирает каждый URL-шаблон по порядку, и останавливается при первом совпадении с запрошенным URL-ом
+
+		импортирует и вызывает соответствующее представление передавая туда объет HttpRequest и если есть аргументы
+
+		если нет соответствия, или возникла ошибка на любом из этапов, django вызывает соответствующий обработчик ошибок
+
+	Django использует запрашиваемый url как обычную строку python. 
+
+		Он не учитывает параметры GET, POST и имя домена.
+
+		При запросе к https://www.example.com/category/, django возьмет category/.
+
+	Не нужно добавлять слэш в начале, потому что каждый url содержит его.
+
+	До версии 2.0. найденные аргументы всегда будут строкой, даже если регулярное выражение подразумевает число.
+
+		url(r'^articles/(?P<year>[0-9]{4})/$', views.year_archive)
+
+	Структура
+
+		urls.py
+
+			urlpatterns = [
+				url(r'^home/', views.home, name='home')
+				path('home/', views.home, name='home')
+			]
+
+	Подключение url-ов в корневом urls.py
+
+		Когда проект имеет хотя бы одно приложение, то его url-ы находятся в appname/urls.py
+
+		Эти url-ы нужно подключить в корневой urls.py
+
+		url(r'^categories/', include('category.contact.urls'))
+
+	Старый вариант
+
+		project_name/urls.py
+
+			url(r'^categories/', include('category.urls'))
+
+		category/urls.py
+		
+			url(r'', views.index, name='category-index')
+
+	Новый вариант
+
+		project_name/urls.py
+
+			path('categories/', include('category.urls'))
+
+		category/urls.py
+		
+			path('', views.index, name='category-index')
+
+	Для функций представлений
+
+		url(r'^$', views.home, name='home')
+
+		path('products', views.products), name='home')
+
+	Для классов представлений
+
+		url(r'^$', views.HomeView.as_view(), name='home')
+
+		path('products', views.ProductListView.as_view(), name='home')
+
+	Передача аргументов
+
+		В include
+
+			url(r'^blog/', include('inner'), {'blog_id': 3})
+
+			path('blog/', include('inner'), {'blog_id': 3})
+
+			# в эти два url-a придет аргумент blog_id из include
+			url(r'^archive/$', views.archive),
+    		url(r'^about/$', views.about),
+
+    	В представления
+
+    		url(r'^blog/(?P<year>[0-9]{4})/$', views.year_archive, {'foo': 'bar'})
+
+    		path('blog/<int:id>/', views.year_archive, {'foo': 'bar'})
+
+    	В url
+
+    		url(r'^category/(?P<id>[-\w]+)/$', views.home)
+
+    		path('category/<int:id>/', view.category)
+
+
+    Обращение в других частях приложения
+
+    	В шаблоне
+
+    		{% url 'name-url' arg %}
+
+    	В представлении
+
+    		reverse('name-url', args=(1,))
+
+    		reverse_lazy('name-url', args(2,)) - строит url до загрузки настроек url-ов
+
+    			подходит, когда нужно установить атрибут класса, например success_url для DeleteView
+
+    			подходит для переменной по умолчанию в параметре функции, например def set_url(url=reverse_lazy('name-url'))
+
+    Пространства имен в url-ах
+
+    	Нужно в том случае если имена урлов повторяются, но они находятся в разных приложениях.
+
+    	Для этого нужно
+
+    		app_name = 'author'
+			urlpatterns = [
+				...
+			]
+
+			Теперь ко всем урлам данного приложения можно обращаться так:
+
+				{% url 'author:index' %}
+
+				reverse('polls:index', current_app=self.request.resolver_match.namespace)
+
+3.9. Статические файлы
+
+	Статические файлы - это файлы css, js, шрифты и т.д.
+
+	Описанное ниже подходит только для локальной разработки при DEBUG = True.
+
+	Для production используем nginx.
+
+	По умолчанию django будет искать статические файлы в appname/static/appname/
+
+	Структура
+
+		appname/static/appname/css/
+		appname/static/appname/js/
+		appname/static/appname/fonts/
+
+	Раздача статических файлов при разработке
+
+		В настройках устанавливаем путь до каталога со статическими файлам: STATIC_URL = '/static/'
+
+		В urls.py добавляем к основным, статические (будет работать только при DEBUG=True):
+
+			if settings.DEBUG:
+				urlpatterns + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+		Для загрузки и доступа в шаблоне загружаем статику и используем тэг static
+
+			{% load static %}
+    		<script src="{% static 'category/js/category.js' %}"></script>
+
+    		При использовании тэга static будет искать в http://127.0.0.1:8000/static/category/js/category.js
+
+3.12. Безопасность
+
+	Защита от межсайтового скриптинга (XSS)
+
+		XSS атаки позволяют вставить собственные JS скрипты в браузеры других пользователей и запустить их.
+
+		Это достигается с помощью:
+
+			Предложения пользователю нажать на какую-нибудь кнопку или ссылку.
+
+			Добавить этот скрипт в куки при переходе пользователя на сайт злоумышленника.
+
+		XSS атаки могут происходить из любого недоверенного источника данных, такого как куки или веб сервисы.
+
+		Шаблоны Django экранируют специальные символы, которые обычно создают проблемы для HTML.
+
+		Django не защищает от подобного кода: <style class={{ var }}>...</style>
+
+			Если var содержит 'class1 onmouseover=javascript:func()', то это может вылиться в неавторизованный запуск JavaScript
+
+	Защита от подделки межсайтового запроса (CSRF)
+
+		CSRF атаки позволяют недобросовестному пользователю выполнять действия от имени другого пользователя, без ведома последнего или его согласия.
+
+		Схема работы такая:
+
+			Пользователь прошел аутентификация на сайте платежной системы.
+
+			Пользователь окрыл новую вкладку в браузере и перешел на другой сайт (сайт злоумышленника).
+
+			Сайт злоумышленника тайно сделал запрос от лица пользователя на сайт платежной системы и перевел деньги со счета пользователя на счет злоумышленника.
+
+		CSRF защита проверяет метку с текущим временем в каждом POST запросе.
+
+		Именно поэтому в каждой форме должен быть csrf token.
+
+		При работе через HTTPS, CsrfViewMiddleware будет проверять, что заголовок HTTP Referer установлен на URL того же источника (включая поддомен и порт).
+
+	Защита от внедрения SQL
+
+		Внедрение SQL - это тип атаки, когда недобросовестный пользователь имеет возможность выполнить в базе данных определённый SQL запрос. 
+
+		Результатом выполнения такого запроса может быть удаление или даже утечка данных.
+
+		Такая атака может быть возможна из-за некорректной обработки входных данных, используемых в SQL-запросах.
+
+		Для защиты от данного типа атак необходимо тщательно фильтровать входные параметры.
+
+		Например для MySQL, требуется брать в кавычки все строковые параметры.
+
+		По умолчанию за нас это делает orm, но об этом нужно знать и помнить если мы делаем сырые запросы.
+
+		При использовании Django ORM созданный SQL запрос будет правильно экранирован соответствующим драйвером базы данных.
+
+	Защита от скликивания
+
+		Это тип атаки, когда вредоносный сайт оборачиваем другой сайт фо фрейм и пользователи могут совершать действия на этом сайте ничего не подозревая.
+
+		Django предоставляет защиту от этой атаки в виде модуля X-Frame-Options, который, при использовании соответствующего браузера, может предотвратить отображение сайта внутри фрейма.
+
+	SSL/HTTPS
+
+		При отсутствии HTTPS злоумышленник имеет возможность перехватывать аутентификационные данные или любую другую информацию, передаваемую между клиентом и сервером.
+
+		Настройте перенаправление HTTP запросов на HTTPS.
+
+		Если браузер изначально подключается через HTTP, что характерно для большинства браузеров, есть возможность утечки существующих кук.
+
+	Проверка заголовка хоста
+
+		Клиент отправляет на север заголовок host.
+
+		Поддельный заголовок Host может быть использован для атак CSRF, подмены кэша и для подмены ссылок в сообщениях электронной почты.
+
+		Django использует заголовок Host, предоставляемый клиентом, для создания URL в определённых случаях. 
+
+		Django проверяет этот заголовок относительно параметра конфигурации ALLOWED_HOSTS.
+
+			Но если ваш код получает содержимое заголовка Host напрямую из request.META, то вы игнорируете эту защиту.
+
+	Безопасность сессии
+
+		Поддомены внутри сайта имеют возможность устанавливать куки на клиенте для всего домена.
+
+		Это приводит к возможности управления сессией, если куки принимаются от поддоменов, которые не находятся под управлением доверенных пользователей.
+
+		Например, атакующий может авторизоваться на good.example.com и получить достоверную сессию для своего аккаунта.
+
+		Если у атакующего есть контроль над bad.example.com, он может использовать его для отправки своего ключа сессии вам, так как поддомену разрешено устанавливать куки для *.example.com. 
+
+		Когда вы посетите good.example.com, вы будете авторизован как атакующий и можете непреднамеренно внести важные персональные данные (например, номер кредитной карты) в аккаунт атакующего.
+
+	Контент, загружаемый пользователями
+
+		Если ваш сайт принимает файлы, настоятельно советуем ограничить размер таких загрузок в конфигурации веб сервера для предотвращения атак на отказ сервиса (DOS).
+
+3.14. Запросы
+
+	QuerySet
+
+		Для получения объектов из базы данных, создается QuerySet.
+
+		QuerySet представляет выборку объектов из базы данных.
+
+		Обратиться к менеджерам можно только через класс модели и нельзя через экземпляр.
+
+		После каждого изменения QuerySet, вы получаете новый QuerySet, который никак не связан с предыдущим.
+
+		Создание QuerySet не выполняет запросов к базе данных, пока QuerySet не вычислен.
+
+		Если используется срез, больше нельзя изменять queryset (например, добавлять фильтры, менять сортировку и т.д.).
+
+	Когда вычисляется QuerySet
+		
+		При первом выполнении итерации
+
+			for e in Entry.objects.all():
+	    		print(e.headline)
+
+	    Если будет указан шаг среза
+
+	    	Entry.objects.all()[1:10:2]
+
+	    	Срез без шага возвращает новый не вычисленный QuerySet.
+
+	    Если используется pickle для QuerySet
+
+	    При обращении к св-ву объекта
+
+	    	entry = Entry.objects.all()
+	    	entry.first().name
+
+	    При использовании repr()
+
+	    	repr() используется для строкового представления объекта.
+
+	    При использовании len()
+
+	    	entry_count = len(Entry.objects.all())
+
+	    При использовании list()
+
+	    	entry_list = list(Entry.objects.all())
+
+	    При вычислении булевого значения
+
+	    	if Entry.objects.filter(headline='Test'):
+
+	Кэширование и QuerySet
+
+		Каждый QuerySet содержит кэш, для уменьшения количества запросов.
+
+		В только что созданном QuerySet кеш пустой.
+
+		После вычисления QuerySet Django сохраняет результат запроса в кеше и возвращает необходимый результат.
+
+		Последующие вычисления QuerySet используют кеш.
+
+		Использование print с queryset не заполнит кэш т.к. будет вызван __repr__(), который показывает только часть объектов.
+
+		Этот код создаст два экземпляра QuerySet и вычислит их не сохраняя. Это означает, что один и тот же запрос будет выполнен дважды, удваивая нагрузку на бд.
+
+			a = [e.headline for e in Entry.objects.all()]
+
+			b = [e.pub_date for e in Entry.objects.all()]
+
+		Чтобы избежать этой проблемы, просто сохраните QuerySet и используйте его повторно:
+
+			queryset = Entry.objects.all()
+
+			# выполнился запрос
+			a = [p.headline for p in queryset]
+
+			# был использован кэш
+			b = [p.pub_date for p in queryset]
+
+		Или загрузите весь QuerySet:
+
+			queryset = Entry.objects.all()
+
+			[entry for entry in queryset]
+
+			# берет из кэша
+			a = queryset[5]
+
+			# берет из кэша
+			b = queryset[5]
+
+		QuerySet не кэшируется при использовании индекса или среза.
+
+			queryset = Entry.objects.all()
+
+			# запрос к базе
+			a = queryset[5]
+
+			# запрос к базе
+			b = queryset[5]
+
+	Создание
+
+		Вы можете использовать get_or_create() с атрибутами ManyToManyField и обратными внешними связями, но это может вызвать некоторые проблемы при создании объектов.
+
+		При использовании bulk_create метод save() не будет вызван, и сигналы pre_save и post_save тоже.
+
+		bulk_create не работает с дочерними моделями при multi-table наследовании и со связями многое-ко-многим.
+
+		Person.objects.create(first_name='Ilya', last_name='Kaduk')
+
+		obj, created = Person.objects.get_or_create(first_name='Ilya', last_name='Kaduk')
+
+		obj, created = Person.objects.update_or_create(first_name='Ilya', last_name='Kaduk')
+
+		Person.objects.bulk_create([
+			Person(first_name='Vika', last_name='Baranova'),
+			Person(first_name='Ilya', last_name='Kaduk'),
+		])
+
+	Копирование
+
+		Связанные объекты не копируются.
+
+		Пример:
+
+			blog = Blog(name='My blog')
+			blog.save()
+
+			blog.pk = None
+			blog.save()
+
+		Если используем наследование моделей:
+
+			class ThemeBlog(Blog):
+			    theme = models.CharField(max_length=200)
+
+			blog = ThemeBlog(name='Django')
+			blog.save()
+
+			blog.pk = None
+			blog.id = None
+			blog.save()
+
+		Для копирования связанных объектов:
+
+			entry = Entry.objects.all()[0]
+
+			old_authors = entry.authors.all()
+
+			entry.pk = None
+			entry.save()
+			entry.authors = old_authors
+
+	Обновление
+
+		Django не выполняет запросов к базе данных, пока не будет вызван метод save().
+
+		offer = Offer.objects.get(name='old_name')
+		offer.name = 'new_name'
+		offer.save()
+
+		Обновление связанных объектов
+
+			joe = Author.objects.create(name="Joe")
+			entry.authors.add(joe)
+
+
+			john = Author.objects.create(name="John")
+			paul = Author.objects.create(name="Paul")
+			entry.authors.add(john, paul)
+
+		Обновление нескольких объектов, которые соотвествуют условию
+
+			Entry.objects.filter(
+				pub_date__year=2007
+			).update(
+				headline='New value'
+			)
+
+		Обновление в связанном объекте
+
+			b = Blog.objects.get(pk=1)
+			Entry.objects.all().update(blog=b)
+
+		Обновление с сохранением каждого объекта в QuerySet и методом save()
+
+			for item in my_queryset:
+			    item.save()
+
+	Выборка 
+
+		Одного
+
+			Entry.objects.get()
+
+			Entry.objects.first()
+
+			Для получения одного объекта, а не списка, используйте индекс вместо среза.
+
+				Entry.objects.all()[0]
+
+		Одного и всех связанных с ним
+
+			blog = Blog.objects.get(pk=1)
+
+			blog.entry__set.all()
+
+			Берет все связанные объекты.
+
+		Всех
+
+			Entry.objects.all()
+
+		Одного/нескольких и связанных с ними
+
+			Entry.objects.select_related('blog').get(pk=5)
+
+			Entry.objects.filter(pub_date__gt=timezone.now()).select_related('blog')
+
+			select_related('foo', 'bar')
+
+
+			select_related включает в выборку данные связанных объектов.
+
+			Это повышает производительность, потому что потом при обращении к связанным объектам они берутся из кэша.
+
+			Работает только со связями один к одному. То есть берет данные только для одного объекта за раз.
+
+			Чтобы очистить список полей указанных ранее select_related для QuerySet, предайте None.
+
+
+			pizza = Pizza.objects.all().prefetch_related('toppings')
+
+			Будет выполнено 2 запроса.
+
+			pizza.toppings.all()
+
+			Этот код аналогичен выполнению self.toppings.all() для каждого объекта Pizza, но будут использоваться данные, из кэша QuerySet.
+
+
+			prefetch_related выбирает данные для каждой связи отдельно.
+
+			Работает со связями один к одному, один ко многим и имногие ко многим.
+
+			Обратите внимание, что будет закэширован также результат выполнения основного QuerySet, а также будут загружены все связанные объекты. Это отличается от стандартного поведения QuerySets, при котором Django старается не загружать связанные данные как можно дольше.
+
+	Фильтрация 
+
+		Entry.objects.filter(pk__in=[1,4,7])
+
+		По связанным объектам
+
+			Entry.objects.filter(blog__name='Beatles Blog')
+
+			Все работает и в другую сторону. Чтобы обратиться к обратной связи, просто используйте имя модели в нижнем регистре или имя указанное в related_name.
+
+				Blog.objects.filter(entry__authors__name='Lennon')
+
+			Если вы используйте фильтр через несколько связей и одна из промежуточных моделей не содержит подходящей связи, Django расценит это как пустое значение
+
+		По связям многие ко многим
+
+			# возьми все с ...=2006, а также с ...='What'
+
+			Entry.objects.filter(
+				pub_date__year=2006
+			).filter(
+				headline__startswith='What'
+			)
+
+			# запись должна удовлетворять оба условия
+
+			Entry.objects.filter(
+				pub_date__year=2006, 
+				headline__startswith='What', 
+				pub_date__gte=datetime(2005, 1, 30)
+			)
+
+		Exclude по связям многие ко многим
+
+			Blog.objects.exclude(
+			    entry__headline__contains='Lennon',
+			    entry__pub_date__year=2008,
+			)
+
+		Фильтры могут ссылаться на поля модели
+
+			Entry.objects.filter(n_comments__gt=F('n_pingbacks'))
+
+		Если необходимо всего лишь узнать содержит ли результат, то эффективнее использовать метод exists()
+
+			Entry.objects.filter(pk=22).exists()
+
+		Другие варианты
+
+			# точное совпадение
+			Entry.objects.filter(headline__exact="Cat bites dog")
+
+			# точное регистро-независимое, совпадение
+			Entry.objects.filter(name__iexact='beatles blog')
+
+			# проверка на вхождение, как Like
+			Entry.objects.filter(headline__contains='Lennon')
+			
+			# знак % экранировать не нужно
+			Entry.objects.filter(headline__contains='%')
+
+			# регистронезависимая проверка на вхождение
+			Entry.objects.filter(headline__icontains='Lennon')
+
+			# больше чем
+			Entry.objects.filter(id__gt=4)
+
+			# больше чем или равно
+			Entry.objects.filter(id__gte=4)
+
+			# меньше чем
+			Entry.objects.filter(id__lt=4)
+
+			# меньше чем или равно
+			Entry.objects.filter(id__lte=4)
+
+			# начинается ли поле с указанного значения
+			Entry.objects.filter(id__startswith=4)
+
+			# регистронезависимая проверка начинается ли поле с указанного значения
+			Entry.objects.filter(id__istartswith=4)
+
+			# проверка оканчивается ли поле с указанного значения
+			Entry.objects.filter(id__endswith=4)
+
+			# регистронезависимая проверка оканчивается ли поле с указанного значения
+			Entry.objects.filter(id__iendswith=4)
+
+			# проверка на вхождение в диапазон (включающий)
+			Entry.objects.filter(pub_date__range=(start_date, end_date))
+
+			# проверка на дату
+			Entry.objects.filter(pub_date__date=datetime.date(2005, 1, 1))
+
+			# проверяет на IS NULL
+			Entry.objects.filter(pub_date__isnull=True)
+
+			# проверяет на IS NOT NULL
+			Entry.objects.filter(pub_date__isnull=False) 
+
+			# полнотекстовый поиск, который использует преимущества полнотекстового индекса. Работает как и contains но значительно быстрее.
+			Entry.objects.filter(headline__search="+Django -jazz Python")
+
+			# проверка регулярным выражением
+			Entry.objects.filter(title__regex=r'^(An?|The) +')
+
+			# регистронезависимая проверка регулярным выражением
+			Entry.objects.filter(title__iregex=r'^(an?|the) +')
+
+	F()
+
+		Экземпляр F() рассматривается как ссылка на другое поле модели.
+
+		Эти ссылки могут быть использованы например для сравнения значений двух разных полей одного объекта модели.
+
+		Так же с помощью экземпляра F() можно получить значение не из кэша queryset.
+
+		Entry.objects.filter(n_comments__gt=F('n_pingbacks'))
+
+	Q()
+
+		Используется для составления сложных выборок с множественными операторами OR, AND.
+
+		Объекты Q могут быть объединены операторами & и |.
+
+		from django.db.models import Q
+
+		Poll.objects.get(
+		    Q(question__startswith='Who'),
+		    Q(pub_date=date(2005, 5, 2)) | Q(pub_date=date(2005, 5, 6))
+		)
+
+			SELECT 
+				* 
+			FROM 
+				polls 
+			WHERE 
+				question 
+			LIKE 
+				'Who%' 
+			AND 
+				(pub_date = '2005-05-02' OR pub_date = '2005-05-06')
+
+	Агрегация
+
+		Позволяют вычислить одно значение из группы значений одного столбца в таблице. 
+
+		Например мы хотим узнать кол-во книг всех авторов или кол-во книг одного автора.
+
+
+		Для всех объектов в целом
+
+			Используется .aggregate()
+
+			aggregate() завершающая инструкция для QuerySet, которая возвращает словарь с результатом.
+
+
+			Book.objects.all().aggregate(Avg('price'))
+
+			Book.objects.aggregate(Avg('price'))
+
+			# Оба запроса выше вычислят результат, который будет доступен по ключу price__avg
+
+			Book.objects.aggregate(Avg('price'), Max('price'), Min('price'))
+
+			# average_price - имя ключа по которому можно получить результат
+			Book.objects.aggregate(average_price=Avg('price'))
+
+		Для каждого объекта
+
+			Используется .annotate()
+
+
+			book = Book.objects.annotate(Count('authors'))
+
+			book[0].authors__count
+
+			book[1].authors__count
+
+			Book.objects.annotate(num_authors=Count('authors'))
+
+			Book.objects.annotate(Count('authors'), Count('chapters'))
+
+
+			Объединение нескольких агрегаций через annotate() может привести к неправильному результату, т.к. объединяются несколько таблиц. Из-за использования LEFT OUTER JOIN могут создаваться дублирующиеся записи, если объединенные таблицы содержат разное количество записей. Однако, агрегация Count принимает аргумент distinct, который может помочь.
+
+				Book.objects.annotate(Count('authors', distinct=True), Count('chapters', distinct=True))
+
+		По связанным моделям
+
+			Store.objects.aggregate(min_price=Min('books__price'))
+
+			Store.objects.annotate(min_price=Min('books__price'))
+
+
+			Store.objects.aggregate(youngest_age=Min('books__authors__age'))
+
+		Обратные связи
+
+			Publisher.objects.annotate(Count('book'))
+
+			# получаем самую старую книгу издателя
+			Publisher.objects.aggregate(oldest_pubdate=Min('book__pubdate'))
+
+		Другие методы и агрегация
+
+			При исользовании будет использовататься тот порядок, который задан, то есть если сначала идет агрегация, а потом фильтрация, то так и будет. И на оборот.
+
+
+			Фильтр ограничит выборку объектов, для которых необходимо выполнить агрегацию.
+
+			Фильтры и exclud-ы можно использовать после агрегации.
+
+
+			Book.objects.filter(name__startswith="Django").annotate(num_authors=Count('authors'))
+
+			Book.objects.annotate(num_authors=Count('authors')).filter(num_authors__gt=1)
+
+		Аннотация и сортировка order_by()
+
+			При исользовании будет использовататься тот порядок, который задан, то есть если сначала идет агрегация, а потом фильтрация, то так и будет. И на оборот.
+
+			Book.objects.annotate(num_authors=Count('authors')).order_by('num_authors')
+
+		Аннотация и values()
+
+			При исользовании будет использовататься тот порядок, который задан, то есть если сначала идет агрегация, а потом фильтрация, то так и будет. И на оборот.
+
+			Вместо того, чтобы вычислить значение для каждого объекта QuerySet, сначала все объекты результата будут разделены на группы по уникальному значению полей, указанных в values().
+
+			А аннотация будет использована для каждой группы и будут использованы значения всех объектов группы.
+
+			Author.objects.values('name').annotate(average_rating=Avg('book__rating'))
+
+				В примере выше, авторы будут сгруппированы по имени, поэтому вы получите средний рейтинг для уникального имени автора. 
+
+				Это означает, что, если в базе есть два автора с одинаковым именем, их результаты будут объединены вместе, а среднее значение будет вычислено, как среднее значение книг обоих авторов.
+
+				Однако, если annotate() используется перед values(), аннотация будет вычислена для каждого объекта и values() просто ограничит возвращаемые поля.
+
+		Влияние сортировки по-умолчанию и order_by()
+
+			Если в модели задана сортировка по умолчанию, то она будет влиять.
+
+				class Meta:
+					ordering = ['name']
+
+				Чтобы решить проблему нужно убрать сортировку из запроса и добавить нужные поля в values().
+
+					Item.objects.values("data").annotate(Count("id")).order_by()
+
+		Аннотация для агрегации
+
+			Можно использовать если нужно посчитать среднее количество авторов для каждой книги.
+
+				Book.objects.annotate(num_authors=Count('authors')).aggregate(Avg('num_authors'))
+
+	Удаление
+
+		entry = Entry.objects.first()
+		entry.delete()
+
+		Entry.objects.filter(pub_date__year=2005).delete()
+
+	Использование чистого SQL
+
+		Использование модели
+
+			Этот вариант выполняет запрос и возвращает RawQuerySet.
+
+			RawQuerySet может быть проитерирован (как и обычный QuerySet) для получения объектов.
+
+				Хотя RawQuerySet и можно проитерировать как QuerySet, RawQuerySet не предоставляет все методы QuerySet.
+
+			SQL Запрос переданный в .raw() не проверяется.
+
+			Если запрос возвращает не набор записей, вы получите ошибку.
+
+			Выполняя запрос в MySQL, обратите внимание на преобразование типов. 
+
+				Если вы выполняете запрос по текстовому полю, но используете числовое значение, MySQL преобразует все значения поля в число перед сравнением.
+
+				Чтобы избежать этого, используйте значение правильного типа в запросе.
+
+			Person.objects.raw('SELECT * FROM myapp_person')
+
+			for p in Person.objects.raw('SELECT * FROM myapp_person'):
+				print(p)
+
+			first_person = Person.objects.raw('SELECT * FROM myapp_person')[0]
+
+				Если база данных содержит большое количество записей Person, эффективнее ограничить результат выборки на уровне SQL.
+
+					first_person = Person.objects.raw('SELECT * FROM myapp_person LIMIT 1')[0]
+
+			Отложенная загрузка полей
+
+				Есть только одно поле, которое вы обязаны загрузить - первичный ключ.
+
+					Если вы забудете про первичный ключ, будет вызвано исключение InvalidQuery.
+
+				Это означает, что неуказанные в запросе поля будут загружены при обращении к ним.
+
+					for p in Person.objects.raw('SELECT id, first_name FROM myapp_person'):
+						# этого поля не было в запросе и оно загрузилось только сейчас (выполнился ещё один запрос)
+						print(p.last_name)
+
+			Используйте %s в строке с запросом для списка параметров, или %(key)s для словаря(где key будет заменен на значение ключа из словаря), независимо от базы данных.
+
+				lname = 'Doe'
+				erson.objects.raw('SELECT * FROM myapp_person WHERE last_name = %s', [lname])
+
+			Не используйте форматирование строк в запросе!
+
+				При вставке параметров непосредственно в строку запроса, рано или поздно вы станете жертвой атаки с внедрением SQL-кода. 
+
+				query = 'SELECT * FROM myapp_person WHERE last_name = %s' % lname
+				Person.objects.raw(query)
+
+		Выполнение запроса на прямую
+
+			def my_custom_sql(self):
+			    cursor = connection.cursor()
+
+			    cursor.execute('SELECT foo FROM bar WHERE baz = %s', [self.baz])
+
+			    return cursor.fetchone()
+
+			Если необходимо вставить символ процента, необходимо его продублировать.
+
+				cursor.execute("SELECT foo FROM bar WHERE baz = '30%%' AND id = %s", [self.id])
+
+			Если вы используете несколько баз данных, вы можете использовать django.db.connections для получения подключения к конкретной базе данных.
+
+				cursor = connections['my_db_alias'].cursor()
+
+			По умолчанию Python DB API вернет результат без названий полей, то есть вы получите список значений, а не словарь.
+
+				За счет небольшой потери производительности вы можете получить словарь следующим образом:
+
+					def dictfetchall(cursor):
+					    columns = [col[0] for col in cursor.description]
+					    return [
+					        dict(zip(columns, row))
+					        for row in cursor.fetchall()
+					    ]
+	Оптимизация
+
+		Первым делом определите какие запросы выполняются и как быстро.
+
+			from django.db import connection
+
+			connection.queries
+
+			или
+
+			Customer.objects.filter(email='kaduk@gmail.com').query
+
+		Вы также можете использовать сторонние приложения, например, django-debug-toolbar, или инструменты, которые мониторят непосредственно базу данных.
+
+		Следует добавить индексы полям, которые используются в filter(), exclude(), order_by() и др., т.к. они ускоряют поиск по полям.
+
+		Понимание, когда выполняется QuerySets - важная часть для написания эффективного простого кода.
+
+		Понимание кэширования атрибутов QuerySets.
+
+		Шаблонизатор не позволяет использовать скобки и автоматом вызывает функции и методы.
+
+		Будьте внимательны с собственными свойствами - вы должны самостоятельно реализовать кэширование, используя, например, декоратор cached_property.
+
+		Для использования кэширования в QuerySet можно использовать шаблонный тэг with.
+
+		Если у вас очень много объектов, кэширование в QuerySet может использовать большой объем памяти. В этом случае может помочь iterator().
+
+		Выполняйте задачи базы данных в базе данных, а не в Python.
+
+			Самое простое: используйте filter и exclude для фильтрации данных в БД.
+
+			Используйте объект F() для фильтрации по другим полям модели.
+
+		Не совсем переносимый между разными БД, но очень мощный метод - RawSQL, который позволяет добавить SQL непосредственно в запрос. 
+
+		Если не помогает RawSQL, то используйте собственный SQL запрос для получения данных и загрузки в модели.
+
+		Загружайте все данные сразу, если уверены, что будете использовать их.
+
+			Обращение несколько раз к базе данных для получения различных частей одного “массива” данных обычно менее эффективно, чем получение всех данных одним запросом.
+
+			Смотреть select_related и prefetch_related.
+
+		Не получайте данные, которые вам не нужны.
+
+			Смотреть в сторону values() и values_list(), а также defer() и only().
+
+		Вместо загрузки данных в объекты, изменения значений и отдельного их сохранения, используйте update() и delete().
+
+		Используйте значения ключей непосредственно.
+
+			Если вам необходимо только значение внешнего ключа, используйте его, а не обращайтесь к объекту.
+
+				То есть лучше так entry.blog_id, чем так entry.blog.id
+
+		Не сортируйте данные, если вам это не требуется.
+
+			Сортировка требует ресурсы.
+
+			Рандомная сортировка, может быть медленным и сильно нагружать базу данных, поэтому лучше явно задавать.
+
+				Invoice.objects.order_by('?')
+
+			Если модель имеет сортировку по умолчанию (Meta.ordering) и она вам не нужна, уберите её из запроса с помощью order_by() без параметров.
+
+		Используйте общее добавление с помощью bulk_create().
+
+			Это относится и к ManyToManyFields. Так лучше my_band.members.add(me, my_friend), чем так:
+
+				my_band.members.add(me)
+				my_band.members.add(my_friend)
 
 3.15. Аутентификация
 
