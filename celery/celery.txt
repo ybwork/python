@@ -10,7 +10,7 @@
 
 	Советы по работе
 
-	Запуск в фоне
+	Запуск
 
 	Команды
 
@@ -136,17 +136,25 @@
 
 		Процессы, живущие долго, потребляют память, но не освобождают её. Поэтому в контексте использования Celery с ними иногда имеет смысл перезагружать воркеры после выполнения заданного количества тасков. За это отвечает параметр CELERYD_MAX_TASKS_PER_CHILD
 
-Запуск в фоне
+Запуск
 
 	Можно запустить воркеры celery в фоновом режиме.
 
-	celery multi start w1 -A tasks -l info - запускает воркер в фоне
+		celery multi start w1 -A tasks -l info - запускает воркер в фоне
 
-	celery multi restart w1 -A tasks -l info - перезапускает воркер в фоне
+		celery multi restart w1 -A tasks -l info - перезапускает воркер в фоне
 
-	celery multi stop w1 -A proj -l info - останавливает фоновый воркер
+		celery multi stop w1 -A proj -l info - останавливает фоновый воркер
 
-	Логирование работы воркеров по умолчанию будет сохраняться в текущую директорию.
+		Логирование работы воркеров по умолчанию будет сохраняться в текущую директорию.
+
+	Через delay
+
+		from appname.tasks import *
+
+		task_name.delay()
+
+		ClassName().delay()
 
 Canvas
 
@@ -194,7 +202,8 @@ Routing
 
 	celery -A tasks worker -Q queue_name - создаёт воркер с очередью
 
-	add.apply_async((2, 2), queue='hipri')
+	# routing_key это имя по которому можно обратиться к очереди 
+	add.apply_async((2, 2), queue='hipri', routing_key='name_route')
 
 Команды
 

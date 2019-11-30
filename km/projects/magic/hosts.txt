@@ -1,9 +1,0 @@
-Боевой
-
-	ssh devel@192.168.7.76
-
-Тестовый
-
-	ssh devel@10.10.54.42
-
-	www/python/magic
