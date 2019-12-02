@@ -28,7 +28,7 @@
 
 	3.9. Статические файлы
 
-	3.10. Медиа файлы - (сюда, как подключить и где хранить)
+	3.10. Медиа файлы
 
 	3.11. Сигналы -
 
@@ -1411,7 +1411,98 @@ class ProductCardAdminMethodTests(TestCase):
 
 	Медиа файлы - это файлы, которые были загружены пользователем (картинки, текстовые документы и т.д.)
 
+	Когда Django обрабатывает загрузку файла, данные о нем в конце концов попадают в request.FILES
 
+	Если файл меньше 2.5 мегабайт, то до сохранения файла на диск Django поместит его в память.
+
+	Если файл больше 2.5 мегабайт, то до сохранения файла на диск Django запишет его во временный каталог вашей системы.
+
+	Настройки
+
+		Указываем каталог, где будут храниться медиа файлы
+
+			MEDIA_ROOT и STATIC_ROOT должны отличаться
+
+			MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+		Указываем путь, который указывает на каталог с медиа файлами
+
+			MEDIA_URL = '/media/'
+
+			Если вы хотите использовать {{ MEDIA_URL }} в шаблонах, добавьте 'django.template.context_processors.media' в опцию 'context_processors' настройки TEMPLATES.
+
+			'context_processors': [
+                'django.template.context_processors.media'
+            ],
+
+		Добавляем медиа файлы к урлам
+
+			urlpatterns = [
+			] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+	Модель ImageField
+
+		class Car(models.Model):
+		    photo = models.ImageField(upload_to='cars')
+
+		upload_to говорит куда сохранять картинку. При этом будет взят путь из MEDIA_ROOT и внутри него создана директория с именем равным upload_to и туда сохранен файл.
+
+		car.photo
+		car.photo.name
+		car.photo.path
+		car.photo.url
+
+	Модель FileField
+
+		class Report(models.Model):
+		    file = models.FileField(upload_to='documents')
+
+		upload_to говорит куда сохранять файл. При этом будет взят путь из MEDIA_ROOT и внутри него создана директория с именем равным upload_to и туда сохранен файл.
+
+	Форма
+
+		request.FILES будет содержать данные только при POST запросе и если форма содержит enctype="multipart/form-data". В противном случае request.FILES будет пустым.
+
+		class UploadFileForm(forms.Form):
+		    title = forms.CharField(max_length=50)
+		    file = forms.FileField()
+
+		form = UploadFileForm(request.POST, request.FILES)
+		if form.is_valid():
+			# назначаем файл из request.FILES соответствующему полю модели
+            instance = ModelWithFileField(file_field=request.FILES['file'])
+            instance.save()
+
+	Стандартная обработка загруженного файла
+
+		По умолчанию должно обрабатываться автоматом.
+
+		def handle_uploaded_file(f):
+		    with open('some/file/name.txt', 'wb+') as destination:
+		        for chunk in f.chunks():
+		            destination.write(chunk)
+
+		chunks обезопасит вас от нагрузки системы при загрузке большого файла.
+
+	Куда будут сохраняться файлы
+
+		В отличии от статических файлов, медиа файлы храняться в общей директории media (либо в корне проекта, либо на cdn).
+
+		По умолчанию django будет сохранять файл в /mysite/MEDIA_ROOT/upload_to/file.txt
+
+	Подробности
+
+		https://djbook.ru/rel1.9/howto/static-files/index.html
+
+		https://djbook.ru/rel1.9/howto/static-files/deployment.html
+
+		https://djbook.ru/rel1.9/topics/http/file-uploads.html
+
+		https://docs.djangoproject.com/en/2.2/howto/static-files/
+
+		https://docs.djangoproject.com/en/2.2/howto/static-files/deployment/
+
+		https://docs.djangoproject.com/en/2.2/topics/http/file-uploads/
 
 3.12. Безопасность
 
