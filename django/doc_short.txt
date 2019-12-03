@@ -1357,6 +1357,264 @@ class ProductCardAdminMethodTests(TestCase):
 
 		./manage.py test app_name/
 
+3.7. Формы
+
+	Класс Django Form
+
+		Сердце всего механизма – класс Form.
+
+		Класс Form описывает, как работает и показывается форма.
+
+		Поля формы сами являются классами. Они управляют данными формы и выполняют их проверку при отправке формы.
+
+		Каждый тип поля представлен по умолчанию определенным классом Widget.
+
+		При работе с формой мы обычно создаем экземпляр формы в представлении.
+
+	Создание формы
+
+		Создаем в файле forms.py
+
+			from django import forms
+
+			class NameForm(forms.Form):
+			    your_name = forms.CharField(label='Your name', max_length=100)
+
+		Экземпляр Form содержит метод is_valid(), который выполняет проверку всех полей формы
+
+			form = ContactForm(data)
+			form.is_valid()
+
+		Если все данные правильные, это метод:
+
+			вернет True
+
+			добавит данные формы в атрибут cleaned_data
+
+				form.cleaned_data
+
+					form.cleaned_data['author']					
+
+				Также вы можете напрямую обратиться к непроверенным данным через request.POST, но лучше использовать проверенные данные.
+
+		После рендеринга наша форма будет выглядеть следующим образом:
+
+			<label for="your_name">Your name: </label>
+			<input id="your_name" type="text" name="your_name" maxlength="100">
+
+			Тег <form> и кнопку отправки нужно добавить самостоятельно.
+
+				<form action="{% url 'author-create' %}" method="post">
+				    {% csrf_token %}
+				    {{ form }}
+				    <button type="submit" value="Submit"/>
+				</form>
+
+			Все поля формы и их атрибуты будут добавлены в HTML из {{ form }} при рендеринге шаблона.
+
+	Работа с формой в представлении
+
+		def create(request):
+		    if request.method == 'POST':
+		        form = NameForm(request.POST)
+		        if form.is_valid():
+		            return HttpResponseRedirect('/thanks/')
+		    else:
+		        form = NameForm()
+
+		    return render(request, 'name.html', {'form': form})
+
+		Если в представление пришел GET запрос, будет создана пустая форма и добавлена в контекст шаблона для последующего рендеринга.
+
+		Если форма отправлена через POST запрос, представление создаст форму с данными из запроса: form = NameForm(request.POST). Это называется привязать данные к форме.
+
+	Связанные и не связанные с данными формы
+
+		Незаполненная форма не содержит данных, привязанных к её полям и является не связанной.
+
+		Заполненная форма содержит переданную информацию и, следовательно, может быть использована для проверки введённых данных и является связанной.
+
+		Атрибут формы is_bound позволяет узнать связана форма с данными или нет.
+
+	Виджеты
+
+		Каждое поле формы содержит соответствующий класс Widget, который отвечает за создание HTML кода.
+
+		В большинстве случаев поле уже содержит подходящий виджет. Например, по умолчанию поле CharField представлено виджетом TextInput, который создает тег <input type="text"> в HTML.
+
+		Можно переопределить виджет для поля
+
+			class ContactForm(forms.Form):
+			    message = forms.CharField(widget=forms.Textarea)
+
+	Настройки рендеринга формы
+
+		{{ form.as_table }} - выведет поля в таблице
+
+		{{ form.as_p }} - обернет поля в тег p
+
+		{{ form.as_ul }} - выведет поля теге <ul>
+
+	Рендеринг полей вручную
+
+		# возвращает список ошибок, которые не привязаны к конкретному полю
+		{{ form.non_field_errors }}
+
+		<div class="fieldWrapper">
+		    {{ form.message.errors }}
+		    <label for="{{ form.message.id_for_label }}">Your message:</label>
+		    {{ form.message }}
+		</div>
+		<div class="fieldWrapper">
+		    {{ form.sender.errors }}
+		    <label for="{{ form.sender.id_for_label }}">Your email address:</label>
+		    {{ form.sender }}
+		</div>
+
+		Для более гибкой работы с ошибками можно делать так
+
+			{% if form.message.errors %}
+			    <ol>
+			    {% for error in form.message.errors %}
+			        <li><strong>{{ error|escape }}</strong></li>
+			    {% endfor %}
+			    </ol>
+			{% endif %}
+
+	Повторное использование шаблонов форм
+
+		Сохраняем цикл по полям формы в отдельном шаблоне и подключаем его в другие шаблоны с помощью тега include
+
+			form_snippet.html
+
+				{% for field in form %}
+				    <div class="fieldWrapper">
+				        {{ field.errors }}
+				        {{ field.label_tag }} {{ field }}
+				    </div>
+				{% endfor %}
+
+			template_name.html
+
+				{% include "form_snippet.html" %}
+
+		Если объект формы, переданный в шаблон, имеет другое имя в контексте, вы можете создать для него псевдоним.
+
+			{% include "form_snippet.html" with form=comment_form %}
+
+
+
+	Наборы форм
+
+		Позволяют работать с множеством форм на одной странице
+
+			class ArticleForm(forms.Form):
+				title = forms.CharField()
+				pub_date = forms.DateField()
+
+			ArticleFormSet = formset_factory(ArticleForm, extra=2, max_num=1, validate_max=True, min_num=1 validate_min=True)
+
+				extra - кол-во пустых форм
+
+				max_num - ограничивает кол-во пустых форм
+
+				validate_max - проверяет, что общее количество форм, без учета помеченных для удаления, не больше чем max_num (будет ошибка даже если количество инициализированных форм превышает max_num). Независимо от validate_max, если количество форм превышает max_num на более чем 1000, будет ошибка валидации
+
+				validate_min - проверяет, что общее количество форм, без учета помеченных для удаления, больше или равно min_num
+
+	Доступ в шаблоне
+
+			formset = ArticleFormSet(data)
+			return render(request, 'name.html', {'forms': formset})
+
+		При отображении формы в шаблоне, вы можете включать в страницу все управляющие данные с помощью {{ formset_name.management_form }}
+
+			{{ formset_name.management_form }}
+		    {% for form in formset %}
+		        {{ form }}
+		    {% endfor %}
+
+		Использование начальных данных с наборами форм
+
+			formset = ArticleFormSet(
+				initial=[
+					{
+						'title': 'Django is now open source',
+			     		'pub_date': datetime.date.today(),
+			     	}
+				]
+			)
+
+			В данном примере начальные данные будут только у первой формы.
+
+		Проверка набора форм
+
+			formset = ArticleFormSet(data)
+			formset.is_valid()
+
+		Собственная проверка набора форм
+
+			Для этого набор форм имеет метод clean.
+
+				class BaseArticleFormSet(BaseFormSet):
+					def clean(self):
+						if any(self.errors):
+							return
+
+	Модельные формы
+
+		Чаще всего формы аналогичны моделям, поэтому можно создать форму на основе модели.
+
+		Это можно сделать с помощью класса ModelForm.
+
+			class ArticleForm(ModelForm):
+				class Meta:
+					model = Article
+					fields = ['pub_date', 'headline', 'content', 'reporter']
+
+			В итоге форма будет содержать поля указанные в fields и в том же порядке.
+
+		Поле ForeignKey модели представлено полем формы ModelChoiceField.
+
+		Поле ManyToManyField модели представлено полем формы ModelMultipleChoiceField.
+
+		Если для поля модели установлен атрибут choices, тогда для поля формы будет использоваться виджет Select.
+
+			TITLE_CHOICES = (
+			    ('MR', 'Mr.'),
+			    ('MRS', 'Mrs.'),
+			    ('MS', 'Ms.'),
+			)
+
+			class Author(models.Model):
+			    name = models.CharField(max_length=100)
+			    title = models.CharField(max_length=3, choices=TITLE_CHOICES)
+
+	Валидация в ModelForm
+
+		form = ArticleForm(data)
+		form.is_valid()
+
+		Стоп
+
+	Дополнительная инфа
+
+		https://djbook.ru/rel1.9/topics/forms/index.html
+
+		https://djbook.ru/rel1.9/topics/forms/formsets.html
+
+		https://djbook.ru/rel1.9/topics/forms/modelforms.html
+
+		https://djbook.ru/rel1.9/topics/forms/media.html
+
+		https://docs.djangoproject.com/en/3.0/topics/forms/
+
+		https://docs.djangoproject.com/en/2.2/topics/forms/formsets/
+
+		https://docs.djangoproject.com/en/2.2/topics/forms/modelforms/
+
+		https://docs.djangoproject.com/en/2.2/topics/forms/media/
+
 3.9. Статические файлы
 
 	Статические файлы - это файлы css, js, шрифты и т.д.
