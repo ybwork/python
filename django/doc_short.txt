@@ -22,7 +22,7 @@
 
 	3.6. Unit тесты
 
-	3.7. Формы -
+	3.7. Формы
 
 	3.8. Логгирование -
 
@@ -1371,62 +1371,9 @@ class ProductCardAdminMethodTests(TestCase):
 
 		При работе с формой мы обычно создаем экземпляр формы в представлении.
 
-	Создание формы
+		Для дополнительной проверки формы можно переопределить метод clean().
 
 		Создаем в файле forms.py
-
-			from django import forms
-
-			class NameForm(forms.Form):
-			    your_name = forms.CharField(label='Your name', max_length=100)
-
-		Экземпляр Form содержит метод is_valid(), который выполняет проверку всех полей формы
-
-			form = ContactForm(data)
-			form.is_valid()
-
-		Если все данные правильные, это метод:
-
-			вернет True
-
-			добавит данные формы в атрибут cleaned_data
-
-				form.cleaned_data
-
-					form.cleaned_data['author']					
-
-				Также вы можете напрямую обратиться к непроверенным данным через request.POST, но лучше использовать проверенные данные.
-
-		После рендеринга наша форма будет выглядеть следующим образом:
-
-			<label for="your_name">Your name: </label>
-			<input id="your_name" type="text" name="your_name" maxlength="100">
-
-			Тег <form> и кнопку отправки нужно добавить самостоятельно.
-
-				<form action="{% url 'author-create' %}" method="post">
-				    {% csrf_token %}
-				    {{ form }}
-				    <button type="submit" value="Submit"/>
-				</form>
-
-			Все поля формы и их атрибуты будут добавлены в HTML из {{ form }} при рендеринге шаблона.
-
-	Работа с формой в представлении
-
-		def create(request):
-		    if request.method == 'POST':
-		        form = NameForm(request.POST)
-		        if form.is_valid():
-		            return HttpResponseRedirect('/thanks/')
-		    else:
-		        form = NameForm()
-
-		    return render(request, 'name.html', {'form': form})
-
-		Если в представление пришел GET запрос, будет создана пустая форма и добавлена в контекст шаблона для последующего рендеринга.
-
-		Если форма отправлена через POST запрос, представление создаст форму с данными из запроса: form = NameForm(request.POST). Это называется привязать данные к форме.
 
 	Связанные и не связанные с данными формы
 
@@ -1455,7 +1402,18 @@ class ProductCardAdminMethodTests(TestCase):
 
 		{{ form.as_ul }} - выведет поля теге <ul>
 
-	Рендеринг полей вручную
+	Рендеринг полей формы вручную
+
+		<div class="fieldWrapper">
+		    <label for="{{ form.message.id_for_label }}">Your message:</label>
+		    {{ form.message }}
+		</div>
+		<div class="fieldWrapper">
+		    <label for="{{ form.sender.id_for_label }}">Your email address:</label>
+		    {{ form.sender }}
+		</div>
+
+	Рендеринг ошибок формы вручную
 
 		# возвращает список ошибок, которые не привязаны к конкретному полю
 		{{ form.non_field_errors }}
@@ -1481,6 +1439,19 @@ class ProductCardAdminMethodTests(TestCase):
 			    </ol>
 			{% endif %}
 
+	Переопределение сообщения ошибок
+
+		class AuthorForm(ModelForm):
+		    class Meta:
+		        model = Author
+		        fields = ('name', 'title', 'birth_date')
+		        error_messages = {
+		            'name': {
+		                'max_length': _('My custom message'),
+		                'required': _('My custom message')
+		            }
+		        }
+
 	Повторное использование шаблонов форм
 
 		Сохраняем цикл по полям формы в отдельном шаблоне и подключаем его в другие шаблоны с помощью тега include
@@ -1502,7 +1473,64 @@ class ProductCardAdminMethodTests(TestCase):
 
 			{% include "form_snippet.html" with form=comment_form %}
 
+	Указываем какие поля использовать
 
+		fields = '__all__' - используем все поля
+
+		exclude = ['title'] - исключаем поле title
+
+		Если поле модели содержит editable=False, каждая форма, созданная по модели с помощью ModelForm, не будет включать в себя это поле.
+
+	Наследование
+
+		class RestrictedArticleForm(EnhancedArticleForm):
+			class Meta(ArticleForm.Meta):
+
+	Простые формы
+
+		class NameForm(forms.Form):
+		    your_name = forms.CharField(label='Your name', max_length=100)
+
+		Проверка
+
+			form = ContactForm(data)
+			form.is_valid()
+
+			Если все данные правильные, этот метод вернет True и добавит данные формы в атрибут cleaned_data
+
+				form.cleaned_data
+				form.cleaned_data['author']	
+
+		Передача в шаблон
+
+			form = ContactForm(data)
+			return render(request, 'home.html', {'form': form})			
+
+		В шаблоне
+
+			<form action="{% url 'author-create' %}" method="post">
+			    {% csrf_token %}
+			    {{ form }}
+			    <button type="submit" value="Submit"/>
+			</form>
+
+			Все поля формы и их атрибуты будут добавлены в HTML из {{ form }} при рендеринге шаблона.
+
+		Работа в представлении
+
+			def create(request):
+			    if request.method == 'POST':
+			        form = NameForm(request.POST)
+			        if form.is_valid():
+			            return HttpResponseRedirect('/thanks/')
+			    else:
+			        form = NameForm()
+
+			    return render(request, 'name.html', {'form': form})
+
+			Если в представление пришел GET запрос, будет создана пустая форма и добавлена в контекст шаблона для последующего рендеринга.
+
+			Если форма отправлена через POST запрос, представление создаст форму с данными из запроса: form = NameForm(request.POST). Это называется привязать данные к форме.
 
 	Наборы форм
 
@@ -1522,17 +1550,17 @@ class ProductCardAdminMethodTests(TestCase):
 
 				validate_min - проверяет, что общее количество форм, без учета помеченных для удаления, больше или равно min_num
 
-	Доступ в шаблоне
+		Доступ в шаблоне
 
 			formset = ArticleFormSet(data)
 			return render(request, 'name.html', {'forms': formset})
 
-		При отображении формы в шаблоне, вы можете включать в страницу все управляющие данные с помощью {{ formset_name.management_form }}
+			При отображении формы в шаблоне, вы можете включать в страницу все управляющие данные с помощью {{ formset_name.management_form }}
 
-			{{ formset_name.management_form }}
-		    {% for form in formset %}
-		        {{ form }}
-		    {% endfor %}
+				{{ formset_name.management_form }}
+			    {% for form in formset %}
+			        {{ form }}
+			    {% endfor %}
 
 		Использование начальных данных с наборами форм
 
@@ -1590,12 +1618,28 @@ class ProductCardAdminMethodTests(TestCase):
 			    name = models.CharField(max_length=100)
 			    title = models.CharField(max_length=3, choices=TITLE_CHOICES)
 
-	Валидация в ModelForm
+		Класс, унаследованный от ModelForm, может принимать существующий экземпляр модели через именованный аргумент instance.
 
-		form = ArticleForm(data)
-		form.is_valid()
+			article = Article.objects.get(pk=1)
+			form = ArticleForm(request.POST, instance=article)
+			form.save()
 
-		Стоп
+			Если такой аргумент указан, то save() обновит переданную модель. В противном случае, save() создаст новый экземпляр указанной модели.
+
+			Поля, которые не определены в форме, не будут учитываться при вызове метода save().
+
+			По умолчанию поля в ModelForm не локализируют свои данные. Для локализации полей можно использовать параметр localized_fields класса Meta.
+
+		Валидация в ModelForm
+
+			form = ArticleForm(data)
+			form.is_valid()
+
+		Наборы модельных форм
+
+			AuthorFormSet = modelformset_factory(Author, fields=('name', 'title'))
+
+			formset = AuthorFormSet(request.POST)
 
 	Дополнительная инфа
 
@@ -1614,6 +1658,10 @@ class ProductCardAdminMethodTests(TestCase):
 		https://docs.djangoproject.com/en/2.2/topics/forms/modelforms/
 
 		https://docs.djangoproject.com/en/2.2/topics/forms/media/
+
+3.8. Логгирование
+
+	
 
 3.9. Статические файлы
 
