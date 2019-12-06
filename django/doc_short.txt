@@ -1919,6 +1919,91 @@ class ProductCardAdminMethodTests(TestCase):
 
 		https://docs.djangoproject.com/en/2.2/topics/http/file-uploads/
 
+3.11. Сигналы
+
+	Это инструмент, который позволяет одним приложениям получать уведомления от других.
+
+	Сигналы позволяют определённым отправителям уведомлять некоторый набор получателей о совершении действий.
+
+	Сигналы пишут в файле signals.py для каждого приложения.
+
+	Создание сигналов
+
+		import django.dispatch
+
+		pizza_done = django.dispatch.Signal(providing_args=['toppings', 'size'])
+
+			providing_args - список названий аргументов сигнала, которые будут доступны слушателям в списке именованных аргументов **kwargs (никакой проверки, передаёт ли сигнал эти параметры, не выполняется).
+
+	Отправка сигналов
+
+		from pizzas.signals import pizza_done
+
+		pizza_done.send(sender=pizza_done, toppings=toppings, size=size)
+
+		pizza_done.send_robust(sender=pizza_done, toppings=toppings, size=size)
+
+			В отличии от send перехватывает все исключения сгенирированные получателем.
+
+	Получатели
+
+		Это функции, которые обрабатывают сигнал.
+
+		Можно создавать в любых частях приложения. Но мы рекомендуем избегать корневого модуля приложения и models, чтобы сократить побочный эффект при импорте приложения.
+
+		На практике, обработчики сигналов лежат в модуле signals приложения, к которому они относятся.
+
+			def function_name(sender, **kwargs):
+	    		pass
+
+    	Аргументы sender и **kwargs обязательны.
+
+    Регистрация получателя
+
+    	Для того, чтобы прослушивать сигналы, нужно зарегистрировать функцию-получатель.
+
+	    	from django.core.signals import request_finished
+			request_finished.connect(function_name)
+
+			или
+
+			@receiver(signal_name)
+			def function_name(sender, **kwargs):
+		    	pass
+
+	Отключение получателя
+
+		from django.core.signals import request_finished
+		request_finished.disconnect(function_name)
+
+	Встроенные сигналы:
+
+		pre_init - перед вызовом метода __init__ модели
+
+		post_init - после того, как отработал метод __init__ модели
+
+		pre_save - перед вызовом метода save()
+
+		post_save - после вызова метода save()
+
+		pre_delete - перед вызовом метода delete()
+
+		post_delete - после вызова метода delete()
+
+		m2m_changed - после изменения ManyToManyField в модели
+
+		pre_migrate - перед выполнением миграций
+
+		post_migrate - после выполнения миграций
+
+		request_started - перед началом выполнения HTTP запроса
+
+		request_finished - когда заканчивает HTTP запрос
+
+	Дополнительная информация:
+
+		https://djbook.ru/rel1.9/ref/signals.html
+
 3.12. Безопасность
 
 	Защита от межсайтового скриптинга (XSS)
