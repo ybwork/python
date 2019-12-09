@@ -30,11 +30,11 @@
 
 	3.10. Медиа файлы
 
-	3.11. Сигналы -
+	3.11. Сигналы
 
 	3.12. Безопасность
 
-	3.13. Интерфейс администратора -
+	3.13. Интерфейс администратора
 
 	3.14. Запросы
 
@@ -2003,6 +2003,252 @@ class ProductCardAdminMethodTests(TestCase):
 	Дополнительная информация:
 
 		https://djbook.ru/rel1.9/ref/signals.html
+
+		https://docs.djangoproject.com/en/2.1/topics/signals/
+
+3.13. Интерфейс администратора
+
+	Обычно создается в файле admin.py
+
+	Класс ModelAdmin - это отображение модели в интерфейсе администратора.
+
+	При добавлении 'django.contrib.admin' в INSTALLED_APPS setting, Django автоматически ищет модуль admin в каждом приложении и импортирует его.
+
+	Регистрация
+
+		class AuthorAdmin(admin.ModelAdmin):
+		    pass
+		admin.site.register(Author, AuthorAdmin)
+
+		или
+
+		@admin.register(Author)
+		class AuthorAdmin(admin.ModelAdmin):
+		    pass
+
+		или
+
+		@admin.register(Author, Reader, Editor, site=custom_admin_site)
+		class PersonAdmin(admin.ModelAdmin):
+		    pass
+
+	Настройки
+
+		Пишутся внутри класса
+
+			class FlatPageAdmin(admin.ModelAdmin):
+			    fields = ('url', 'title', 'content')
+
+		fields = ('url', 'title', 'content') - какие поля модели должны отображаться
+
+		readonly_fields = ('address_report',) - какие поля модели можно только смотреть, а не редактировать
+
+		fieldsets - позволяет изменить макет страниц добавления и редактирования объекта
+
+		form = PersonForm - для указания формы, по умолчанию ModelForm создается динамически для модели
+
+		list_display = ('first_name', 'last_name') - указывает какие поля отображать на странице списка объектов
+
+		list_filter = ('is_staff', 'company') - чтобы определить фильтры данных в правой панели страницы
+
+		list_per_page = 50 - чтобы определить количество объектов на одной странице, по умолчанию равно 100
+
+		list_select_related = ('author', 'category') - чтобы указать Django использовать select_related() при выборе объектов, может сократить количество запросов на этой странице
+
+		ordering - позволяет определить сортировку
+
+		paginator - для создания постраничного отображения
+
+	Методы
+
+		С помощью методов можно изменить поведение по умолчанию.
+
+		save_model - дополнительные операции до или после сохранения
+
+		delete_model - дополнительные операции до или после удаления
+
+		save_formset - для работы с набором форм
+
+		get_ordering - для переопределения сортировки
+
+		get_search_results - фильтрует список объектов в соответствии с параметрами поиска
+
+		save_related - дополнительные операции до или после сохранения связанных объектов
+
+		get_readonly_fields - работает с полями, которые только для чтения
+
+		get_list_display - аботает с полями, которые для отображения на странице списка объектов
+
+		get_urls - для добавляения своих url-ов
+
+		get_form - для работы с формой создания и редактирования
+
+		has_add_permission/has_change_permission/has_delete_permission = True/False - позволяет или ограничивает возможнось добавлять, изменять или удалять объект
+
+		message_user - для работы с отправкой сообщений
+
+		response_add - при создании вызывается поле отправки формы и после сохранения объекта и всех связанных объектов
+
+		response_change - при редактировании вызывается поле отправки формы и после сохранения объекта и всех связанных объектов
+
+		response_delete - при удалении вызывается поле отправки формы и после сохранения объекта и всех связанных объектов
+
+		add_view - для страницы добавления объекта модели
+
+		change_view - для страницы редактирования объекта модели
+
+		changelist_view - для страницы отображения всех объектов
+
+		delete_view - для страницы подтверждения удаления
+
+		history_view - для страницы истории изменений объекта
+
+	Добавление статических файлов
+
+		Будут искаться в директории из STATIC_ROOT.
+
+		class ArticleAdmin(admin.ModelAdmin):
+		    class Media:
+		        css = {
+		            "all": ("my_styles.css",)
+		        }
+		        js = ("my_code.js",)
+
+		Если вы хотите использовать jQuery в собственных JavaScript файлах без добавления еще одной копии, вы можете использовать объект django.jQuery
+
+	Дополнительная проверка данных
+
+		class ArticleAdmin(admin.ModelAdmin):
+		    form = MyArticleAdminForm
+
+		class MyArticleAdminForm(forms.ModelForm):
+		    def clean_name(self):
+		        return self.cleaned_data["name"]
+
+	Объект InlineModelAdmin
+
+		Для редактирования связанных объектов на одной странице с родительским объектом.
+
+		Django предоставляет два подкласса InlineModelAdmin: TabularInline и StackedInline. Разница между ними только в используемом шаблоне.
+
+		class BookInline(admin.TabularInline):
+		    model = Book
+
+		class AuthorAdmin(admin.ModelAdmin):
+		    inlines = [
+		        BookInline,
+		    ]
+
+	Переопределение шаблонов
+
+		Шаблоны интерфейса администратора находятся в каталоге contrib/admin/templates/admin.
+
+		Чтобы переопределить шаблоны, для начала создайте каталог admin в каталоге templates проекта.
+
+			templates/admin
+
+		В каталоге admin создайте подкаталоги с названием приложений.
+
+			templates/admin/products
+
+		В этих подкаталогах создайте подкаталоги для моделей.
+
+			templates/admin/products/product
+
+		Создайте шаблон, который нужно изменить
+
+			templates/admin/products/product/change_list.html
+
+		Измените шаблон
+
+			Для изменения нужно переопределять блоки
+
+			{% extends "admin/change_form.html" %}
+			{% load i18n admin_urls %}
+			{% block object-tools-items %}
+			    <li>
+			        <a href="{% url opts|admin_urlname:'history' original.pk|admin_urlquote %}" class="historylink">{% trans "History" %}</a>
+			    </li>
+			    <li>
+			        <a href="mylink/" class="historylink">My Link</a>
+			    </li>
+			    {% if has_absolute_url %}
+			        <li>
+			            <a href="{% url 'admin:view_on_site' content_type_id original.pk %}" class="viewsitelink">{% trans "View on site" %}</a>
+			        </li>
+			    {% endif %}
+			{% endblock %}
+
+			Список шаблоных для переопределения:
+
+				app_index.html
+
+				change_form.html
+
+				change_list.html
+
+				delete_confirmation.html
+
+				object_history.html
+
+	Добавление экземпляра AdminSite в url-ы
+
+		urlpatterns = [
+		    url(r'^admin/', admin.site.urls),
+		]
+
+		или
+
+		from myproject.admin import basic_site, advanced_site
+
+		urlpatterns = [
+		    url(r'^basic-admin/', basic_site.urls),
+		    url(r'^advanced-admin/', advanced_site.urls),
+		]
+
+	Добавление возможности сброса пароля
+
+		Помимо url(r'^admin/', admin.site.urls) добавляем в url-ы следующий код:
+
+			url(r'^admin/password_reset/$', auth_views.password_reset, name='admin_password_reset'),
+
+			url(r'^admin/password_reset/done/$', auth_views.password_reset_done, name='password_reset_done'),
+
+			url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>.+)/$', auth_views.password_reset_confirm, name='password_reset_confirm'),
+
+			url(r'^reset/done/$', auth_views.password_reset_complete, name='password_reset_complete')
+
+	Имена url-ов
+
+		Django сгенерирует сам по схеме
+
+			app_label_model_name_changelist - список объектов
+
+			app_label_model_name_add - добавления объекта
+
+			app_label_model_name_history - история
+
+			app_label_model_name_delete - удаление объекта
+
+			app_label_model_name_change - изменение объекта
+
+			auth_user_password_change - смена пароля
+
+		Поэтому если нужно обратиться, то url будет такой: products_product_changelist
+
+		Для обращение через reverse или url нужно написать так: admin:products_product_changelist
+
+	Нюансы
+
+		response.context['cl'].queryset - доступ к списку сущности
+
+		self.kwargs - доступ к GET параметрам, не работает в actions
+
+		request.get_full_path() - позовляет получить полный путь запроса, вместе с GET параметрами
+
+		Если и ModelForm и ModelAdmin определяют опцию exclude, ModelAdmin будет иметь больший приоритет.
+
+		Чтобы переопределить шаблоны главной страницы и страниц входа/выхода, лучше создать собственный экземпляр AdminSite и изменить свойства AdminSite.index_template , AdminSite.login_template и AdminSite.logout_template.
 
 3.12. Безопасность
 
