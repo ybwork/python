@@ -145,27 +145,99 @@
 
 	Структура
 
+		...
+
 	Запуск
 
-	База
+		./manage.py runserver --settings=config.settings.local
 
 	Миграции
 
+		Будут создаваться в директории migrations для каждого приложения.
+
+		./manage.py migrate --settings=config.settings.local
+
 	Тесты
+
+		...
 
 	Шаблоны
 
+		В local.py TEMPLATES задаем 'DIRS': [os.path.join(PROJECT_ROOT, 'project_name/templates/')]
+
+		Создаем в project_name/project_name/ директорию templates/
+
+		Создаем базовый шаблон внутри директории templates/, например templates/base.html
+
+		Для каждого приложения создаем директорию внутри templates/ с именем приложения, например project_name/project_name/templates/products
+
+		Создаем внутри директории с именем приложения файл шаблона, например project_name/project_name/templates/products/product_list.html
+
+		Для обращения внутри view пишем путь в формате 'app_name/template_name.html', например 'products/product_list.html' 
+
 	Статика
+
+		Моя
+
+			В local.py добавляем:
+
+				STATIC_URL = '/static/'
+
+				STATIC_ROOT = os.path.join(PROJECT_ROOT, 'project_name/static/')
+
+			В project_name/project_name/ создаем директорию static
+
+			Выполняем команду для сборки.
+
+		Библиотеки
+
+			В local.py добавляем:
+
+				STATICFILES_DIRS = [
+				    os.path.join(PROJECT_ROOT, 'node_modules')
+				]
+
+			В project_name/ создаем директорию node_modules
+
+			В project_name/ создаем файл package.json
+
+				{
+				  "name": "project_name",
+				  "version": "1.0.0",
+				  "private": true,
+				  "dependencies": {
+				    "jquery": "",
+				    "uikit": ""
+				  }
+				}
+
+			В терминале выполняем команду для установки: npm i
+
+			Выполняем команду для сборки.
+
+		Сборка 
+
+			./manage.py collectstatic --settings=config.settings.local
 
 	Логгирование
 
+		...
+
 	Медиа
+
+		...
 
 	Кэширование
 
+		...
+
 	Celery
 
+		...
+
 	Readmy
+
+		...
 
 1.4. Приложения проекта от Two scoops of Django
 
