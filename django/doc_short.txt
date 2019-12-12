@@ -4,7 +4,7 @@
 
 	1.2. Структура проекта от Two scoops of Django
 
-	1.3. Настройка проекта -
+	1.3. Локальная настройка проекта -
 
 	1.4. Приложения проекта от Two scoops of Django
 
@@ -40,7 +40,9 @@
 
 	3.15. Аутентификация
 
-	3.16. Советы
+	3.16. Кэширование
+
+	4.1. Советы
 	
 1.1. Создание проекта
 
@@ -141,7 +143,7 @@
 			    os.path.join(PROJECT_ROOT, 'node_modules')
 			]
 
-1.3. Настройка проекта
+1.3. Локальная настройка проекта
 
 	Структура
 
@@ -156,10 +158,6 @@
 		Будут создаваться в директории migrations для каждого приложения.
 
 		./manage.py migrate --settings=config.settings.local
-
-	Тесты
-
-		...
 
 	Шаблоны
 
@@ -221,9 +219,136 @@
 
 	Логгирование
 
-		...
+		В local.py добавляем:
+
+			LOGGING = {
+			    'version': 1,
+			    'disable_existing_loggers': False,
+			    'handlers': {
+			        'file': {
+			            'level': 'WARNING',
+			            'class': 'logging.FileHandler',
+			            'filename': os.path.join(PROJECT_ROOT, 'project_name/logs/warning.log'),
+			        },
+			        'mail_admins': {
+			            'level': 'ERROR',
+			            'class': 'django.utils.log.AdminEmailHandler'
+			        }
+			    },
+			    'loggers': {
+			        'default': {
+			            'handlers': ['mail_admins', 'file'],
+			            'level': 'ERROR',
+			            'propagate': True,
+			        }
+			    }
+			}
+
+			EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+			EMAIL_FILE_PATH = os.path.join(PROJECT_ROOT, 'project_name/templates/emails/')
+
+		В project_name/project_name/ создаем директорию logs
+
+			Внутри будет автоматом создаваться файл warning.log и туда будут писаться логи
+
+		В project_name/project_name/templates создаем директорию emails
+
+			Внутри будет автоматом создаваться файлы-сообщения (.log), имитирующие реальные сообщения из почты
+
+		Для проверки в любом view пишем: 
+
+			logger.error('Something went wrong!')
+
+	Отправка почты
+
+		В local.py добавляем:
+
+			EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+			EMAIL_FILE_PATH = os.path.join(PROJECT_ROOT, 'project_name/templates/emails/')
+
+		В project_name/project_name/templates создаем директорию emails
+
+			Внутри будет автоматом создаваться файлы-сообщения (.log), имитирующие реальные сообщения из почты
+
+		Для проверки в любом view пишем:
+
+			send_mail(
+				subject='Subject here',
+				message='Here is the message.',
+				from_email='from@example.com',
+				recipient_list=['to@example.com']
+			)
 
 	Медиа
+
+		В local.py добавляем:
+
+			MEDIA_URL = '/media/'
+			MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'project_name/media/')
+
+		В главный файл с ulrl-ами добавляем:
+
+			urlpatterns = [тут другие url-ы] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+		В project_name/project_name/ добавляем директорию media
+
+		В модель добавляем поле для хранения картинки или файла:
+
+			image = models.ImageField(upload_to='article/')
+
+		В директории media создаем директорию равную директории из upload_to, который находится в поле модели
+
+			Например project_name/project_name/media/article/
+
+		Для проверки
+
+			model.py
+
+				class Article(models.Model):
+				    image = models.ImageField(upload_to='article/')
+
+			view.py
+
+				class ArticleCreateView(CreateView):
+					model = Article
+					fields = ['image', 'price']
+					success_url = reverse_lazy('main:article_list')
+
+
+				class ArticleListView(ListView):
+					model = Article
+
+			urls.py
+
+				app_name = 'main'
+				urlpatterns = [
+				    path(
+				        route='articles/create',
+				        view=views.ArticleCreateView.as_view(),
+				        name='article_create'
+				    ),
+				    path(
+				        route='articles/list',
+				        view=ArticleListView.as_view(),
+				        name='article_list'
+				    )
+				] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+			article_form.html
+
+		        <form method="POST" action="{% url 'main:article_create' %}" enctype="multipart/form-data">
+		            {% csrf_token %}
+		            {{ form }}
+		            <button type="submit">Create</button>
+		        </form>
+
+		    article_list.html
+
+		        {% for article in object_list %}
+		            <img src="{{ article.image.url }}"/>
+		        {% endfor %}
+
+	Тесты
 
 		...
 
@@ -235,7 +360,7 @@
 
 		...
 
-	Readmy
+	Readme
 
 		...
 
@@ -3123,7 +3248,22 @@ class ProductCardAdminMethodTests(TestCase):
 
 	https://docs.djangoproject.com/en/2.2/topics/auth/default/
 
-3.16. Советы
+3.16. Кэширование
+
+	Memcached является самый быстрым и эффективным типом кэша доступный Django.
+
+	Memcached полностью располагается в оперативной памяти.
+
+	Настройка
+	
+		CACHES = {
+		    'default': {
+		        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+		        'LOCATION': '127.0.0.1:11211',
+		    }
+		}
+
+4.1. Советы
 
 	Если нужно например приложение на русском, английском, французском языке, то лучше использовать нижнее подчёркивание _('').
 
