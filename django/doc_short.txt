@@ -4,7 +4,7 @@
 
 	1.2. Структура проекта от Two scoops of Django
 
-	1.3. Локальная настройка проекта -
+	1.3. Локальная настройка проекта two scoops of django -
 
 	1.4. Приложения проекта от Two scoops of Django
 
@@ -77,6 +77,8 @@
 			urls.py
 			wsgi.py
 
+		node_modules/
+
 		docs/
 
 		project_name/
@@ -92,62 +94,37 @@
 		requirements.txt
 		package.json
 
-	Для корректной работы меняем:
+1.3. Локальная настройка проекта by two scoops of django
 
-		local.py
+	Найстройка структуры
 
-			ROOT_URLCONF = 'config.urls'
+		Перешли в место, где храняться виртуальные окружения.
 
-			WSGI_APPLICATION = 'config.wsgi.application'
+		Открыли терминал.
 
-	Запуск и встроенные команды
+		Создали новое виртуальное окружение.
 
-		Теперь к каждой команде добавляем файл с настоойками.
+			virtualenv --python=/usr/bin/python3.6 env_name
 
-			./manage.py runserver --settings=config.settings.local
+		Активировали виртуальное окружение.
 
-	Bootstrap и другие js/css либы
+			. env_name/bin/activate
 
-		Ставим через npm и package.json
+		Установили django
 
-		В итоге в корне проекта появляется директория node_modules
+			pip3 install django
 
-		При деплое руками переносим нужные файлы в директорию static, потому что команда ./manage collectstatic расчитана только на приложения django, а bootstrapp, jquery и т.д. относятся ко всему проекту, а не к конкретному приложению.
+		Создали базовый проект 
 
-	Установка через npm
+			django-admin startproject mysite
 
-		В корне проекта создаем package.json
+		Поменяли структуру проекта согласно структуре из two scoops of django
 
-			У него четкой правил по структуре, поэтому можно не добавлять много.
+	Для корректной работы в local.py
 
-			{
-			  "name": "project_name",
-			  "version": "1.0.0",
-			  "private": true,
-			  "dependencies": {
-			    "bootstrap": "",
-			    "jquery": "",
-			    "popper.js": ""
-			  }
-			}
+		ROOT_URLCONF = 'config.urls'
 
-		В терминале выполняем команду npm i
-
-		Для просмотра установленных пакетов в терминале выполняем npm ls
-
-	Подключение общей статики в шаблонах
-
-		Добавляет путь к общей статике в STATICFILES_DIRS
-
-			STATICFILES_DIRS = [
-			    os.path.join(PROJECT_ROOT, 'node_modules')
-			]
-
-1.3. Локальная настройка проекта
-
-	Структура
-
-		...
+		WSGI_APPLICATION = 'config.wsgi.application'
 
 	Запуск
 
@@ -211,7 +188,11 @@
 
 			В терминале выполняем команду для установки: npm i
 
+			Для просмотра установленных пакетов в терминале выполняем npm ls.
+
 			Выполняем команду для сборки.
+
+			При деплое руками переносим нужные файлы в директорию static, потому что команда ./manage collectstatic расчитана только на приложения django, а bootstrapp, jquery и т.д. относятся ко всему проекту, а не к конкретному приложению.
 
 		Сборка 
 
