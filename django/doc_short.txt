@@ -2,11 +2,11 @@
 
 	1.1. Создание проекта
 
-	1.2. Структура проекта от two scoops of django
+	1.2. Структура проекта by two scoops of django
 
-	1.3. Локальная настройка проекта two scoops of django -
+	1.3. Локальная настройка проекта by two scoops of django -
 
-	1.4. Приложения проекта от Two scoops of Django
+	1.4. Приложения проекта by two scoops of Django
 
 	2. Последовательность действий
 
@@ -62,31 +62,65 @@
 
 		django-admin startproject name_project
 
-1.2. Структура проекта от two scoops of django
+1.2. Структура проекта by two scoops of django
 
 	project_name/
 		config/
+			__init__.py
+			urls.py
+			wsgi.py
 
 			settings/
 				__init__.py
 				local.py
 				production.py
-				...
-
-			__init__.py
-			urls.py
-			wsgi.py
 
 		node_modules/
+			jquery/
+			uikit/
 
 		docs/
 
 		project_name/
+			__init__.py
+			app_name/
+				migrations/
+					__init__.py
+
+				static/
+					app_name/
+						css/
+						js/
+
+				tests
+					__init__.py
+					test_methods.py
+
+				__init__.py
+				admin.py
+				apps.py
+				models.py
+				urls.py
+				views.py
+
+			logs/
+				.gitkeep
+
 			media/
-			name_app/
-			name_app/
+				article/
+				price/
+
 			static/
+				admin/
+				jquery/
+				app_name/
+
 			templates/
+				auth/
+				emails/
+					.gitkeep
+				main/
+				base.html
 
 		.gitignore
 		README.rst
@@ -331,7 +365,20 @@
 
 	Тесты
 
-		...
+		Внутри приложения создаем директорию tests в которую кладем __init__.py и test_methods.py
+
+			app_name/
+				tests/
+					__init__.py
+					test_methods.py
+
+		Все методы внутри test_methods.py начинаем со слова test
+
+			class ArticleMethodsTests(TestCase):
+			    def test_article_create(self):
+			        self.assertEqual(1, 0)
+
+		Запускаем с помощью ./manage.py test --settings=config.settings.local
 
 	Кэширование
 
@@ -369,7 +416,7 @@
 
 		...
 
-1.4. Приложения проекта от Two scoops of Django
+1.4. Приложения проекта by two scoops of Django
 
 	Приложения должны делать только одну вещь и делать её хорошо.
 
@@ -1428,41 +1475,43 @@
 
 	Запускаются командой ./manage.py test
 
-	Пример
+	Пример:
 
-class ProductCardAdminMethodTests(TestCase):
-    """Проверяет работу с карточкой товара."""
+		class ProductCardAdminMethodTests(TestCase):
+		    """Проверяет работу с карточкой товара."""
 
-    helper = ProductCardHelper()
-    request = HttpRequest()
+		    helper = ProductCardHelper()
+		    request = HttpRequest()
 
-    def setUp(self):
-        ProductCard.objects.create(
-        	code=3,
-            is_ready=True,
-            is_checked=False,
-            is_actual=True
-        )
+		    def setUp(self):
+		        ProductCard.objects.create(
+		        	code=3,
+		            is_ready=True,
+		            is_checked=False,
+		            is_actual=True
+		        )
 
-    def test_validate_product_card_with_valid_values(self):
-        """Должна успешно пройти валидация карточки товара."""
+		    def test_validate_product_card_with_valid_values(self):
+		        """Должна успешно пройти валидация карточки товара."""
 
-        product_card = self.product_card_qs.get(code=3)
+		        product_card = self.product_card_qs.get(code=3)
 
-        self.request.POST['code'] = product_card.code
-        self.request.POST['is_checked'] = True
+		        self.request.POST['code'] = product_card.code
+		        self.request.POST['is_checked'] = True
 
-        validation_result = self.helper.validate_product_card(
-            request=self.request,
-            product_card_pk=product_card.pk
-        )
+		        validation_result = self.helper.validate_product_card(
+		            request=self.request,
+		            product_card_pk=product_card.pk
+		        )
 
-        self.assertEqual(
-            first=validation_result,
-            second=True
-        )
+		        self.assertEqual(
+		            first=validation_result,
+		            second=True
+		        )
 
 	Класс для теста должен наследоваться от from django.test import TestCase
+
+	Методы тестирования должны начинаться со слова test. Например test_article_create.
 
 	Метод setUp это встроенный метод тестирования, который позволяет создавать тестовые данные в бд в момент. Нужно потому что при прохождении тестов создается пустая бд.
 
