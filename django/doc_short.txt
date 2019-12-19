@@ -410,7 +410,41 @@
 			
 	Celery
 
-		...
+		Должен быть установлен брокер сообщний, например RabbitMQ.
+
+		Заходим в брокер и создаем хост, например project_name.
+
+			В панели rabbitmq переходим в admin - virtual hosts
+
+			Задаем имя и нажимаем Add virtual host
+
+		Устанавливаем celery
+
+			pip install celery
+
+		В файле с настройками проекта задаем настройки для celery
+
+			CELERY_BROKER_URL = 'amqp://user_name:user_password@localhost:5672/host_name'
+
+			CELERY_ACKS_LATE = True
+
+		В poject_name/config/ создаем celery.py
+
+			os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings.local')
+
+			app = Celery('project_name')
+
+			app.config_from_object('django.conf:settings', namespace='CELERY')
+			app.autodiscover_tasks()
+
+		В директории с manage.py создаем файл __init__.py
+
+			from __future__ import absolute_import, unicode_literals
+			from .celery import app as celery_app
+
+			__all__ = ('celery_app',)
+
+			Это гарантирует, что celery загрузится при старте django.
 
 	Readme
 
